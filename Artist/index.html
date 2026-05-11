@@ -25,6 +25,11 @@ body{
   padding:10px;
   text-align:center;
   cursor:pointer;
+  transition:0.2s;
+}
+
+.song:hover,.card:hover{
+  transform:scale(1.03);
 }
 
 img{
@@ -32,6 +37,17 @@ img{
   aspect-ratio:1/1;
   object-fit:cover;
   border-radius:8px;
+}
+
+/* HIGHLIGHTS */
+.song.active{
+  outline:2px solid white;
+  box-shadow:0 0 12px white;
+}
+
+.song.queue{
+  outline:2px solid #00ff7f;
+  box-shadow:0 0 10px #00ff7f;
 }
 
 /* PLAYER */
@@ -59,7 +75,7 @@ img{
   border-radius:6px;
 }
 
-/* buttons */
+/* BUTTONS */
 button{
   background:none;
   border:none;
@@ -73,7 +89,7 @@ button.active{
   text-shadow:0 0 8px white;
 }
 
-/* progress */
+/* PROGRESS */
 .progress-container{
   flex:1;
   height:4px;
@@ -106,7 +122,7 @@ button.active{
   display:none;
 }
 
-/* FULLSCREEN LAYOUT */
+/* FULLSCREEN UI */
 .fullscreen-ui{
   display:none;
   height:100%;
@@ -127,7 +143,7 @@ button.active{
   border-radius:18px;
 }
 
-/* controls */
+/* CONTROLS */
 .controls{
   display:flex;
   gap:15px;
@@ -138,7 +154,7 @@ button.active{
   font-size:28px;
 }
 
-/* full progress */
+/* FULL PROGRESS */
 .full-progress{
   position:absolute;
   bottom:20px;
@@ -227,19 +243,39 @@ let list=[], index=0, artist="";
 let shuffle=false;
 let loop=false;
 
+let songElements=[];
+
 /* TITLE */
 function setPageTitle(text){
   document.getElementById("title").innerText=text;
   document.title=text+" - MusicPlayer";
 }
 
-/* BUTTON UI UPDATE */
+/* BUTTON UI */
 function updateButtons(){
   shuffleBtn.classList.toggle("active", shuffle);
   loopBtn.classList.toggle("active", loop);
 
   shuffleBtnFS.classList.toggle("active", shuffle);
   loopBtnFS.classList.toggle("active", loop);
+}
+
+/* HIGHLIGHTS */
+function updateSongHighlights(){
+
+  songElements.forEach((el,i)=>{
+
+    el.classList.remove("active","queue");
+
+    if(i === index){
+      el.classList.add("active");
+    }
+
+    if(i > index){
+      el.classList.add("queue");
+    }
+
+  });
 }
 
 /* PLAY */
@@ -265,6 +301,7 @@ function playSong(l,i,a){
   document.title=`${s.title} - MusicPlayer`;
 
   updateButtons();
+  updateSongHighlights();
 }
 
 /* PLAY/PAUSE */
@@ -310,7 +347,7 @@ function prevSong(){
   }
 }
 
-/* AUTO LOOP CURRENT */
+/* LOOP END */
 audio.addEventListener("ended",()=>{
   if(loop){
     audio.currentTime=0;
@@ -332,7 +369,7 @@ function toggleFullscreen(){
   }
 }
 
-/* FIX REAL EXIT */
+/* EXIT FIX */
 document.addEventListener("fullscreenchange",()=>{
   if(!document.fullscreenElement){
     player.classList.remove("fullscreen");
@@ -427,6 +464,7 @@ else{
         el.onclick=()=>playSong(data.songs,i,artistName);
 
         songs.appendChild(el);
+        songElements.push(el);
       });
 
     });
