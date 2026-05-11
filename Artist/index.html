@@ -66,6 +66,7 @@
       padding: 10px;
       text-align: center;
       cursor: pointer;
+      transition: 0.2s;
     }
 
     .song:hover {
@@ -161,6 +162,10 @@
       width: 60%;
       max-width: 500px;
     }
+
+    .player.fullscreen .controls button {
+      font-size: 24px;
+    }
   </style>
 </head>
 
@@ -200,38 +205,19 @@ let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
 
-/* 🌈 APPLY THEME */
+/* THEME */
 function applyTheme(theme) {
   if (!theme) return;
-
   document.body.style.background = theme.bg || "#0f0f0f";
   document.documentElement.style.setProperty("--accent", theme.accent || "#ffffff");
 }
 
-/* 🌌 FULLSCREEN */
-function toggleFullscreen() {
-  const player = document.getElementById("player");
-
-  if (!player.classList.contains("fullscreen")) {
-    player.classList.add("fullscreen");
-    document.documentElement.requestFullscreen?.();
-  } else {
-    player.classList.remove("fullscreen");
-    document.exitFullscreen?.();
-  }
-}
-
-document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) {
-    document.getElementById("player").classList.remove("fullscreen");
-  }
-});
-
-/* 🎧 PLAY */
+/* IMAGE */
 function resolveImage(song, artist) {
   return song.image?.trim() || `${artist}/pfp.png`;
 }
 
+/* PLAY SONG */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
@@ -247,7 +233,7 @@ function playSong(list, index, artist) {
   document.getElementById("cover").src = resolveImage(song, artist);
 }
 
-/* ⏪ BACK RULE */
+/* BACK (5s rule) */
 function prevSong() {
   if (audio.currentTime > 5) {
     audio.currentTime = 0;
@@ -272,6 +258,25 @@ function nextSong() {
   }
 }
 
+/* FULLSCREEN */
+function toggleFullscreen() {
+  const player = document.getElementById("player");
+
+  if (!player.classList.contains("fullscreen")) {
+    player.classList.add("fullscreen");
+    document.documentElement.requestFullscreen?.();
+  } else {
+    player.classList.remove("fullscreen");
+    document.exitFullscreen?.();
+  }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) {
+    document.getElementById("player").classList.remove("fullscreen");
+  }
+});
+
 /* PROGRESS */
 audio.addEventListener("timeupdate", () => {
   const bar = document.getElementById("progress");
@@ -292,59 +297,79 @@ document.getElementById("progressContainer").onclick = (e) => {
   audio.currentTime = percent * audio.duration;
 };
 
-/* 📦 AUTO ARTIST LOADER */
-const grid = document.getElementById("grid");
+/* ROUTE */
+const params = new URLSearchParams(window.location.search);
+const artistName = params.get("name");
 
-fetch("./artist.json")
-  .then(res => res.json())
-  .then(artists => {
+/* ARTIST MODE */
+if (!artistName) {
 
-    artists.forEach(name => {
+  fetch("./artist.json")
+    .then(res => res.json())
+    .then(artists => {
 
-      fetch(`${name}/config.json`)
-        .then(res => res.json())
-        .then(data => {
+      artists.forEach(name => {
 
-          const card = document.createElement("div");
-          card.className = "card";
+        fetch(`Artist/${name}/config.json`)
+          .then(res => res.json())
+          .then(data => {
 
-          card.innerHTML = `
-            <img src="${data.image}">
-            <div class="name">${data.artist}</div>
-          `;
+            const card = document.createElement("div");
+            card.className = "card";
 
-          card.onclick = () => {
-            applyTheme(data.theme);
+            card.innerHTML = `
+              <img src="${data.image}">
+              <div class="name">${data.artist}</div>
+            `;
 
-            document.getElementById("grid").style.display = "none";
-            document.getElementById("songs").style.display = "grid";
-            document.getElementById("title").innerText = data.artist;
+            card.onclick = () => {
+              window.location.href = `?name=${encodeURIComponent(name)}`;
+            };
 
-            const songsDiv = document.getElementById("songs");
-            songsDiv.innerHTML = "";
+            document.getElementById("grid").appendChild(card);
 
-            data.songs.forEach((song, i) => {
-              const el = document.createElement("div");
-              el.className = "song";
+          });
 
-              el.innerHTML = `
-                <img src="${resolveImage(song, name)}">
-                <div class="song-title">${song.title}</div>
-              `;
-
-              el.onclick = () => playSong(data.songs, i, name);
-
-              songsDiv.appendChild(el);
-            });
-          };
-
-          grid.appendChild(card);
-
-        });
+      });
 
     });
 
-  });
+}
+
+/* SONG MODE */
+else {
+
+  document.getElementById("grid").style.display = "none";
+  const songsDiv = document.getElementById("songs");
+  songsDiv.style.display = "grid";
+
+  fetch(`Artist/${artistName}/config.json`)
+    .then(res => res.json())
+    .then(data => {
+
+      applyTheme(data.theme);
+
+      document.getElementById("title").innerText = data.artist;
+
+      data.songs.forEach((song, i) => {
+
+        const el = document.createElement("div");
+        el.className = "song";
+
+        el.innerHTML = `
+          <img src="${resolveImage(song, artistName)}">
+          <div class="song-title">${song.title}</div>
+        `;
+
+        el.onclick = () => playSong(data.songs, i, artistName);
+
+        songsDiv.appendChild(el);
+
+      });
+
+    });
+
+}
 
 </script>
 
