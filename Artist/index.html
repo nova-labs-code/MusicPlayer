@@ -90,19 +90,28 @@
       object-fit: cover;
     }
 
+    .controls button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
     .progress-container {
       flex: 1;
       height: 4px;
       background: #333;
-      border-radius: 5px;
-      cursor: pointer;
+      border-radius: 999px;
       overflow: hidden;
+      cursor: pointer;
     }
 
     .progress {
       height: 100%;
       width: 0%;
       background: var(--accent);
+      border-radius: 999px;
     }
 
     .time {
@@ -111,7 +120,7 @@
       text-align: right;
     }
 
-    /* FULLSCREEN FIX */
+    /* FULLSCREEN */
     .player.fullscreen {
       top: 0;
       height: 100vh;
@@ -125,7 +134,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 20px;
+      gap: 18px;
       padding: 30px;
       box-sizing: border-box;
     }
@@ -162,9 +171,10 @@
       cursor: pointer;
     }
 
+    /* slim fullscreen bar */
     .progress-container.big {
       width: min(700px, 85vw);
-      height: 6px;
+      height: 3px;
     }
 
     video {
@@ -196,9 +206,13 @@
       </div>
     </div>
 
-    <button onclick="togglePlay()">⏯</button>
-    <button onclick="togglePiP()">🪟</button>
-    <button onclick="toggleFullscreen()">⛶</button>
+    <div class="controls">
+      <button onclick="prevSong()">⏮</button>
+      <button onclick="togglePlay()">⏯</button>
+      <button onclick="nextSong()">⏭</button>
+      <button onclick="togglePiP()">🪟</button>
+      <button onclick="toggleFullscreen()">⛶</button>
+    </div>
 
     <div class="time" id="time">0:00</div>
   </div>
@@ -214,6 +228,8 @@
       <button onclick="nextSong()">⏭</button>
     </div>
 
+    <button onclick="exitFullscreen()">✕ Exit</button>
+
     <div class="progress-container big" id="progressContainerFull">
       <div class="progress" id="progressFull"></div>
     </div>
@@ -222,7 +238,7 @@
   </div>
 </div>
 
-<!-- PiP engine -->
+<!-- PiP video engine -->
 <video id="pipVideo"></video>
 
 <script>
@@ -232,9 +248,10 @@ let pipVideo = document.getElementById("pipVideo");
 let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
+let isPlaying = false;
 
-/* TITLE RULES */
-function setTitle(mode, song) {
+/* TITLE */
+function setTitle(song) {
   if (song) {
     document.title = `${song} - MusicPlayer`;
   } else if (currentArtist) {
@@ -253,10 +270,12 @@ function playSong(list, index, artist) {
   const song = list[index];
 
   audio.src = `./${artist}/${song.file}`;
-  audio.play();
-
   pipVideo.src = audio.src;
+
+  audio.play();
   pipVideo.play();
+
+  isPlaying = true;
 
   document.getElementById("player").style.display = "block";
 
@@ -267,17 +286,26 @@ function playSong(list, index, artist) {
   document.getElementById("fullTitle").innerText = song.title;
   document.getElementById("fullArtist").innerText = artist;
 
-  setTitle(null, song.title);
+  setTitle(song.title);
 }
 
 /* CONTROLS */
 function togglePlay() {
-  audio.paused ? (audio.play(), pipVideo.play()) : (audio.pause(), pipVideo.pause());
+  if (audio.paused) {
+    audio.play();
+    pipVideo.play();
+    isPlaying = true;
+  } else {
+    audio.pause();
+    pipVideo.pause();
+    isPlaying = false;
+  }
 }
 
 function nextSong() {
-  if (currentIndex < currentList.length - 1)
+  if (currentIndex < currentList.length - 1) {
     playSong(currentList, currentIndex + 1, currentArtist);
+  }
 }
 
 function prevSong() {
@@ -286,8 +314,9 @@ function prevSong() {
     pipVideo.currentTime = 0;
     return;
   }
-  if (currentIndex > 0)
+  if (currentIndex > 0) {
     playSong(currentList, currentIndex - 1, currentArtist);
+  }
 }
 
 /* FULLSCREEN */
@@ -298,17 +327,25 @@ function toggleFullscreen() {
     player.classList.add("fullscreen");
     document.documentElement.requestFullscreen?.();
   } else {
-    player.classList.remove("fullscreen");
-    document.exitFullscreen?.();
+    exitFullscreen();
   }
 }
 
-/* PiP FIX */
+function exitFullscreen() {
+  const player = document.getElementById("player");
+  player.classList.remove("fullscreen");
+  document.exitFullscreen?.();
+}
+
+/* PiP FIXED */
 async function togglePiP() {
   try {
     if (document.pictureInPictureElement) {
       await document.exitPictureInPicture();
     } else {
+      pipVideo.src = audio.src;
+      pipVideo.currentTime = audio.currentTime;
+      await pipVideo.play();
       await pipVideo.requestPictureInPicture();
     }
   } catch (e) {}
@@ -333,9 +370,9 @@ audio.addEventListener("timeupdate", () => {
 
 /* SEEK */
 function seek(e, bar) {
-  const r = bar.getBoundingClientRect();
-  const p = (e.clientX - r.left) / r.width;
-  audio.currentTime = p * audio.duration;
+  const rect = bar.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
   pipVideo.currentTime = audio.currentTime;
 }
 
@@ -378,7 +415,7 @@ else {
   fetch(`./${artistName}/config.json`)
     .then(r => r.json())
     .then(data => {
-      setTitle("artist");
+      setTitle(null);
 
       document.getElementById("title").innerText = data.artist;
 
