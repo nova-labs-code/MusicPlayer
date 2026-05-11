@@ -1,5 +1,5 @@
-let audio = new Audio();
-let list=[], index=0, artist="";
+let audio=new Audio();
+let list=[],index=0,artist="";
 
 let shuffle=false;
 let loopMode="none";
@@ -15,22 +15,31 @@ function goBack(){
   location.href="?";
 }
 
-/* TITLE */
-function setPageTitle(t){
-  title.innerText=t;
-  document.title=t+" - MusicPlayer";
+/* LOOP TEXT */
+function getLoopText(){
+  if(loopMode==="none") return "Loop: Off";
+  if(loopMode==="song") return "Loop: Current Song";
+  return "Loop: Queue";
 }
 
-/* UI */
+/* UI UPDATE */
 function updateButtons(){
 
-  shuffleBtn.classList.toggle("active", shuffle);
-  shuffleBtnFS.classList.toggle("active", shuffle);
+  shuffleBtn.classList.toggle("active",shuffle);
+  shuffleBtnFS.classList.toggle("active",shuffle);
 
-  loopBtn.classList.toggle("loop-active", loopMode!=="none");
+  [loopBtn,loopBtnFS].forEach(btn=>{
+
+    btn.classList.toggle("loop-active",loopMode!=="none");
+    btn.title=getLoopText();
+  });
+
+  if(loopState){
+    loopState.innerText=getLoopText();
+  }
 }
 
-/* SONG HIGHLIGHT */
+/* HIGHLIGHT */
 function updateSongHighlights(){
 
   songElements.forEach((el,i)=>{
@@ -39,7 +48,6 @@ function updateSongHighlights(){
 
     if(i===index) el.classList.add("active");
     if(i>index) el.classList.add("queue");
-
   });
 }
 
@@ -72,7 +80,7 @@ function playSong(l,i,a){
 
 /* CONTROLS */
 function togglePlay(){
-  audio.paused ? audio.play() : audio.pause();
+  audio.paused?audio.play():audio.pause();
 }
 
 function toggleShuffle(){
@@ -81,8 +89,9 @@ function toggleShuffle(){
 }
 
 function toggleLoop(){
-  loopMode = loopMode==="none" ? "song" :
-             loopMode==="song" ? "queue" : "none";
+  loopMode=
+    loopMode==="none"?"song":
+    loopMode==="song"?"queue":"none";
 
   updateButtons();
 }
@@ -142,10 +151,10 @@ document.addEventListener("fullscreenchange",()=>{
 /* SYNC */
 audio.addEventListener("timeupdate",()=>{
 
-  let pct=(audio.currentTime/audio.duration)*100;
+  let p=(audio.currentTime/audio.duration)*100;
 
-  progMini.style.width=pct+"%";
-  progFull.style.width=pct+"%";
+  progMini.style.width=p+"%";
+  progFull.style.width=p+"%";
 
   let m=Math.floor(audio.currentTime/60);
   let s=Math.floor(audio.currentTime%60);
@@ -168,10 +177,15 @@ barFull.onclick=e=>{
 const params=new URLSearchParams(location.search);
 const artistName=params.get("name");
 
+/* INIT LOOP STATE REF */
+let loopState;
+
+window.addEventListener("DOMContentLoaded",()=>{
+  loopState=document.getElementById("loopState");
+});
+
 /* HOME */
 if(!artistName){
-
-  setPageTitle("🎧 Artists");
 
   backBtn.style.display="none";
 
