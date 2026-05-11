@@ -135,9 +135,6 @@
       text-align: right;
     }
   </style>
-
-  <!-- 🎧 ID3 METADATA LIB -->
-  <script src="https://cdn.jsdelivr.net/npm/music-metadata-browser/dist/music-metadata-browser.min.js"></script>
 </head>
 
 <body>
@@ -177,47 +174,13 @@ let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
 
-/* 🧠 CACHE FOR ID3 ART */
-const mp3Cache = new Map();
-
-/* 🎧 IMAGE PRIORITY SYSTEM */
-async function resolveImage(song, artist) {
-
-  const mp3Path = `${artist}/${song.file}`;
-
-  // 1️⃣ ID3 ALBUM ART (HIGHEST PRIORITY)
-  if (mp3Cache.has(mp3Path)) {
-    return mp3Cache.get(mp3Path);
-  }
-
-  try {
-    const file = await fetch(mp3Path);
-    const buffer = await file.arrayBuffer();
-    const meta = await musicMetadata.parseBlob(new Blob([buffer]));
-
-    const pic = meta.common.picture?.[0];
-
-    if (pic) {
-      const blob = new Blob([pic.data], { type: pic.format });
-      const url = URL.createObjectURL(blob);
-
-      mp3Cache.set(mp3Path, url);
-      return url;
-    }
-
-  } catch (e) {}
-
-  // 2️⃣ CONFIG IMAGE
+/* 🧠 IMAGE RESOLVER (NO ID3, CLEAN) */
+function resolveImage(song, artist) {
   if (song.image && song.image.trim() !== "") {
     return song.image;
   }
 
-  // 3️⃣ ARTIST PFP
-  const pfp = `${artist}/pfp.png`;
-  if (pfp) return pfp;
-
-  // 4️⃣ FALLBACK
-  return DEFAULT_IMAGE;
+  return `${artist}/pfp.png`;
 }
 
 /* 🎧 PLAY SONG */
@@ -234,13 +197,7 @@ function playSong(list, index, artist) {
   document.getElementById("player").style.display = "flex";
   document.getElementById("nowPlaying").innerText = song.title;
 
-  updateCover(song, artist);
-}
-
-/* 🖼️ COVER */
-async function updateCover(song, artist) {
-  const img = await resolveImage(song, artist);
-  document.getElementById("cover").src = img;
+  document.getElementById("cover").src = resolveImage(song, artist);
 }
 
 /* ▶️ CONTROLS */
@@ -261,7 +218,7 @@ function prevSong() {
   }
 }
 
-/* 📊 PROGRESS */
+/* 📊 PROGRESS BAR */
 audio.addEventListener("timeupdate", () => {
   const bar = document.getElementById("progress");
   const percent = (audio.currentTime / audio.duration) * 100;
@@ -284,7 +241,7 @@ document.getElementById("progressContainer").onclick = (e) => {
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("Name");
 
-/* 🏠 ARTIST GRID */
+/* 🏠 ARTIST MODE */
 if (!artistName) {
 
   const artists = ["Alex Warren", "NeonEcho"];
@@ -315,7 +272,7 @@ if (!artistName) {
 
 }
 
-/* 🎤 SONG GRID */
+/* 🎤 SONG MODE */
 else {
 
   document.getElementById("grid").style.display = "none";
@@ -324,21 +281,17 @@ else {
 
   fetch(`${artistName}/config.json`)
     .then(res => res.json())
-    .then(async data => {
+    .then(data => {
 
       document.getElementById("title").innerText = data.artist;
 
-      for (let i = 0; i < data.songs.length; i++) {
-
-        const song = data.songs[i];
+      data.songs.forEach((song, i) => {
 
         const card = document.createElement("div");
         card.className = "song";
 
-        const img = await resolveImage(song, artistName);
-
         card.innerHTML = `
-          <img src="${img}">
+          <img src="${resolveImage(song, artistName)}">
           <div class="song-title">${song.title}</div>
         `;
 
@@ -347,7 +300,8 @@ else {
         };
 
         songsDiv.appendChild(card);
-      }
+
+      });
 
     });
 
