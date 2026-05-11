@@ -162,10 +162,6 @@
       width: 60%;
       max-width: 500px;
     }
-
-    .player.fullscreen .controls button {
-      font-size: 24px;
-    }
   </style>
 </head>
 
@@ -214,7 +210,7 @@ function applyTheme(theme) {
 
 /* IMAGE */
 function resolveImage(song, artist) {
-  return song.image?.trim() || `${artist}/pfp.png`;
+  return song.image?.trim() || `./Artist/${artist}/pfp.png`;
 }
 
 /* PLAY SONG */
@@ -225,7 +221,7 @@ function playSong(list, index, artist) {
 
   const song = list[index];
 
-  audio.src = `${artist}/${song.file}`;
+  audio.src = `./Artist/${artist}/${song.file}`;
   audio.play();
 
   document.getElementById("player").style.display = "flex";
@@ -297,7 +293,7 @@ document.getElementById("progressContainer").onclick = (e) => {
   audio.currentTime = percent * audio.duration;
 };
 
-/* ROUTE */
+/* ROUTING */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("name");
 
@@ -310,7 +306,7 @@ if (!artistName) {
 
       artists.forEach(name => {
 
-        fetch(`Artist/${name}/config.json`)
+        fetch(`./Artist/${name}/config.json`)
           .then(res => res.json())
           .then(data => {
 
@@ -323,7 +319,7 @@ if (!artistName) {
             `;
 
             card.onclick = () => {
-              window.location.href = `?name=${encodeURIComponent(name)}`;
+              window.location.href = `./?name=${encodeURIComponent(name)}`;
             };
 
             document.getElementById("grid").appendChild(card);
@@ -343,7 +339,7 @@ else {
   const songsDiv = document.getElementById("songs");
   songsDiv.style.display = "grid";
 
-  fetch(`Artist/${artistName}/config.json`)
+  fetch(`./Artist/${artistName}/config.json`)
     .then(res => res.json())
     .then(data => {
 
