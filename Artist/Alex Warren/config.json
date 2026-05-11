@@ -1,6 +1,6 @@
 {
   "artist": "Alex Warren",
-  "image": "/Artist/Alex Warren/pfp.png",
+  "image": "pfp.png",
   "theme": {
     "bg": "#0f0f0f",
     "accent": "#ffffff"
@@ -9,12 +9,12 @@
     {
       "file": "song1.mp3",
       "title": "Ordinary",
-      "image": "/Artist/Alex Warren/img1.png"
+      "image": "img1.png"
     },
     {
       "file": "song2.mp3",
       "title": "Fine Place To Die",
-      "image": "/Artist/Alex Warren/img2.png"
+      "image": "img2.png"
     }
   ]
 }
