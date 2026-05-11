@@ -45,7 +45,7 @@ img{
   z-index:999;
 }
 
-/* MINI BAR */
+/* MINI UI */
 .ui{
   display:flex;
   align-items:center;
@@ -59,6 +59,7 @@ img{
   border-radius:6px;
 }
 
+/* buttons */
 button{
   background:none;
   border:none;
@@ -67,7 +68,7 @@ button{
   cursor:pointer;
 }
 
-/* MINI PROGRESS */
+/* progress */
 .progress-container{
   flex:1;
   height:4px;
@@ -109,7 +110,6 @@ button{
   justify-content:center;
   gap:18px;
   padding:30px;
-  box-sizing:border-box;
 }
 
 .player.fullscreen .fullscreen-ui{
@@ -122,20 +122,18 @@ button{
   border-radius:18px;
 }
 
-/* CONTROLS */
+/* controls */
 .controls{
   display:flex;
-  gap:18px;
+  gap:15px;
   align-items:center;
-  flex-wrap:wrap;
-  justify-content:center;
 }
 
 .controls button{
-  font-size:26px;
+  font-size:28px;
 }
 
-/* FULL PROGRESS */
+/* full progress */
 .full-progress{
   position:absolute;
   bottom:20px;
@@ -179,15 +177,16 @@ button{
       </div>
     </div>
 
-    <!-- MINI CONTROLS -->
     <button onclick="prevSong()">⏮</button>
     <button onclick="togglePlay()">⏯</button>
     <button onclick="nextSong()">⏭</button>
 
-    <!-- FULLSCREEN BUTTON STILL HERE -->
+    <button onclick="toggleShuffle()">🔀</button>
+    <button onclick="toggleLoop()">🔁</button>
     <button onclick="toggleFullscreen()">⛶</button>
 
     <div class="time" id="time">0:00</div>
+
   </div>
 
   <!-- FULLSCREEN -->
@@ -198,11 +197,12 @@ button{
     <div id="songTitle"></div>
     <div id="artistName"></div>
 
-    <!-- FULL CONTROLS -->
     <div class="controls">
       <button onclick="prevSong()">⏮</button>
       <button onclick="togglePlay()">⏯</button>
       <button onclick="nextSong()">⏭</button>
+      <button onclick="toggleShuffle()">🔀</button>
+      <button onclick="toggleLoop()">🔁</button>
       <button onclick="toggleFullscreen()">⛶</button>
     </div>
 
@@ -218,6 +218,15 @@ button{
 
 let audio = new Audio();
 let list=[], index=0, artist="";
+
+let shuffle=false;
+let loop=false;
+
+/* TITLE */
+function setPageTitle(text){
+  document.getElementById("title").innerText=text;
+  document.title=text+" - MusicPlayer";
+}
 
 /* PLAY */
 function playSong(l,i,a){
@@ -242,22 +251,44 @@ function playSong(l,i,a){
   document.title=`${s.title} - MusicPlayer`;
 }
 
-/* CONTROLS */
+/* PLAY/PAUSE */
 function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
 }
 
+/* SHUFFLE */
+function toggleShuffle(){
+  shuffle=!shuffle;
+}
+
+/* LOOP */
+function toggleLoop(){
+  loop=!loop;
+}
+
+/* NEXT */
 function nextSong(){
-  if(index<list.length-1)
+
+  if(shuffle){
+    index=Math.floor(Math.random()*list.length);
+    return playSong(list,index,artist);
+  }
+
+  if(index<list.length-1){
     playSong(list,index+1,artist);
+  }else if(loop){
+    playSong(list,0,artist);
+  }
 }
 
+/* PREV */
 function prevSong(){
-  if(index>0)
+  if(index>0){
     playSong(list,index-1,artist);
+  }
 }
 
-/* FULLSCREEN TOGGLE */
+/* FULLSCREEN */
 function toggleFullscreen(){
   let p=player;
 
@@ -269,7 +300,7 @@ function toggleFullscreen(){
   }
 }
 
-/* DETECT REAL FULLSCREEN EXIT */
+/* FIX EXIT */
 document.addEventListener("fullscreenchange",()=>{
   if(!document.fullscreenElement){
     player.classList.remove("fullscreen");
@@ -290,27 +321,25 @@ audio.addEventListener("timeupdate",()=>{
   time.innerText=`${m}:${s<10?"0":""}${s}`;
 });
 
-/* SEEK MINI */
+/* SEEK */
 barMini.onclick=e=>{
   let r=barMini.getBoundingClientRect();
-  let p=(e.clientX-r.left)/r.width;
-  audio.currentTime=p*audio.duration;
+  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
 };
 
-/* SEEK FULL */
 barFull.onclick=e=>{
   let r=barFull.getBoundingClientRect();
-  let p=(e.clientX-r.left)/r.width;
-  audio.currentTime=p*audio.duration;
+  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
 };
 
 /* ROUTING */
 const params=new URLSearchParams(location.search);
 const artistName=params.get("name");
 
+/* HOME */
 if(!artistName){
 
-  document.title="MusicPlayer";
+  setPageTitle("🎧 Artists");
 
   fetch("artist.json")
     .then(r=>r.json())
@@ -339,7 +368,10 @@ if(!artistName){
 
     });
 
-}else{
+}
+
+/* ARTIST */
+else{
 
   grid.style.display="none";
   songs.style.display="grid";
@@ -348,7 +380,7 @@ if(!artistName){
     .then(r=>r.json())
     .then(data=>{
 
-      document.title=`${data.artist} - MusicPlayer`;
+      setPageTitle(data.artist);
 
       data.songs.forEach((s,i)=>{
 
