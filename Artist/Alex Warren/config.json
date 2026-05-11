@@ -6,7 +6,7 @@
     "accent": "#ffffff"
   },
   "songs": [
-    { "file": "song1.mp3", "title": "Song 1", "image": "" },
-    { "file": "song2.mp3", "title": "Song 2", "image": "" }
+    { "file": "song1.mp3", "title": "Ordinary", "image": "" },
+    { "file": "song2.mp3", "title": "Fine Place To Die", "image": "" }
   ]
 }
