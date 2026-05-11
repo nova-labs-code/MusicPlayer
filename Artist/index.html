@@ -162,7 +162,6 @@
       width: 60%;
       max-width: 500px;
     }
-
   </style>
 </head>
 
@@ -209,12 +208,7 @@ function applyTheme(theme) {
   document.documentElement.style.setProperty("--accent", theme.accent || "#ffffff");
 }
 
-/* IMAGE */
-function resolveImage(song, artist) {
-  return song.image?.trim() || `./${artist}/pfp.png`;
-}
-
-/* PLAY */
+/* PLAY SONG */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
@@ -227,10 +221,10 @@ function playSong(list, index, artist) {
 
   document.getElementById("player").style.display = "flex";
   document.getElementById("nowPlaying").innerText = song.title;
-  document.getElementById("cover").src = resolveImage(song, artist);
+  document.getElementById("cover").src = `./${artist}/${song.image}`;
 }
 
-/* BACK RULE */
+/* BACK (5s rule) */
 function prevSong() {
   if (audio.currentTime > 5) {
     audio.currentTime = 0;
@@ -294,7 +288,7 @@ document.getElementById("progressContainer").onclick = (e) => {
   audio.currentTime = percent * audio.duration;
 };
 
-/* ROUTING */
+/* ROUTE */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("name");
 
@@ -315,7 +309,7 @@ if (!artistName) {
             card.className = "card";
 
             card.innerHTML = `
-              <img src="./${name}/${data.image.split('/').pop()}">
+              <img src="./${name}/${data.image}">
               <div class="name">${data.artist}</div>
             `;
 
@@ -345,7 +339,6 @@ else {
     .then(data => {
 
       applyTheme(data.theme);
-
       document.getElementById("title").innerText = data.artist;
 
       data.songs.forEach((song, i) => {
@@ -354,7 +347,7 @@ else {
         el.className = "song";
 
         el.innerHTML = `
-          <img src="${resolveImage(song, artistName)}">
+          <img src="./${artistName}/${song.image}">
           <div class="song-title">${song.title}</div>
         `;
 
