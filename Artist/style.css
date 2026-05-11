@@ -1,1 +1,188 @@
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f0f0f;
+  color:white;
+  padding-top:50px;
+}
 
+/* NAV */
+#nav{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  display:flex;
+  gap:10px;
+  padding:10px;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(10px);
+  z-index:1000;
+}
+
+#nav button{
+  background:#1c1c1c;
+  border:none;
+  color:white;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+/* GRID */
+.grid,.songs{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:16px;
+  padding:20px;
+}
+
+.card,.song{
+  background:#1c1c1c;
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.song:hover,.card:hover{transform:scale(1.03)}
+
+img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  border-radius:8px;
+}
+
+/* SONG STATES */
+.song.active{
+  outline:2px solid white;
+  box-shadow:0 0 12px white;
+}
+
+.song.queue{
+  outline:2px solid #00ff7f;
+  box-shadow:0 0 10px #00ff7f;
+}
+
+/* PLAYER */
+.player{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#181818;
+  display:none;
+  z-index:999;
+}
+
+/* MINI */
+.ui{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+}
+
+#cover{
+  width:44px;
+  height:44px;
+  border-radius:6px;
+}
+
+/* BUTTONS */
+button{
+  background:none;
+  border:none;
+  color:#666;
+  font-size:18px;
+  cursor:pointer;
+}
+
+button.active{
+  color:white;
+  text-shadow:0 0 8px white;
+}
+
+/* LOOP */
+button.loop-active{
+  color:white !important;
+  text-shadow:0 0 10px white;
+}
+
+/* PROGRESS */
+.progress-container{
+  flex:1;
+  height:4px;
+  background:#333;
+  border-radius:999px;
+  overflow:hidden;
+  cursor:pointer;
+}
+
+.progress{
+  height:100%;
+  width:0%;
+  background:white;
+}
+
+.time{
+  width:70px;
+  font-size:12px;
+  text-align:right;
+}
+
+/* FULLSCREEN */
+.player.fullscreen{
+  top:0;
+  height:100vh;
+  background:radial-gradient(circle,#1a1a1a,#000);
+}
+
+.player.fullscreen .ui{
+  display:none;
+}
+
+.fullscreen-ui{
+  display:none;
+  height:100%;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  padding:30px;
+}
+
+.player.fullscreen .fullscreen-ui{
+  display:flex;
+}
+
+#coverBig{
+  width:260px;
+  height:260px;
+  border-radius:18px;
+}
+
+/* CONTROLS */
+.controls{
+  display:flex;
+  gap:15px;
+}
+
+.controls button{
+  font-size:28px;
+}
+
+/* FULL BAR */
+.full-progress{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(700px,85vw);
+  height:4px;
+  background:#333;
+  border-radius:999px;
+  overflow:hidden;
+}
