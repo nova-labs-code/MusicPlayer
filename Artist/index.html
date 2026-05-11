@@ -16,7 +16,6 @@
       margin: 0;
     }
 
-    /* 🏠 ARTIST GRID */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -50,7 +49,6 @@
       font-size: 14px;
     }
 
-    /* 🎵 SONG GRID */
     .songs {
       display: none;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -85,7 +83,7 @@
       font-size: 13px;
     }
 
-    /* 🎧 PLAYER */
+    /* PLAYER */
     .player {
       position: fixed;
       bottom: 0;
@@ -96,6 +94,21 @@
       align-items: center;
       padding: 10px;
       gap: 10px;
+      z-index: 999;
+    }
+
+    .player.fullscreen {
+      top: 0;
+      bottom: 0;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .player.fullscreen img {
+      width: 220px;
+      height: 220px;
     }
 
     .player img {
@@ -144,7 +157,7 @@
 <div id="grid" class="grid"></div>
 <div id="songs" class="songs"></div>
 
-<!-- 🎧 PLAYER -->
+<!-- PLAYER -->
 <div class="player" id="player">
   <img id="cover">
 
@@ -160,30 +173,38 @@
     <button onclick="prevSong()">⏮</button>
     <button onclick="togglePlay()">⏯</button>
     <button onclick="nextSong()">⏭</button>
+    <button onclick="toggleFullscreen()">⛶</button>
   </div>
 
   <div class="time" id="time">0:00</div>
 </div>
 
 <script>
-const DEFAULT_IMAGE =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAA...";
-
 let audio = new Audio();
 let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
 
-/* 🧠 IMAGE RESOLVER (NO ID3, CLEAN) */
-function resolveImage(song, artist) {
-  if (song.image && song.image.trim() !== "") {
-    return song.image;
-  }
+/* FULLSCREEN */
+function toggleFullscreen() {
+  const player = document.getElementById("player");
 
+  if (!document.fullscreenElement) {
+    player.requestFullscreen?.();
+    player.classList.add("fullscreen");
+  } else {
+    document.exitFullscreen?.();
+    player.classList.remove("fullscreen");
+  }
+}
+
+/* IMAGE */
+function resolveImage(song, artist) {
+  if (song.image && song.image.trim() !== "") return song.image;
   return `${artist}/pfp.png`;
 }
 
-/* 🎧 PLAY SONG */
+/* PLAY SONG */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
@@ -196,11 +217,23 @@ function playSong(list, index, artist) {
 
   document.getElementById("player").style.display = "flex";
   document.getElementById("nowPlaying").innerText = song.title;
-
   document.getElementById("cover").src = resolveImage(song, artist);
 }
 
-/* ▶️ CONTROLS */
+/* BACK LOGIC */
+function prevSong() {
+  if (audio.currentTime > 5) {
+    audio.currentTime = 0;
+    audio.play();
+    return;
+  }
+
+  if (currentIndex > 0) {
+    playSong(currentList, currentIndex - 1, currentArtist);
+  }
+}
+
+/* CONTROLS */
 function togglePlay() {
   if (audio.paused) audio.play();
   else audio.pause();
@@ -212,13 +245,7 @@ function nextSong() {
   }
 }
 
-function prevSong() {
-  if (currentIndex > 0) {
-    playSong(currentList, currentIndex - 1, currentArtist);
-  }
-}
-
-/* 📊 PROGRESS BAR */
+/* PROGRESS */
 audio.addEventListener("timeupdate", () => {
   const bar = document.getElementById("progress");
   const percent = (audio.currentTime / audio.duration) * 100;
@@ -226,28 +253,28 @@ audio.addEventListener("timeupdate", () => {
 
   const m = Math.floor(audio.currentTime / 60);
   const s = Math.floor(audio.currentTime % 60);
+
   document.getElementById("time").innerText =
     `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
-/* 🖱️ SEEK */
+/* SEEK */
 document.getElementById("progressContainer").onclick = (e) => {
-  const rect = e.target.getBoundingClientRect();
+  const rect = e.currentTarget.getBoundingClientRect();
   const percent = (e.clientX - rect.left) / rect.width;
   audio.currentTime = percent * audio.duration;
 };
 
-/* 📌 ROUTE */
+/* ROUTE */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("Name");
 
-/* 🏠 ARTIST MODE */
+/* ARTIST MODE */
 if (!artistName) {
 
   const artists = ["Alex Warren", "NeonEcho"];
 
   artists.forEach(name => {
-
     fetch(`${name}/config.json`)
       .then(res => res.json())
       .then(data => {
@@ -272,7 +299,7 @@ if (!artistName) {
 
 }
 
-/* 🎤 SONG MODE */
+/* SONG MODE */
 else {
 
   document.getElementById("grid").style.display = "none";
