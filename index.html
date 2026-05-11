@@ -1,32 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Music Library</title>
-  <style>
-    body {
-      background: #0f0f0f;
-      color: white;
-      font-family: Arial;
-    }
-
-    .artist {
-      padding: 10px;
-      margin: 8px;
-      background: #1c1c1c;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    .artist:hover {
-      background: #333;
-    }
-  </style>
+  <title>MusicPlayer</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>🎧 Artists</h1>
-<div id="artists"></div>
+<h1 id="title">🎧 MusicPlayer</h1>
 
-<script src="app.js"></script>
+<div id="searchBox">
+  <input id="searchInput" placeholder="Search artists or songs...">
+</div>
+
+<div id="grid" class="grid"></div>
+<div id="results" class="grid"></div>
+
+<script src="main.js"></script>
 </body>
 </html>
