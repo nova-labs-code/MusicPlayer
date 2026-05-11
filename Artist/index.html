@@ -295,7 +295,7 @@ document.getElementById("progressContainer").onclick = (e) => {
 /* 📦 AUTO ARTIST LOADER */
 const grid = document.getElementById("grid");
 
-fetch("/artist.json")
+fetch("./artist.json")
   .then(res => res.json())
   .then(artists => {
 
