@@ -222,7 +222,7 @@ const artistParam = params.get("name");
 /* HOME VIEW */
 if(!artistParam){
 
-  setPageTitle("🎧 Artists");
+  setPageTitle("Artists");
   backBtn.style.display = "none";
 
   fetch("artist.json")
