@@ -39,7 +39,7 @@ img{
   border-radius:8px;
 }
 
-/* HIGHLIGHTS */
+/* SONG STATES */
 .song.active{
   outline:2px solid white;
   box-shadow:0 0 12px white;
@@ -87,6 +87,17 @@ button{
 button.active{
   color:white;
   text-shadow:0 0 8px white;
+}
+
+/* LOOP COLORS */
+button.loop-song{
+  color:yellow !important;
+  text-shadow:0 0 10px yellow;
+}
+
+button.loop-queue{
+  color:red !important;
+  text-shadow:0 0 10px red;
 }
 
 /* PROGRESS */
@@ -222,8 +233,10 @@ button.active{
       <button onclick="prevSong()">⏮</button>
       <button onclick="togglePlay()">⏯</button>
       <button onclick="nextSong()">⏭</button>
+
       <button id="shuffleBtnFS" onclick="toggleShuffle()">🔀</button>
       <button id="loopBtnFS" onclick="toggleLoop()">🔁</button>
+
       <button onclick="toggleFullscreen()">⛶</button>
     </div>
 
@@ -241,7 +254,7 @@ let audio = new Audio();
 let list=[], index=0, artist="";
 
 let shuffle=false;
-let loop=false;
+let loopMode="none"; // none | song | queue
 
 let songElements=[];
 
@@ -251,13 +264,35 @@ function setPageTitle(text){
   document.title=text+" - MusicPlayer";
 }
 
-/* BUTTON UI */
+/* BUTTON UPDATE */
 function updateButtons(){
-  shuffleBtn.classList.toggle("active", shuffle);
-  loopBtn.classList.toggle("active", loop);
 
+  shuffleBtn.classList.toggle("active", shuffle);
   shuffleBtnFS.classList.toggle("active", shuffle);
-  loopBtnFS.classList.toggle("active", loop);
+
+  loopBtn.classList.remove("loop-song","loop-queue");
+  loopBtnFS.classList.remove("loop-song","loop-queue");
+
+  if(loopMode==="song"){
+    loopBtn.innerText="🔂";
+    loopBtnFS.innerText="🔂";
+
+    loopBtn.classList.add("loop-song");
+    loopBtnFS.classList.add("loop-song");
+  }
+
+  else if(loopMode==="queue"){
+    loopBtn.innerText="🔁";
+    loopBtnFS.innerText="🔁";
+
+    loopBtn.classList.add("loop-queue");
+    loopBtnFS.classList.add("loop-queue");
+  }
+
+  else{
+    loopBtn.innerText="🔁";
+    loopBtnFS.innerText="🔁";
+  }
 }
 
 /* HIGHLIGHTS */
@@ -267,11 +302,11 @@ function updateSongHighlights(){
 
     el.classList.remove("active","queue");
 
-    if(i === index){
+    if(i===index){
       el.classList.add("active");
     }
 
-    if(i > index){
+    if(i>index){
       el.classList.add("queue");
     }
 
@@ -280,6 +315,7 @@ function updateSongHighlights(){
 
 /* PLAY */
 function playSong(l,i,a){
+
   list=l;
   index=i;
   artist=a;
@@ -315,9 +351,13 @@ function toggleShuffle(){
   updateButtons();
 }
 
-/* LOOP */
+/* LOOP CYCLE */
 function toggleLoop(){
-  loop=!loop;
+
+  if(loopMode==="none") loopMode="song";
+  else if(loopMode==="song") loopMode="queue";
+  else loopMode="none";
+
   updateButtons();
 }
 
@@ -325,17 +365,18 @@ function toggleLoop(){
 function nextSong(){
 
   if(shuffle){
-    let newIndex;
+    let n;
     do{
-      newIndex=Math.floor(Math.random()*list.length);
-    }while(list.length>1 && newIndex===index);
+      n=Math.floor(Math.random()*list.length);
+    }while(list.length>1 && n===index);
 
-    return playSong(list,newIndex,artist);
+    return playSong(list,n,artist);
   }
 
   if(index<list.length-1){
     playSong(list,index+1,artist);
-  }else if(loop){
+  }
+  else if(loopMode==="queue"){
     playSong(list,0,artist);
   }
 }
@@ -347,22 +388,31 @@ function prevSong(){
   }
 }
 
-/* LOOP END */
+/* END BEHAVIOR */
 audio.addEventListener("ended",()=>{
-  if(loop){
+
+  if(loopMode==="song"){
     audio.currentTime=0;
     audio.play();
-  }else{
-    nextSong();
+    return;
   }
+
+  if(loopMode==="queue"){
+    if(index<list.length-1){
+      nextSong();
+    }else{
+      playSong(list,0,artist);
+    }
+    return;
+  }
+
+  nextSong();
 });
 
 /* FULLSCREEN */
 function toggleFullscreen(){
-  let p=player;
-
-  if(!p.classList.contains("fullscreen")){
-    p.classList.add("fullscreen");
+  if(!player.classList.contains("fullscreen")){
+    player.classList.add("fullscreen");
     document.documentElement.requestFullscreen?.();
   }else{
     document.exitFullscreen?.();
