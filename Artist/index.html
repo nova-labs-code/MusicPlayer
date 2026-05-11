@@ -98,22 +98,25 @@
 const DEFAULT_IMAGE =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAA...";
 
-function resolveImage(img) {
-  return (!img || img.trim() === "") ? DEFAULT_IMAGE : img;
+/* 🧠 IMAGE RESOLVER (song → pfp → fallback) */
+function resolveImage(songImage, artistName) {
+  if (songImage && songImage.trim() !== "") {
+    return songImage;
+  }
+
+  const pfp = `${artistName}/pfp.png`;
+
+  return pfp || DEFAULT_IMAGE;
 }
 
-// -------------------------
-// 📌 ROUTE HANDLING
-// -------------------------
+/* 📌 ROUTE */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("Name");
 
-// -------------------------
-// 🏠 ARTIST GRID MODE
-// -------------------------
+/* 🏠 ARTIST GRID MODE */
 if (!artistName) {
 
-  const artists = ["Alex Warren"];
+  const artists = ["Alex Warren", "NeonEcho"];
 
   artists.forEach(name => {
 
@@ -127,7 +130,7 @@ if (!artistName) {
         const pfp = `${name}/pfp.png`;
 
         card.innerHTML = `
-          <img src="${resolveImage(pfp)}">
+          <img src="${pfp}">
           <div class="name">${data.artist}</div>
         `;
 
@@ -143,9 +146,7 @@ if (!artistName) {
 
 }
 
-// -------------------------
-// 🎤 SONG GRID MODE
-// -------------------------
+/* 🎤 SONG GRID MODE */
 else {
 
   document.getElementById("grid").style.display = "none";
@@ -164,10 +165,10 @@ else {
         const card = document.createElement("div");
         card.className = "song";
 
-        const img = song.image || "";
+        const img = resolveImage(song.image, artistName);
 
         card.innerHTML = `
-          <img src="${resolveImage(img)}">
+          <img src="${img}">
           <div class="song-title">${song.title}</div>
         `;
 
