@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>MusicPlayer</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -53,13 +53,16 @@
     <div id="songTitle"></div>
     <div id="artistName"></div>
 
+    <!-- LOOP STATE TEXT -->
+    <div id="loopState"></div>
+
     <div class="controls">
       <button onclick="prevSong()">⏮</button>
       <button onclick="togglePlay()">⏯</button>
       <button onclick="nextSong()">⏭</button>
 
       <button id="shuffleBtnFS" onclick="toggleShuffle()">🔀</button>
-      <button onclick="toggleLoop()">🔁</button>
+      <button id="loopBtnFS" onclick="toggleLoop()">🔁</button>
 
       <button onclick="toggleFullscreen()">⛶</button>
     </div>
@@ -72,6 +75,6 @@
 
 </div>
 
-<script src="./main.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
