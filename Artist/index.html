@@ -4,6 +4,10 @@
   <title>Artist Hub</title>
 
   <style>
+    :root {
+      --accent: #ffffff;
+    }
+
     body {
       margin: 0;
       font-family: Arial;
@@ -62,7 +66,6 @@
       padding: 10px;
       text-align: center;
       cursor: pointer;
-      transition: 0.2s;
     }
 
     .song:hover {
@@ -75,7 +78,6 @@
       aspect-ratio: 1 / 1;
       object-fit: cover;
       border-radius: 8px;
-      background: #333;
     }
 
     .song-title {
@@ -95,20 +97,6 @@
       padding: 10px;
       gap: 10px;
       z-index: 999;
-    }
-
-    .player.fullscreen {
-      top: 0;
-      bottom: 0;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .player.fullscreen img {
-      width: 220px;
-      height: 220px;
     }
 
     .player img {
@@ -132,13 +120,12 @@
       background: #333;
       border-radius: 5px;
       cursor: pointer;
-      position: relative;
     }
 
     .progress {
       height: 100%;
       width: 0%;
-      background: #1db954;
+      background: var(--accent);
       border-radius: 5px;
     }
 
@@ -146,6 +133,33 @@
       font-size: 12px;
       width: 90px;
       text-align: right;
+    }
+
+    /* FULLSCREEN */
+    .player.fullscreen {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      position: fixed;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
+      gap: 22px;
+      padding: 40px;
+    }
+
+    .player.fullscreen img {
+      width: 260px;
+      height: 260px;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    .player.fullscreen .progress-container {
+      width: 60%;
+      max-width: 500px;
     }
   </style>
 </head>
@@ -180,31 +194,44 @@
 </div>
 
 <script>
+
 let audio = new Audio();
 let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
 
-/* FULLSCREEN */
+/* 🌈 APPLY THEME */
+function applyTheme(theme) {
+  if (!theme) return;
+
+  document.body.style.background = theme.bg || "#0f0f0f";
+  document.documentElement.style.setProperty("--accent", theme.accent || "#ffffff");
+}
+
+/* 🌌 FULLSCREEN */
 function toggleFullscreen() {
   const player = document.getElementById("player");
 
-  if (!document.fullscreenElement) {
-    player.requestFullscreen?.();
+  if (!player.classList.contains("fullscreen")) {
     player.classList.add("fullscreen");
+    document.documentElement.requestFullscreen?.();
   } else {
-    document.exitFullscreen?.();
     player.classList.remove("fullscreen");
+    document.exitFullscreen?.();
   }
 }
 
-/* IMAGE */
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) {
+    document.getElementById("player").classList.remove("fullscreen");
+  }
+});
+
+/* 🎧 PLAY */
 function resolveImage(song, artist) {
-  if (song.image && song.image.trim() !== "") return song.image;
-  return `${artist}/pfp.png`;
+  return song.image?.trim() || `${artist}/pfp.png`;
 }
 
-/* PLAY SONG */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
@@ -220,7 +247,7 @@ function playSong(list, index, artist) {
   document.getElementById("cover").src = resolveImage(song, artist);
 }
 
-/* BACK LOGIC */
+/* ⏪ BACK RULE */
 function prevSong() {
   if (audio.currentTime > 5) {
     audio.currentTime = 0;
@@ -265,74 +292,60 @@ document.getElementById("progressContainer").onclick = (e) => {
   audio.currentTime = percent * audio.duration;
 };
 
-/* ROUTE */
-const params = new URLSearchParams(window.location.search);
-const artistName = params.get("Name");
+/* 📦 AUTO ARTIST LOADER */
+const grid = document.getElementById("grid");
 
-/* ARTIST MODE */
-if (!artistName) {
+fetch("/artists.json")
+  .then(res => res.json())
+  .then(artists => {
 
-  const artists = ["Alex Warren", "NeonEcho"];
+    artists.forEach(name => {
 
-  artists.forEach(name => {
-    fetch(`${name}/config.json`)
-      .then(res => res.json())
-      .then(data => {
+      fetch(`${name}/config.json`)
+        .then(res => res.json())
+        .then(data => {
 
-        const card = document.createElement("div");
-        card.className = "card";
+          const card = document.createElement("div");
+          card.className = "card";
 
-        card.innerHTML = `
-          <img src="${name}/pfp.png">
-          <div class="name">${data.artist}</div>
-        `;
+          card.innerHTML = `
+            <img src="${data.image}">
+            <div class="name">${data.artist}</div>
+          `;
 
-        card.onclick = () => {
-          window.location.href = `?Name=${encodeURIComponent(name)}`;
-        };
+          card.onclick = () => {
+            applyTheme(data.theme);
 
-        document.getElementById("grid").appendChild(card);
+            document.getElementById("grid").style.display = "none";
+            document.getElementById("songs").style.display = "grid";
+            document.getElementById("title").innerText = data.artist;
 
-      });
+            const songsDiv = document.getElementById("songs");
+            songsDiv.innerHTML = "";
 
-  });
+            data.songs.forEach((song, i) => {
+              const el = document.createElement("div");
+              el.className = "song";
 
-}
+              el.innerHTML = `
+                <img src="${resolveImage(song, name)}">
+                <div class="song-title">${song.title}</div>
+              `;
 
-/* SONG MODE */
-else {
+              el.onclick = () => playSong(data.songs, i, name);
 
-  document.getElementById("grid").style.display = "none";
-  const songsDiv = document.getElementById("songs");
-  songsDiv.style.display = "grid";
+              songsDiv.appendChild(el);
+            });
+          };
 
-  fetch(`${artistName}/config.json`)
-    .then(res => res.json())
-    .then(data => {
+          grid.appendChild(card);
 
-      document.getElementById("title").innerText = data.artist;
-
-      data.songs.forEach((song, i) => {
-
-        const card = document.createElement("div");
-        card.className = "song";
-
-        card.innerHTML = `
-          <img src="${resolveImage(song, artistName)}">
-          <div class="song-title">${song.title}</div>
-        `;
-
-        card.onclick = () => {
-          playSong(data.songs, i, artistName);
-        };
-
-        songsDiv.appendChild(card);
-
-      });
+        });
 
     });
 
-}
+  });
+
 </script>
 
 </body>
