@@ -1,0 +1,12 @@
+{
+  "artist": "Alex Warren",
+  "image": "pfp.png",
+  "theme": {
+    "bg": "#0f0f0f",
+    "accent": "#ffffff"
+  },
+  "songs": [
+    { "file": "song1.mp3", "title": "Song 1", "image": "" },
+    { "file": "song2.mp3", "title": "Song 2", "image": "" }
+  ]
+}
