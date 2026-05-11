@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Artist Hub</title>
+  <title>MusicPlayer</title>
 
   <style>
     :root {
@@ -86,7 +86,7 @@
       font-size: 13px;
     }
 
-    /* PLAYER SHELL */
+    /* PLAYER */
     .player {
       position: fixed;
       bottom: 0;
@@ -97,17 +97,17 @@
       z-index: 999;
     }
 
-    /* MINI MODE */
+    /* MINI */
     .mini-ui {
       display: flex;
       align-items: center;
-      padding: 10px;
+      padding: 8px;
       gap: 10px;
     }
 
     #cover-mini {
-      width: 50px;
-      height: 50px;
+      width: 44px;
+      height: 44px;
       border-radius: 6px;
       object-fit: cover;
     }
@@ -120,28 +120,29 @@
       cursor: pointer;
     }
 
+    /* thinner progress */
     .progress-container {
       flex: 1;
-      height: 6px;
+      height: 4px;
       background: #333;
       border-radius: 5px;
       cursor: pointer;
+      overflow: hidden;
     }
 
     .progress {
       height: 100%;
       width: 0%;
       background: var(--accent);
-      border-radius: 5px;
     }
 
     .time {
       font-size: 12px;
-      width: 90px;
+      width: 70px;
       text-align: right;
     }
 
-    /* FULLSCREEN MODE */
+    /* FULLSCREEN */
     .fullscreen-ui {
       display: none;
       height: 100vh;
@@ -149,7 +150,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 25px;
+      gap: 18px;
       text-align: center;
       padding: 40px;
     }
@@ -170,9 +171,9 @@
     }
 
     #cover-full {
-      width: 280px;
-      height: 280px;
-      border-radius: 20px;
+      width: 260px;
+      height: 260px;
+      border-radius: 18px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.6);
       object-fit: cover;
     }
@@ -195,9 +196,9 @@
     }
 
     .progress-container.big {
-      width: 60%;
-      max-width: 500px;
-      height: 8px;
+      width: 55%;
+      max-width: 480px;
+      height: 6px;
     }
   </style>
 </head>
@@ -205,14 +206,13 @@
 <body>
 
 <h1 id="title">🎧 Artists</h1>
-
 <div id="grid" class="grid"></div>
 <div id="songs" class="songs"></div>
 
 <!-- PLAYER -->
 <div class="player" id="player">
 
-  <!-- MINI MODE -->
+  <!-- MINI -->
   <div class="mini-ui">
     <img id="cover-mini">
 
@@ -229,16 +229,15 @@
       <button onclick="togglePlay()">⏯</button>
       <button onclick="nextSong()">⏭</button>
       <button onclick="toggleFullscreen()">⛶</button>
+      <button onclick="togglePiP()">🪟</button>
     </div>
 
     <div class="time" id="time">0:00</div>
   </div>
 
-  <!-- FULLSCREEN MODE -->
+  <!-- FULL -->
   <div class="fullscreen-ui">
-
     <img id="cover-full">
-
     <div id="fullTitle">Not Playing</div>
     <div id="fullArtist"></div>
 
@@ -253,19 +252,21 @@
     </div>
 
     <div class="time" id="timeFull">0:00</div>
-
   </div>
-
 </div>
 
 <script>
-
 let audio = new Audio();
 let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
 
-/* PLAY SONG */
+/* TITLE UPDATE */
+function setTabTitle(artist) {
+  document.title = `MusicPlayer - ${artist}`;
+}
+
+/* PLAY */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
@@ -278,33 +279,29 @@ function playSong(list, index, artist) {
 
   document.getElementById("player").style.display = "block";
 
-  // MINI UI
   document.getElementById("nowPlaying").innerText = song.title;
   document.getElementById("cover-mini").src = `./${artist}/${song.image}`;
 
-  // FULL UI
   document.getElementById("cover-full").src = `./${artist}/${song.image}`;
   document.getElementById("fullTitle").innerText = song.title;
-  document.getElementById("fullArtist").innerText = currentArtist;
-}
+  document.getElementById("fullArtist").innerText = artist;
 
-/* BACK (5s rule) */
-function prevSong() {
-  if (audio.currentTime > 5) {
-    audio.currentTime = 0;
-    audio.play();
-    return;
-  }
-
-  if (currentIndex > 0) {
-    playSong(currentList, currentIndex - 1, currentArtist);
-  }
+  setTabTitle(artist);
 }
 
 /* CONTROLS */
 function togglePlay() {
-  if (audio.paused) audio.play();
-  else audio.pause();
+  audio.paused ? audio.play() : audio.pause();
+}
+
+function prevSong() {
+  if (audio.currentTime > 5) {
+    audio.currentTime = 0;
+    return;
+  }
+  if (currentIndex > 0) {
+    playSong(currentList, currentIndex - 1, currentArtist);
+  }
 }
 
 function nextSong() {
@@ -326,15 +323,21 @@ function toggleFullscreen() {
   }
 }
 
-document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) {
-    document.getElementById("player").classList.remove("fullscreen");
+/* PiP */
+async function togglePiP() {
+  try {
+    if (!document.pictureInPictureElement) {
+      await audio.requestPictureInPicture?.();
+    } else {
+      await document.exitPictureInPicture?.();
+    }
+  } catch (e) {
+    console.log("PiP not supported for audio in this browser");
   }
-});
+}
 
-/* PROGRESS SYNC */
+/* PROGRESS */
 audio.addEventListener("timeupdate", () => {
-
   const percent = (audio.currentTime / audio.duration) * 100;
 
   document.getElementById("progress").style.width = percent + "%";
@@ -342,11 +345,10 @@ audio.addEventListener("timeupdate", () => {
 
   const m = Math.floor(audio.currentTime / 60);
   const s = Math.floor(audio.currentTime % 60);
+  const t = `${m}:${s < 10 ? "0" : ""}${s}`;
 
-  const time = `${m}:${s < 10 ? "0" : ""}${s}`;
-
-  document.getElementById("time").innerText = time;
-  document.getElementById("timeFull").innerText = time;
+  document.getElementById("time").innerText = t;
+  document.getElementById("timeFull").innerText = t;
 });
 
 /* SEEK */
@@ -356,78 +358,58 @@ document.getElementById("progressContainer").onclick = (e) => {
   audio.currentTime = percent * audio.duration;
 };
 
-/* ROUTING */
+/* ROUTE */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("name");
 
-/* ARTIST MODE */
+/* HOME */
 if (!artistName) {
-
   fetch("artist.json")
-    .then(res => res.json())
+    .then(r => r.json())
     .then(artists => {
-
       artists.forEach(name => {
-
         fetch(`./${name}/config.json`)
-          .then(res => res.json())
+          .then(r => r.json())
           .then(data => {
-
             const card = document.createElement("div");
             card.className = "card";
-
             card.innerHTML = `
               <img src="./${name}/${data.image}">
               <div class="name">${data.artist}</div>
             `;
-
             card.onclick = () => {
               window.location.href = `?name=${encodeURIComponent(name)}`;
             };
-
             document.getElementById("grid").appendChild(card);
-
           });
-
       });
-
     });
-
 }
 
-/* SONG MODE */
+/* ARTIST */
 else {
-
   document.getElementById("grid").style.display = "none";
-  const songsDiv = document.getElementById("songs");
-  songsDiv.style.display = "grid";
+  document.getElementById("songs").style.display = "grid";
 
   fetch(`./${artistName}/config.json`)
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
+      setTabTitle(data.artist);
 
       document.getElementById("title").innerText = data.artist;
 
       data.songs.forEach((song, i) => {
-
         const el = document.createElement("div");
         el.className = "song";
-
         el.innerHTML = `
           <img src="./${artistName}/${song.image}">
           <div class="song-title">${song.title}</div>
         `;
-
         el.onclick = () => playSong(data.songs, i, artistName);
-
-        songsDiv.appendChild(el);
-
+        document.getElementById("songs").appendChild(el);
       });
-
     });
-
 }
-
 </script>
 
 </body>
