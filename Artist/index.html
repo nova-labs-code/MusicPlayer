@@ -30,13 +30,19 @@
       padding: 10px;
       text-align: center;
       cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.04);
+      background: #2a2a2a;
     }
 
     .card img {
       width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 8px;
       object-fit: cover;
+      border-radius: 8px;
     }
 
     .name {
@@ -58,13 +64,19 @@
       padding: 10px;
       text-align: center;
       cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .song:hover {
+      transform: scale(1.03);
+      background: #2a2a2a;
     }
 
     .song img {
       width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 8px;
       object-fit: cover;
+      border-radius: 8px;
       background: #333;
     }
 
@@ -73,7 +85,7 @@
       font-size: 13px;
     }
 
-    /* 🎧 PLAYER BAR */
+    /* 🎧 PLAYER */
     .player {
       position: fixed;
       bottom: 0;
@@ -103,7 +115,7 @@
 
     .progress-container {
       flex: 1;
-      height: 5px;
+      height: 6px;
       background: #333;
       border-radius: 5px;
       cursor: pointer;
@@ -124,6 +136,7 @@
     }
   </style>
 
+  <!-- 🎧 ID3 METADATA LIB -->
   <script src="https://cdn.jsdelivr.net/npm/music-metadata-browser/dist/music-metadata-browser.min.js"></script>
 </head>
 
@@ -137,6 +150,7 @@
 <!-- 🎧 PLAYER -->
 <div class="player" id="player">
   <img id="cover">
+
   <div style="flex:1">
     <div id="nowPlaying">Not Playing</div>
 
@@ -161,43 +175,61 @@ const DEFAULT_IMAGE =
 let audio = new Audio();
 let currentList = [];
 let currentIndex = 0;
-let isPlaying = false;
+let currentArtist = "";
 
-function resolveFallback(img, artist) {
-  return img || `${artist}/pfp.png` || DEFAULT_IMAGE;
-}
+/* 🧠 CACHE FOR ID3 ART */
+const mp3Cache = new Map();
 
-/* -------------------------
-   🧠 MP3 ART LOADER
-------------------------- */
-async function getMp3Image(path, fallback) {
+/* 🎧 IMAGE PRIORITY SYSTEM */
+async function resolveImage(song, artist) {
+
+  const mp3Path = `${artist}/${song.file}`;
+
+  // 1️⃣ ID3 ALBUM ART (HIGHEST PRIORITY)
+  if (mp3Cache.has(mp3Path)) {
+    return mp3Cache.get(mp3Path);
+  }
+
   try {
-    const file = await fetch(path);
+    const file = await fetch(mp3Path);
     const buffer = await file.arrayBuffer();
     const meta = await musicMetadata.parseBlob(new Blob([buffer]));
 
     const pic = meta.common.picture?.[0];
+
     if (pic) {
       const blob = new Blob([pic.data], { type: pic.format });
-      return URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+
+      mp3Cache.set(mp3Path, url);
+      return url;
     }
+
   } catch (e) {}
 
-  return fallback;
+  // 2️⃣ CONFIG IMAGE
+  if (song.image && song.image.trim() !== "") {
+    return song.image;
+  }
+
+  // 3️⃣ ARTIST PFP
+  const pfp = `${artist}/pfp.png`;
+  if (pfp) return pfp;
+
+  // 4️⃣ FALLBACK
+  return DEFAULT_IMAGE;
 }
 
-/* -------------------------
-   🎧 PLAYER CONTROLS
-------------------------- */
+/* 🎧 PLAY SONG */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
+  currentArtist = artist;
 
   const song = list[index];
 
   audio.src = `${artist}/${song.file}`;
   audio.play();
-  isPlaying = true;
 
   document.getElementById("player").style.display = "flex";
   document.getElementById("nowPlaying").innerText = song.title;
@@ -205,16 +237,13 @@ function playSong(list, index, artist) {
   updateCover(song, artist);
 }
 
+/* 🖼️ COVER */
 async function updateCover(song, artist) {
-  let img = song.image;
-
-  if (!img) {
-    img = await getMp3Image(`${artist}/${song.file}`, `${artist}/pfp.png`);
-  }
-
+  const img = await resolveImage(song, artist);
   document.getElementById("cover").src = img;
 }
 
+/* ▶️ CONTROLS */
 function togglePlay() {
   if (audio.paused) audio.play();
   else audio.pause();
@@ -232,38 +261,30 @@ function prevSong() {
   }
 }
 
-/* -------------------------
-   📊 PROGRESS BAR
-------------------------- */
+/* 📊 PROGRESS */
 audio.addEventListener("timeupdate", () => {
-  const progress = document.getElementById("progress");
-
+  const bar = document.getElementById("progress");
   const percent = (audio.currentTime / audio.duration) * 100;
-  progress.style.width = percent + "%";
+  bar.style.width = percent + "%";
 
-  const min = Math.floor(audio.currentTime / 60);
-  const sec = Math.floor(audio.currentTime % 60);
-
+  const m = Math.floor(audio.currentTime / 60);
+  const s = Math.floor(audio.currentTime % 60);
   document.getElementById("time").innerText =
-    `${min}:${sec < 10 ? "0" : ""}${sec}`;
+    `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
-/* 🖱️ DRAG SEEK */
+/* 🖱️ SEEK */
 document.getElementById("progressContainer").onclick = (e) => {
   const rect = e.target.getBoundingClientRect();
   const percent = (e.clientX - rect.left) / rect.width;
   audio.currentTime = percent * audio.duration;
 };
 
-/* -------------------------
-   📌 ROUTING
-------------------------- */
+/* 📌 ROUTE */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("Name");
 
-/* -------------------------
-   🏠 ARTIST GRID
-------------------------- */
+/* 🏠 ARTIST GRID */
 if (!artistName) {
 
   const artists = ["Alex Warren", "NeonEcho"];
@@ -294,29 +315,27 @@ if (!artistName) {
 
 }
 
-/* -------------------------
-   🎤 SONG GRID
-------------------------- */
+/* 🎤 SONG GRID */
 else {
 
   document.getElementById("grid").style.display = "none";
   const songsDiv = document.getElementById("songs");
   songsDiv.style.display = "grid";
 
-  let currentArtist = artistName;
-
   fetch(`${artistName}/config.json`)
     .then(res => res.json())
-    .then(data => {
+    .then(async data => {
 
       document.getElementById("title").innerText = data.artist;
 
-      data.songs.forEach((song, i) => {
+      for (let i = 0; i < data.songs.length; i++) {
+
+        const song = data.songs[i];
 
         const card = document.createElement("div");
         card.className = "song";
 
-        const img = song.image || `${artistName}/pfp.png`;
+        const img = await resolveImage(song, artistName);
 
         card.innerHTML = `
           <img src="${img}">
@@ -328,8 +347,7 @@ else {
         };
 
         songsDiv.appendChild(card);
-
-      });
+      }
 
     });
 
