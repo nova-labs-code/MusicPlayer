@@ -11,10 +11,7 @@ body{
   color:white;
 }
 
-h1{
-  padding:20px;
-  margin:0;
-}
+h1{padding:20px;margin:0}
 
 /* GRID */
 .grid,.songs{
@@ -47,7 +44,6 @@ img{
   right:0;
   background:#181818;
   display:none;
-  z-index:999;
 }
 
 /* UI */
@@ -64,7 +60,6 @@ img{
   border-radius:6px;
 }
 
-/* controls */
 button{
   background:none;
   border:none;
@@ -73,7 +68,7 @@ button{
   cursor:pointer;
 }
 
-/* progress */
+/* SINGLE PROGRESS BAR */
 .progress-container{
   flex:1;
   height:4px;
@@ -95,7 +90,7 @@ button{
   text-align:right;
 }
 
-/* FULLSCREEN */
+/* FULLSCREEN (NO EXTRA BAR) */
 .player.fullscreen{
   top:0;
   height:100vh;
@@ -129,22 +124,13 @@ button{
   margin:0 10px;
 }
 
+/* SAME BAR SIZE ALWAYS */
 .progress-container.big{
   width:min(700px,85vw);
   height:4px;
 }
 
-.exit{
-  position:absolute;
-  top:15px;
-  right:15px;
-  background:#222;
-  padding:6px 10px;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-/* PiP */
+/* PiP engine */
 video{
   position:fixed;
   width:1px;
@@ -163,6 +149,7 @@ video{
 
 <div class="player" id="player">
 
+  <!-- SINGLE UI -->
   <div class="ui">
     <img id="cover">
 
@@ -174,15 +161,16 @@ video{
       </div>
     </div>
 
+    <!-- FULLSCREEN BUTTON ONLY (TOGGLES STATE) -->
+    <button onclick="toggleFullscreen()">⛶</button>
     <button onclick="togglePlay()">⏯</button>
     <button onclick="togglePiP()">🪟</button>
-    <button onclick="toggleFullscreen()">⛶</button>
 
     <div class="time" id="time">0:00</div>
   </div>
 
+  <!-- FULLSCREEN VIEW (NO EXTRA CONTROLS, SAME BAR) -->
   <div class="fullscreen-ui">
-    <div class="exit" onclick="exitFullscreen()">✕ Exit</div>
 
     <img id="coverBig">
 
@@ -195,24 +183,30 @@ video{
       <button onclick="nextSong()">⏭</button>
     </div>
 
+    <!-- SAME BAR, NOT BIGGER -->
     <div class="progress-container big" id="barFull">
       <div class="progress" id="progFull"></div>
     </div>
 
     <div class="time" id="timeFull">0:00</div>
   </div>
+
 </div>
 
+<!-- PiP engine -->
 <video id="pip"></video>
 
 <script>
 
-let audio=new Audio();
-let pip=document.getElementById("pip");
+let audio = new Audio();
+let pip = document.getElementById("pip");
 
-let list=[],index=0,artist="";
+let list=[], index=0, artist="";
 
-/* PLAY */
+let isPlaying=false;
+let pipActive=false;
+
+/* PLAY (NO DOUBLE START) */
 function playSong(l,i,a){
   list=l;
   index=i;
@@ -221,10 +215,13 @@ function playSong(l,i,a){
   let s=l[i];
 
   audio.src=`./${a}/${s.file}`;
-  pip.src=audio.src;
 
   audio.play();
-  pip.play().catch(()=>{});
+
+  // ONLY sync PiP source, DO NOT autoplay it
+  pip.src=audio.src;
+
+  isPlaying=true;
 
   document.getElementById("player").style.display="block";
 
@@ -238,17 +235,16 @@ function playSong(l,i,a){
   document.title=`${s.title} - MusicPlayer`;
 }
 
-/* CONTROLS */
+/* PLAY/PAUSE SAFE */
 function togglePlay(){
   if(audio.paused){
     audio.play();
-    pip.play().catch(()=>{});
   }else{
     audio.pause();
-    pip.pause();
   }
 }
 
+/* NEXT / PREV */
 function nextSong(){
   if(index<list.length-1)
     playSong(list,index+1,artist);
@@ -257,14 +253,13 @@ function nextSong(){
 function prevSong(){
   if(audio.currentTime>5){
     audio.currentTime=0;
-    pip.currentTime=0;
     return;
   }
   if(index>0)
     playSong(list,index-1,artist);
 }
 
-/* FULLSCREEN */
+/* FULLSCREEN TOGGLE (NO EXIT BUTTON NEEDED) */
 function toggleFullscreen(){
   let p=player;
 
@@ -272,31 +267,30 @@ function toggleFullscreen(){
     p.classList.add("fullscreen");
     document.documentElement.requestFullscreen?.();
   }else{
-    exitFullscreen();
+    p.classList.remove("fullscreen");
+    document.exitFullscreen?.();
   }
 }
 
-function exitFullscreen(){
-  player.classList.remove("fullscreen");
-  document.exitFullscreen?.();
-}
-
-/* PiP */
+/* PiP FIX (ONLY ON CLICK) */
 async function togglePiP(){
   try{
     if(document.pictureInPictureElement){
       await document.exitPictureInPicture();
+      pipActive=false;
     }else{
       pip.src=audio.src;
       pip.currentTime=audio.currentTime;
       await pip.play();
       await pip.requestPictureInPicture();
+      pipActive=true;
     }
   }catch(e){}
 }
 
-/* SYNC */
+/* SYNC (ONLY ONE SOURCE) */
 audio.addEventListener("timeupdate",()=>{
+
   pip.currentTime=audio.currentTime;
 
   let pct=(audio.currentTime/audio.duration)*100;
@@ -318,21 +312,18 @@ bar.onclick=e=>{
   let r=bar.getBoundingClientRect();
   let p=(e.clientX-r.left)/r.width;
   audio.currentTime=p*audio.duration;
-  pip.currentTime=audio.currentTime;
 };
 
 barFull.onclick=e=>{
   let r=barFull.getBoundingClientRect();
   let p=(e.clientX-r.left)/r.width;
   audio.currentTime=p*audio.duration;
-  pip.currentTime=audio.currentTime;
 };
 
-/* ROUTING FIXED (THIS WAS MISSING BEFORE) */
+/* ROUTING (HOME + ARTIST RESTORED) */
 const params=new URLSearchParams(location.search);
 const artistName=params.get("name");
 
-/* HOME */
 if(!artistName){
 
   document.title="MusicPlayer";
@@ -364,10 +355,7 @@ if(!artistName){
 
     });
 
-}
-
-/* ARTIST PAGE */
-else{
+}else{
 
   grid.style.display="none";
   songs.style.display="grid";
