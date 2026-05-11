@@ -4,10 +4,6 @@
   <title>MusicPlayer</title>
 
   <style>
-    :root {
-      --accent: #ffffff;
-    }
-
     body {
       margin: 0;
       font-family: Arial;
@@ -20,14 +16,14 @@
       margin: 0;
     }
 
-    .grid {
+    .grid, .songs {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 16px;
       padding: 20px;
     }
 
-    .card {
+    .card, .song {
       background: #1c1c1c;
       border-radius: 10px;
       padding: 10px;
@@ -35,29 +31,7 @@
       cursor: pointer;
     }
 
-    .card img {
-      width: 100%;
-      aspect-ratio: 1/1;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
-    .songs {
-      display: none;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 16px;
-      padding: 20px;
-    }
-
-    .song {
-      background: #1c1c1c;
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .song img {
+    img {
       width: 100%;
       aspect-ratio: 1/1;
       object-fit: cover;
@@ -75,19 +49,18 @@
       z-index: 999;
     }
 
-    /* MINI */
-    .mini-ui {
+    /* SINGLE UI (no duplicates) */
+    .ui {
       display: flex;
       align-items: center;
-      padding: 8px;
       gap: 10px;
+      padding: 10px;
     }
 
-    #cover-mini {
+    #cover {
       width: 44px;
       height: 44px;
       border-radius: 6px;
-      object-fit: cover;
     }
 
     .controls button {
@@ -98,6 +71,7 @@
       cursor: pointer;
     }
 
+    /* PROGRESS (ONLY ONE BAR) */
     .progress-container {
       flex: 1;
       height: 4px;
@@ -110,13 +84,12 @@
     .progress {
       height: 100%;
       width: 0%;
-      background: var(--accent);
-      border-radius: 999px;
+      background: white;
     }
 
     .time {
-      font-size: 12px;
       width: 70px;
+      font-size: 12px;
       text-align: right;
     }
 
@@ -124,13 +97,12 @@
     .player.fullscreen {
       top: 0;
       height: 100vh;
-      background: radial-gradient(circle at center, #1a1a1a, #000);
+      background: radial-gradient(circle, #1a1a1a, #000);
     }
 
     .fullscreen-ui {
       display: none;
       height: 100%;
-      width: 100%;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -139,27 +111,15 @@
       box-sizing: border-box;
     }
 
-    .player.fullscreen .mini-ui {
-      display: none;
-    }
-
     .player.fullscreen .fullscreen-ui {
       display: flex;
     }
 
-    #cover-full {
+    #coverBig {
       width: 260px;
       height: 260px;
       border-radius: 18px;
       object-fit: cover;
-    }
-
-    #fullTitle {
-      font-size: 22px;
-    }
-
-    #fullArtist {
-      opacity: 0.7;
     }
 
     .full-controls button {
@@ -171,10 +131,19 @@
       cursor: pointer;
     }
 
-    /* slim fullscreen bar */
     .progress-container.big {
       width: min(700px, 85vw);
-      height: 3px;
+      height: 4px; /* SAME SIZE ALWAYS */
+    }
+
+    .exit {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 6px 10px;
+      background: #222;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
     video {
@@ -182,7 +151,6 @@
       width: 1px;
       height: 1px;
       opacity: 0;
-      pointer-events: none;
     }
   </style>
 </head>
@@ -190,37 +158,38 @@
 <body>
 
 <h1 id="title">🎧 Artists</h1>
+
 <div id="grid" class="grid"></div>
 <div id="songs" class="songs"></div>
 
 <div class="player" id="player">
 
-  <div class="mini-ui">
-    <img id="cover-mini">
+  <!-- MAIN UI -->
+  <div class="ui">
+    <img id="cover">
 
     <div style="flex:1">
-      <div id="nowPlaying">Not Playing</div>
+      <div id="now">Not Playing</div>
 
-      <div class="progress-container" id="progressContainer">
-        <div class="progress" id="progress"></div>
+      <div class="progress-container" id="bar">
+        <div class="progress" id="prog"></div>
       </div>
     </div>
 
-    <div class="controls">
-      <button onclick="prevSong()">⏮</button>
-      <button onclick="togglePlay()">⏯</button>
-      <button onclick="nextSong()">⏭</button>
-      <button onclick="togglePiP()">🪟</button>
-      <button onclick="toggleFullscreen()">⛶</button>
-    </div>
+    <button onclick="togglePlay()">⏯</button>
+    <button onclick="togglePiP()">🪟</button>
+    <button onclick="toggleFullscreen()">⛶</button>
 
     <div class="time" id="time">0:00</div>
   </div>
 
+  <!-- FULLSCREEN OVERLAY -->
   <div class="fullscreen-ui">
-    <img id="cover-full">
-    <div id="fullTitle"></div>
-    <div id="fullArtist"></div>
+    <div class="exit" onclick="exitFullscreen()">✕ Exit</div>
+
+    <img id="coverBig">
+    <div id="songTitle"></div>
+    <div id="artistName"></div>
 
     <div class="full-controls">
       <button onclick="prevSong()">⏮</button>
@@ -228,103 +197,86 @@
       <button onclick="nextSong()">⏭</button>
     </div>
 
-    <button onclick="exitFullscreen()">✕ Exit</button>
-
-    <div class="progress-container big" id="progressContainerFull">
-      <div class="progress" id="progressFull"></div>
+    <!-- SAME BAR, SAME SIZE -->
+    <div class="progress-container big" id="barFull">
+      <div class="progress" id="progFull"></div>
     </div>
 
     <div class="time" id="timeFull">0:00</div>
   </div>
 </div>
 
-<!-- PiP video engine -->
-<video id="pipVideo"></video>
+<!-- PiP engine -->
+<video id="pip"></video>
 
 <script>
+
 let audio = new Audio();
-let pipVideo = document.getElementById("pipVideo");
+let pip = document.getElementById("pip");
 
-let currentList = [];
-let currentIndex = 0;
-let currentArtist = "";
-let isPlaying = false;
-
-/* TITLE */
-function setTitle(song) {
-  if (song) {
-    document.title = `${song} - MusicPlayer`;
-  } else if (currentArtist) {
-    document.title = `${currentArtist} - MusicPlayer`;
-  } else {
-    document.title = "MusicPlayer";
-  }
-}
+let list = [];
+let index = 0;
+let artist = "";
 
 /* PLAY */
-function playSong(list, index, artist) {
-  currentList = list;
-  currentIndex = index;
-  currentArtist = artist;
+function playSong(l, i, a) {
+  list = l;
+  index = i;
+  artist = a;
 
-  const song = list[index];
+  let s = l[i];
 
-  audio.src = `./${artist}/${song.file}`;
-  pipVideo.src = audio.src;
+  audio.src = `./${a}/${s.file}`;
+  pip.src = audio.src;
 
   audio.play();
-  pipVideo.play();
-
-  isPlaying = true;
+  pip.play().catch(()=>{});
 
   document.getElementById("player").style.display = "block";
 
-  document.getElementById("nowPlaying").innerText = song.title;
-  document.getElementById("cover-mini").src = `./${artist}/${song.image}`;
-  document.getElementById("cover-full").src = `./${artist}/${song.image}`;
+  document.getElementById("now").innerText = s.title;
+  document.getElementById("cover").src = `./${a}/${s.image}`;
+  document.getElementById("coverBig").src = `./${a}/${s.image}`;
 
-  document.getElementById("fullTitle").innerText = song.title;
-  document.getElementById("fullArtist").innerText = artist;
+  document.getElementById("songTitle").innerText = s.title;
+  document.getElementById("artistName").innerText = a;
 
-  setTitle(song.title);
+  document.title = `${s.title} - MusicPlayer`;
 }
 
-/* CONTROLS */
+/* PLAY/PAUSE */
 function togglePlay() {
   if (audio.paused) {
     audio.play();
-    pipVideo.play();
-    isPlaying = true;
+    pip.play().catch(()=>{});
   } else {
     audio.pause();
-    pipVideo.pause();
-    isPlaying = false;
+    pip.pause();
   }
 }
 
+/* NEXT / PREV */
 function nextSong() {
-  if (currentIndex < currentList.length - 1) {
-    playSong(currentList, currentIndex + 1, currentArtist);
-  }
+  if (index < list.length - 1)
+    playSong(list, index + 1, artist);
 }
 
 function prevSong() {
   if (audio.currentTime > 5) {
     audio.currentTime = 0;
-    pipVideo.currentTime = 0;
+    pip.currentTime = 0;
     return;
   }
-  if (currentIndex > 0) {
-    playSong(currentList, currentIndex - 1, currentArtist);
-  }
+  if (index > 0)
+    playSong(list, index - 1, artist);
 }
 
 /* FULLSCREEN */
 function toggleFullscreen() {
-  const player = document.getElementById("player");
+  let p = document.getElementById("player");
 
-  if (!player.classList.contains("fullscreen")) {
-    player.classList.add("fullscreen");
+  if (!p.classList.contains("fullscreen")) {
+    p.classList.add("fullscreen");
     document.documentElement.requestFullscreen?.();
   } else {
     exitFullscreen();
@@ -332,105 +284,57 @@ function toggleFullscreen() {
 }
 
 function exitFullscreen() {
-  const player = document.getElementById("player");
-  player.classList.remove("fullscreen");
+  document.getElementById("player").classList.remove("fullscreen");
   document.exitFullscreen?.();
 }
 
-/* PiP FIXED */
+/* PiP */
 async function togglePiP() {
   try {
     if (document.pictureInPictureElement) {
       await document.exitPictureInPicture();
     } else {
-      pipVideo.src = audio.src;
-      pipVideo.currentTime = audio.currentTime;
-      await pipVideo.play();
-      await pipVideo.requestPictureInPicture();
+      pip.src = audio.src;
+      pip.currentTime = audio.currentTime;
+      await pip.play();
+      await pip.requestPictureInPicture();
     }
   } catch (e) {}
 }
 
 /* SYNC */
 audio.addEventListener("timeupdate", () => {
-  pipVideo.currentTime = audio.currentTime;
+  pip.currentTime = audio.currentTime;
 
-  const pct = (audio.currentTime / audio.duration) * 100;
+  let pct = (audio.currentTime / audio.duration) * 100;
 
-  document.getElementById("progress").style.width = pct + "%";
-  document.getElementById("progressFull").style.width = pct + "%";
+  prog.style.width = pct + "%";
+  progFull.style.width = pct + "%";
 
-  const m = Math.floor(audio.currentTime / 60);
-  const s = Math.floor(audio.currentTime % 60);
-  const t = `${m}:${s < 10 ? "0" : ""}${s}`;
+  let m = Math.floor(audio.currentTime / 60);
+  let s = Math.floor(audio.currentTime % 60);
 
-  document.getElementById("time").innerText = t;
-  document.getElementById("timeFull").innerText = t;
+  let t = `${m}:${s < 10 ? "0" : ""}${s}`;
+
+  time.innerText = t;
+  timeFull.innerText = t;
 });
 
 /* SEEK */
-function seek(e, bar) {
-  const rect = bar.getBoundingClientRect();
-  const pct = (e.clientX - rect.left) / rect.width;
-  audio.currentTime = pct * audio.duration;
-  pipVideo.currentTime = audio.currentTime;
-}
+bar.onclick = e => {
+  let r = bar.getBoundingClientRect();
+  let p = (e.clientX - r.left) / r.width;
+  audio.currentTime = p * audio.duration;
+  pip.currentTime = audio.currentTime;
+};
 
-progressContainer.onclick = e => seek(e, progressContainer);
-progressContainerFull.onclick = e => seek(e, progressContainerFull);
+barFull.onclick = e => {
+  let r = barFull.getBoundingClientRect();
+  let p = (e.clientX - r.left) / r.width;
+  audio.currentTime = p * audio.duration;
+  pip.currentTime = audio.currentTime;
+};
 
-/* ROUTING */
-const params = new URLSearchParams(location.search);
-const artistName = params.get("name");
-
-/* HOME */
-if (!artistName) {
-  setTitle();
-
-  fetch("artist.json")
-    .then(r => r.json())
-    .then(list => {
-      list.forEach(name => {
-        fetch(`./${name}/config.json`)
-          .then(r => r.json())
-          .then(data => {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-              <img src="./${name}/${data.image}">
-              <div>${data.artist}</div>
-            `;
-            card.onclick = () => location.href = `?name=${name}`;
-            grid.appendChild(card);
-          });
-      });
-    });
-}
-
-/* ARTIST */
-else {
-  document.getElementById("grid").style.display = "none";
-  document.getElementById("songs").style.display = "grid";
-
-  fetch(`./${artistName}/config.json`)
-    .then(r => r.json())
-    .then(data => {
-      setTitle(null);
-
-      document.getElementById("title").innerText = data.artist;
-
-      data.songs.forEach((song, i) => {
-        const el = document.createElement("div");
-        el.className = "song";
-        el.innerHTML = `
-          <img src="./${artistName}/${song.image}">
-          <div>${song.title}</div>
-        `;
-        el.onclick = () => playSong(data.songs, i, artistName);
-        songs.appendChild(el);
-      });
-    });
-}
 </script>
 
 </body>
