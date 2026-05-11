@@ -33,24 +33,13 @@
       padding: 10px;
       text-align: center;
       cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .card:hover {
-      transform: scale(1.04);
-      background: #2a2a2a;
     }
 
     .card img {
       width: 100%;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1/1;
       object-fit: cover;
       border-radius: 8px;
-    }
-
-    .name {
-      margin-top: 8px;
-      font-size: 14px;
     }
 
     .songs {
@@ -66,24 +55,13 @@
       padding: 10px;
       text-align: center;
       cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .song:hover {
-      transform: scale(1.03);
-      background: #2a2a2a;
     }
 
     .song img {
       width: 100%;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1/1;
       object-fit: cover;
       border-radius: 8px;
-    }
-
-    .song-title {
-      margin-top: 8px;
-      font-size: 13px;
     }
 
     /* PLAYER */
@@ -112,15 +90,6 @@
       object-fit: cover;
     }
 
-    .controls button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    /* thinner progress */
     .progress-container {
       flex: 1;
       height: 4px;
@@ -142,24 +111,23 @@
       text-align: right;
     }
 
-    /* FULLSCREEN */
+    /* FULLSCREEN FIX */
+    .player.fullscreen {
+      top: 0;
+      height: 100vh;
+      background: radial-gradient(circle at center, #1a1a1a, #000);
+    }
+
     .fullscreen-ui {
       display: none;
-      height: 100vh;
+      height: 100%;
       width: 100%;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 18px;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .player.fullscreen {
-      top: 0;
-      bottom: 0;
-      height: 100vh;
-      background: radial-gradient(circle at center, #1a1a1a, #000);
+      gap: 20px;
+      padding: 30px;
+      box-sizing: border-box;
     }
 
     .player.fullscreen .mini-ui {
@@ -174,7 +142,6 @@
       width: 260px;
       height: 260px;
       border-radius: 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
       object-fit: cover;
     }
 
@@ -196,9 +163,16 @@
     }
 
     .progress-container.big {
-      width: 55%;
-      max-width: 480px;
+      width: min(700px, 85vw);
       height: 6px;
+    }
+
+    video {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -209,10 +183,8 @@
 <div id="grid" class="grid"></div>
 <div id="songs" class="songs"></div>
 
-<!-- PLAYER -->
 <div class="player" id="player">
 
-  <!-- MINI -->
   <div class="mini-ui">
     <img id="cover-mini">
 
@@ -224,21 +196,16 @@
       </div>
     </div>
 
-    <div class="controls">
-      <button onclick="prevSong()">⏮</button>
-      <button onclick="togglePlay()">⏯</button>
-      <button onclick="nextSong()">⏭</button>
-      <button onclick="toggleFullscreen()">⛶</button>
-      <button onclick="togglePiP()">🪟</button>
-    </div>
+    <button onclick="togglePlay()">⏯</button>
+    <button onclick="togglePiP()">🪟</button>
+    <button onclick="toggleFullscreen()">⛶</button>
 
     <div class="time" id="time">0:00</div>
   </div>
 
-  <!-- FULL -->
   <div class="fullscreen-ui">
     <img id="cover-full">
-    <div id="fullTitle">Not Playing</div>
+    <div id="fullTitle"></div>
     <div id="fullArtist"></div>
 
     <div class="full-controls">
@@ -255,15 +222,26 @@
   </div>
 </div>
 
+<!-- PiP engine -->
+<video id="pipVideo"></video>
+
 <script>
 let audio = new Audio();
+let pipVideo = document.getElementById("pipVideo");
+
 let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
 
-/* TITLE UPDATE */
-function setTabTitle(artist) {
-  document.title = `MusicPlayer - ${artist}`;
+/* TITLE RULES */
+function setTitle(mode, song) {
+  if (song) {
+    document.title = `${song} - MusicPlayer`;
+  } else if (currentArtist) {
+    document.title = `${currentArtist} - MusicPlayer`;
+  } else {
+    document.title = "MusicPlayer";
+  }
 }
 
 /* PLAY */
@@ -277,37 +255,39 @@ function playSong(list, index, artist) {
   audio.src = `./${artist}/${song.file}`;
   audio.play();
 
+  pipVideo.src = audio.src;
+  pipVideo.play();
+
   document.getElementById("player").style.display = "block";
 
   document.getElementById("nowPlaying").innerText = song.title;
   document.getElementById("cover-mini").src = `./${artist}/${song.image}`;
-
   document.getElementById("cover-full").src = `./${artist}/${song.image}`;
+
   document.getElementById("fullTitle").innerText = song.title;
   document.getElementById("fullArtist").innerText = artist;
 
-  setTabTitle(artist);
+  setTitle(null, song.title);
 }
 
 /* CONTROLS */
 function togglePlay() {
-  audio.paused ? audio.play() : audio.pause();
+  audio.paused ? (audio.play(), pipVideo.play()) : (audio.pause(), pipVideo.pause());
+}
+
+function nextSong() {
+  if (currentIndex < currentList.length - 1)
+    playSong(currentList, currentIndex + 1, currentArtist);
 }
 
 function prevSong() {
   if (audio.currentTime > 5) {
     audio.currentTime = 0;
+    pipVideo.currentTime = 0;
     return;
   }
-  if (currentIndex > 0) {
+  if (currentIndex > 0)
     playSong(currentList, currentIndex - 1, currentArtist);
-  }
-}
-
-function nextSong() {
-  if (currentIndex < currentList.length - 1) {
-    playSong(currentList, currentIndex + 1, currentArtist);
-  }
 }
 
 /* FULLSCREEN */
@@ -323,25 +303,25 @@ function toggleFullscreen() {
   }
 }
 
-/* PiP */
+/* PiP FIX */
 async function togglePiP() {
   try {
-    if (!document.pictureInPictureElement) {
-      await audio.requestPictureInPicture?.();
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
     } else {
-      await document.exitPictureInPicture?.();
+      await pipVideo.requestPictureInPicture();
     }
-  } catch (e) {
-    console.log("PiP not supported for audio in this browser");
-  }
+  } catch (e) {}
 }
 
-/* PROGRESS */
+/* SYNC */
 audio.addEventListener("timeupdate", () => {
-  const percent = (audio.currentTime / audio.duration) * 100;
+  pipVideo.currentTime = audio.currentTime;
 
-  document.getElementById("progress").style.width = percent + "%";
-  document.getElementById("progressFull").style.width = percent + "%";
+  const pct = (audio.currentTime / audio.duration) * 100;
+
+  document.getElementById("progress").style.width = pct + "%";
+  document.getElementById("progressFull").style.width = pct + "%";
 
   const m = Math.floor(audio.currentTime / 60);
   const s = Math.floor(audio.currentTime % 60);
@@ -352,22 +332,28 @@ audio.addEventListener("timeupdate", () => {
 });
 
 /* SEEK */
-document.getElementById("progressContainer").onclick = (e) => {
-  const rect = e.currentTarget.getBoundingClientRect();
-  const percent = (e.clientX - rect.left) / rect.width;
-  audio.currentTime = percent * audio.duration;
-};
+function seek(e, bar) {
+  const r = bar.getBoundingClientRect();
+  const p = (e.clientX - r.left) / r.width;
+  audio.currentTime = p * audio.duration;
+  pipVideo.currentTime = audio.currentTime;
+}
 
-/* ROUTE */
-const params = new URLSearchParams(window.location.search);
+progressContainer.onclick = e => seek(e, progressContainer);
+progressContainerFull.onclick = e => seek(e, progressContainerFull);
+
+/* ROUTING */
+const params = new URLSearchParams(location.search);
 const artistName = params.get("name");
 
 /* HOME */
 if (!artistName) {
+  setTitle();
+
   fetch("artist.json")
     .then(r => r.json())
-    .then(artists => {
-      artists.forEach(name => {
+    .then(list => {
+      list.forEach(name => {
         fetch(`./${name}/config.json`)
           .then(r => r.json())
           .then(data => {
@@ -375,12 +361,10 @@ if (!artistName) {
             card.className = "card";
             card.innerHTML = `
               <img src="./${name}/${data.image}">
-              <div class="name">${data.artist}</div>
+              <div>${data.artist}</div>
             `;
-            card.onclick = () => {
-              window.location.href = `?name=${encodeURIComponent(name)}`;
-            };
-            document.getElementById("grid").appendChild(card);
+            card.onclick = () => location.href = `?name=${name}`;
+            grid.appendChild(card);
           });
       });
     });
@@ -394,7 +378,7 @@ else {
   fetch(`./${artistName}/config.json`)
     .then(r => r.json())
     .then(data => {
-      setTabTitle(data.artist);
+      setTitle("artist");
 
       document.getElementById("title").innerText = data.artist;
 
@@ -403,10 +387,10 @@ else {
         el.className = "song";
         el.innerHTML = `
           <img src="./${artistName}/${song.image}">
-          <div class="song-title">${song.title}</div>
+          <div>${song.title}</div>
         `;
         el.onclick = () => playSong(data.songs, i, artistName);
-        document.getElementById("songs").appendChild(el);
+        songs.appendChild(el);
       });
     });
 }
