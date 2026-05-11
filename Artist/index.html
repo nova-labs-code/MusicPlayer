@@ -11,11 +11,6 @@ body{
   color:white;
 }
 
-h1{
-  padding:20px;
-  margin:0;
-}
-
 /* GRID */
 .grid,.songs{
   display:grid;
@@ -39,7 +34,7 @@ img{
   border-radius:8px;
 }
 
-/* PLAYER (ONLY MINI BAR) */
+/* PLAYER */
 .player{
   position:fixed;
   bottom:0;
@@ -50,7 +45,7 @@ img{
   z-index:999;
 }
 
-/* MINI UI */
+/* MINI BAR */
 .ui{
   display:flex;
   align-items:center;
@@ -73,7 +68,7 @@ button{
   cursor:pointer;
 }
 
-/* MINI PROGRESS BAR ONLY */
+/* MINI PROGRESS */
 .progress-container{
   flex:1;
   height:4px;
@@ -94,6 +89,73 @@ button{
   font-size:12px;
   text-align:right;
 }
+
+/* FULLSCREEN MODE */
+.player.fullscreen{
+  top:0;
+  height:100vh;
+  background:radial-gradient(circle,#1a1a1a,#000);
+}
+
+/* hide mini bar in fullscreen */
+.player.fullscreen .ui{
+  display:none;
+}
+
+/* FULLSCREEN LAYOUT */
+.fullscreen-ui{
+  display:none;
+  height:100%;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  padding:30px;
+  box-sizing:border-box;
+}
+
+.player.fullscreen .fullscreen-ui{
+  display:flex;
+}
+
+/* CENTER IMAGE */
+#coverBig{
+  width:260px;
+  height:260px;
+  border-radius:18px;
+  object-fit:cover;
+}
+
+/* CONTROLS UNDER IMAGE */
+.full-controls{
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+
+.full-controls button{
+  font-size:28px;
+}
+
+/* FULLSCREEN PROGRESS AT BOTTOM ONLY */
+.full-progress{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(700px,85vw);
+  height:4px;
+  background:#333;
+  border-radius:999px;
+  overflow:hidden;
+  cursor:pointer;
+}
+
+.full-progress .progress{
+  height:100%;
+  width:0%;
+  background:white;
+}
 </style>
 </head>
 
@@ -106,6 +168,7 @@ button{
 
 <div class="player" id="player">
 
+  <!-- MINI MODE -->
   <div class="ui">
 
     <img id="cover">
@@ -113,14 +176,35 @@ button{
     <div style="flex:1">
       <div id="now">Not Playing</div>
 
-      <div class="progress-container" id="bar">
-        <div class="progress" id="prog"></div>
+      <div class="progress-container" id="barMini">
+        <div class="progress" id="progMini"></div>
       </div>
     </div>
 
     <button onclick="togglePlay()">⏯</button>
+    <button onclick="toggleFullscreen()">⛶</button>
 
     <div class="time" id="time">0:00</div>
+
+  </div>
+
+  <!-- FULLSCREEN MODE -->
+  <div class="fullscreen-ui">
+
+    <img id="coverBig">
+
+    <div id="songTitle"></div>
+    <div id="artistName"></div>
+
+    <div class="full-controls">
+      <button onclick="prevSong()">⏮</button>
+      <button onclick="togglePlay()">⏯</button>
+      <button onclick="nextSong()">⏭</button>
+    </div>
+
+    <div class="full-progress" id="barFull">
+      <div class="progress" id="progFull"></div>
+    </div>
 
   </div>
 
@@ -129,73 +213,94 @@ button{
 <script>
 
 let audio = new Audio();
-let list = [];
-let index = 0;
-let artist = "";
-
-/* TITLE HANDLER */
-function setTitle(song=null){
-  if(song){
-    document.title = `${song} - MusicPlayer`;
-  } else if(artist){
-    document.title = `${artist} - MusicPlayer`;
-  } else {
-    document.title = "MusicPlayer";
-  }
-}
+let list=[], index=0, artist="";
 
 /* PLAY */
 function playSong(l,i,a){
-  list = l;
-  index = i;
-  artist = a;
+  list=l;
+  index=i;
+  artist=a;
 
-  let s = l[i];
+  let s=l[i];
 
-  audio.src = `./${a}/${s.file}`;
+  audio.src=`./${a}/${s.file}`;
   audio.play();
 
-  document.getElementById("player").style.display = "block";
+  player.style.display="block";
 
-  now.innerText = s.title;
-  cover.src = `./${a}/${s.image}`;
+  now.innerText=s.title;
+  cover.src=`./${a}/${s.image}`;
+  coverBig.src=`./${a}/${s.image}`;
 
-  setTitle(s.title);
+  songTitle.innerText=s.title;
+  artistName.innerText=a;
+
+  document.title=`${s.title} - MusicPlayer`;
 }
 
-/* PLAY/PAUSE */
+/* CONTROLS */
 function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
+}
+
+function nextSong(){
+  if(index<list.length-1)
+    playSong(list,index+1,artist);
+}
+
+function prevSong(){
+  if(index>0)
+    playSong(list,index-1,artist);
+}
+
+/* FULLSCREEN TOGGLE */
+function toggleFullscreen(){
+  let p=player;
+
+  if(!p.classList.contains("fullscreen")){
+    p.classList.add("fullscreen");
+    document.documentElement.requestFullscreen?.();
+  }else{
+    p.classList.remove("fullscreen");
+    document.exitFullscreen?.();
+  }
 }
 
 /* SYNC */
 audio.addEventListener("timeupdate",()=>{
 
-  let pct = (audio.currentTime / audio.duration) * 100;
+  let pct=(audio.currentTime/audio.duration)*100;
 
-  prog.style.width = pct + "%";
+  progMini.style.width=pct+"%";
+  progFull.style.width=pct+"%";
 
-  let m = Math.floor(audio.currentTime / 60);
-  let s = Math.floor(audio.currentTime % 60);
+  let m=Math.floor(audio.currentTime/60);
+  let s=Math.floor(audio.currentTime%60);
 
-  time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
+  time.innerText=`${m}:${s<10?"0":""}${s}`;
 });
 
-/* SEEK */
-bar.onclick = e => {
-  let r = bar.getBoundingClientRect();
-  let p = (e.clientX - r.left) / r.width;
-  audio.currentTime = p * audio.duration;
+/* SEEK MINI */
+barMini.onclick=e=>{
+  let r=barMini.getBoundingClientRect();
+  let p=(e.clientX-r.left)/r.width;
+  audio.currentTime=p*audio.duration;
+};
+
+/* SEEK FULL */
+barFull.onclick=e=>{
+  let r=barFull.getBoundingClientRect();
+  let p=(e.clientX-r.left)/r.width;
+  audio.currentTime=p*audio.duration;
 };
 
 /* ROUTING */
-const params = new URLSearchParams(location.search);
-const artistName = params.get("name");
+const params=new URLSearchParams(location.search);
+const artistName=params.get("name");
 
-/* HOME */
 if(!artistName){
 
-  setTitle();
+  document.title="MusicPlayer";
 
   fetch("artist.json")
     .then(r=>r.json())
@@ -207,15 +312,15 @@ if(!artistName){
           .then(r=>r.json())
           .then(data=>{
 
-            let card = document.createElement("div");
-            card.className = "card";
+            let card=document.createElement("div");
+            card.className="card";
 
-            card.innerHTML = `
+            card.innerHTML=`
               <img src="./${name}/${data.image}">
               <div>${data.artist}</div>
             `;
 
-            card.onclick = () => location.href = `?name=${name}`;
+            card.onclick=()=>location.href=`?name=${name}`;
 
             grid.appendChild(card);
           });
@@ -224,31 +329,28 @@ if(!artistName){
 
     });
 
-}
+}else{
 
-/* ARTIST */
-else{
-
-  grid.style.display = "none";
-  songs.style.display = "grid";
+  grid.style.display="none";
+  songs.style.display="grid";
 
   fetch(`./${artistName}/config.json`)
     .then(r=>r.json())
     .then(data=>{
 
-      document.title = `${data.artist} - MusicPlayer`;
+      document.title=`${data.artist} - MusicPlayer`;
 
       data.songs.forEach((s,i)=>{
 
-        let el = document.createElement("div");
-        el.className = "song";
+        let el=document.createElement("div");
+        el.className="song";
 
-        el.innerHTML = `
+        el.innerHTML=`
           <img src="./${artistName}/${s.image}">
           <div>${s.title}</div>
         `;
 
-        el.onclick = () => playSong(data.songs,i,artistName);
+        el.onclick=()=>playSong(data.songs,i,artistName);
 
         songs.appendChild(el);
       });
