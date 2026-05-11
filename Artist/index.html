@@ -16,6 +16,7 @@
       margin: 0;
     }
 
+    /* 🏠 ARTIST GRID */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -46,23 +47,42 @@
 
     .name {
       margin-top: 8px;
+      font-size: 14px;
     }
 
-    /* 🎤 artist view */
+    /* 🎵 SONG GRID */
     .songs {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
       padding: 20px;
     }
 
     .song {
-      padding: 10px;
-      margin: 6px 0;
       background: #1c1c1c;
-      border-radius: 8px;
+      border-radius: 10px;
+      padding: 10px;
       cursor: pointer;
+      text-align: center;
+      transition: 0.2s;
     }
 
     .song:hover {
       background: #2a2a2a;
+      transform: scale(1.03);
+    }
+
+    .song img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #333;
+    }
+
+    .song-title {
+      margin-top: 8px;
+      font-size: 13px;
     }
   </style>
 </head>
@@ -72,7 +92,7 @@
 <h1 id="title">🎧 Artists</h1>
 
 <div id="grid" class="grid"></div>
-<div id="songs" class="songs" style="display:none;"></div>
+<div id="songs" class="songs"></div>
 
 <script>
 const DEFAULT_IMAGE =
@@ -83,18 +103,17 @@ function resolveImage(img) {
 }
 
 // -------------------------
-// 📌 GET URL PARAM
+// 📌 ROUTE HANDLING
 // -------------------------
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("Name");
 
 // -------------------------
-// 🏠 GRID MODE
+// 🏠 ARTIST GRID MODE
 // -------------------------
 if (!artistName) {
 
-  const artists = ["Alex Warren", "NeonEcho"];
-  const grid = document.getElementById("grid");
+  const artists = ["Alex Warren"];
 
   artists.forEach(name => {
 
@@ -105,8 +124,10 @@ if (!artistName) {
         const card = document.createElement("div");
         card.className = "card";
 
+        const pfp = `${name}/pfp.png`;
+
         card.innerHTML = `
-          <img src="${resolveImage(data.image)}">
+          <img src="${resolveImage(pfp)}">
           <div class="name">${data.artist}</div>
         `;
 
@@ -114,7 +135,8 @@ if (!artistName) {
           window.location.href = `?Name=${encodeURIComponent(name)}`;
         };
 
-        grid.appendChild(card);
+        document.getElementById("grid").appendChild(card);
+
       });
 
   });
@@ -122,12 +144,14 @@ if (!artistName) {
 }
 
 // -------------------------
-// 🎤 ARTIST MODE
+// 🎤 SONG GRID MODE
 // -------------------------
 else {
 
   document.getElementById("grid").style.display = "none";
-  document.getElementById("songs").style.display = "block";
+
+  const songsDiv = document.getElementById("songs");
+  songsDiv.style.display = "grid";
 
   fetch(`${artistName}/config.json`)
     .then(res => res.json())
@@ -135,19 +159,23 @@ else {
 
       document.getElementById("title").innerText = data.artist;
 
-      const songsDiv = document.getElementById("songs");
-
       data.songs.forEach(song => {
 
-        const div = document.createElement("div");
-        div.className = "song";
-        div.innerText = song.title;
+        const card = document.createElement("div");
+        card.className = "song";
 
-        div.onclick = () => {
+        const img = song.image || "";
+
+        card.innerHTML = `
+          <img src="${resolveImage(img)}">
+          <div class="song-title">${song.title}</div>
+        `;
+
+        card.onclick = () => {
           new Audio(`${artistName}/${song.file}`).play();
         };
 
-        songsDiv.appendChild(div);
+        songsDiv.appendChild(card);
 
       });
 
