@@ -3,41 +3,53 @@
 <head>
   <title>Artist Hub</title>
 
-  <style id="theme">
+  <style>
     body {
       margin: 0;
       font-family: Arial;
       background: #0f0f0f;
       color: white;
-      transition: 0.3s;
     }
 
-    .layout {
-      display: flex;
-      height: 100vh;
+    h1 {
+      padding: 20px;
+      margin: 0;
     }
 
-    .sidebar {
-      width: 250px;
-      background: #141414;
-      padding: 10px;
-      overflow-y: auto;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+      padding: 20px;
     }
 
-    .artist {
-      padding: 10px;
-      margin: 6px 0;
+    .card {
       background: #1c1c1c;
+      border-radius: 10px;
+      padding: 10px;
       cursor: pointer;
-      border-radius: 6px;
+      text-align: center;
+      transition: 0.2s;
     }
 
-    .artist:hover {
+    .card:hover {
+      transform: scale(1.04);
       background: #2a2a2a;
     }
 
-    .main {
-      flex: 1;
+    .card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .name {
+      margin-top: 8px;
+    }
+
+    /* 🎤 artist view */
+    .songs {
       padding: 20px;
     }
 
@@ -45,7 +57,7 @@
       padding: 10px;
       margin: 6px 0;
       background: #1c1c1c;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
     }
 
@@ -57,18 +69,10 @@
 
 <body>
 
-<div class="layout">
+<h1 id="title">🎧 Artists</h1>
 
-  <!-- 🎤 ARTIST LIST -->
-  <div class="sidebar" id="artistList"></div>
-
-  <!-- 🎵 SONG AREA -->
-  <div class="main">
-    <h1 id="artistName">Select an Artist</h1>
-    <div id="songs"></div>
-  </div>
-
-</div>
+<div id="grid" class="grid"></div>
+<div id="songs" class="songs" style="display:none;"></div>
 
 <script>
 const DEFAULT_IMAGE =
@@ -79,56 +83,76 @@ function resolveImage(img) {
 }
 
 // -------------------------
-// 🎤 ARTIST LIST (manual or later auto-scan)
+// 📌 GET URL PARAM
 // -------------------------
-const artists = ["Alex Warren", "NeonEcho"];
-
-const artistList = document.getElementById("artistList");
-
-artists.forEach(name => {
-  const div = document.createElement("div");
-  div.className = "artist";
-  div.innerText = name;
-
-  div.onclick = () => loadArtist(name);
-
-  artistList.appendChild(div);
-});
+const params = new URLSearchParams(window.location.search);
+const artistName = params.get("Name");
 
 // -------------------------
-// 🎧 LOAD ARTIST CONFIG
+// 🏠 GRID MODE
 // -------------------------
-function loadArtist(name) {
-  fetch(`${name}/config.json`)
+if (!artistName) {
+
+  const artists = ["Alex Warren", "NeonEcho"];
+  const grid = document.getElementById("grid");
+
+  artists.forEach(name => {
+
+    fetch(`${name}/config.json`)
+      .then(res => res.json())
+      .then(data => {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+          <img src="${resolveImage(data.image)}">
+          <div class="name">${data.artist}</div>
+        `;
+
+        card.onclick = () => {
+          window.location.href = `?Name=${encodeURIComponent(name)}`;
+        };
+
+        grid.appendChild(card);
+      });
+
+  });
+
+}
+
+// -------------------------
+// 🎤 ARTIST MODE
+// -------------------------
+else {
+
+  document.getElementById("grid").style.display = "none";
+  document.getElementById("songs").style.display = "block";
+
+  fetch(`${artistName}/config.json`)
     .then(res => res.json())
     .then(data => {
 
-      // 🎨 theme
-      if (data.theme) {
-        document.body.style.background = data.theme.bg || "#0f0f0f";
-        document.body.style.color = data.theme.accent || "#fff";
-      }
-
-      document.getElementById("artistName").innerText = data.artist;
+      document.getElementById("title").innerText = data.artist;
 
       const songsDiv = document.getElementById("songs");
-      songsDiv.innerHTML = "";
 
       data.songs.forEach(song => {
+
         const div = document.createElement("div");
         div.className = "song";
-
         div.innerText = song.title;
 
         div.onclick = () => {
-          const audio = new Audio(`${name}/${song.file}`);
-          audio.play();
+          new Audio(`${artistName}/${song.file}`).play();
         };
 
         songsDiv.appendChild(div);
+
       });
 
     });
+
 }
 </script>
 
