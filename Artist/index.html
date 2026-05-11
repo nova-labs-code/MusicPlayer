@@ -162,6 +162,7 @@
       width: 60%;
       max-width: 500px;
     }
+
   </style>
 </head>
 
@@ -210,10 +211,10 @@ function applyTheme(theme) {
 
 /* IMAGE */
 function resolveImage(song, artist) {
-  return song.image?.trim() || `./Artist/${artist}/pfp.png`;
+  return song.image?.trim() || `./${artist}/pfp.png`;
 }
 
-/* PLAY SONG */
+/* PLAY */
 function playSong(list, index, artist) {
   currentList = list;
   currentIndex = index;
@@ -221,7 +222,7 @@ function playSong(list, index, artist) {
 
   const song = list[index];
 
-  audio.src = `./Artist/${artist}/${song.file}`;
+  audio.src = `./${artist}/${song.file}`;
   audio.play();
 
   document.getElementById("player").style.display = "flex";
@@ -229,7 +230,7 @@ function playSong(list, index, artist) {
   document.getElementById("cover").src = resolveImage(song, artist);
 }
 
-/* BACK (5s rule) */
+/* BACK RULE */
 function prevSong() {
   if (audio.currentTime > 5) {
     audio.currentTime = 0;
@@ -300,13 +301,13 @@ const artistName = params.get("name");
 /* ARTIST MODE */
 if (!artistName) {
 
-  fetch("./artist.json")
+  fetch("artist.json")
     .then(res => res.json())
     .then(artists => {
 
       artists.forEach(name => {
 
-        fetch(`./Artist/${name}/config.json`)
+        fetch(`./${name}/config.json`)
           .then(res => res.json())
           .then(data => {
 
@@ -314,12 +315,12 @@ if (!artistName) {
             card.className = "card";
 
             card.innerHTML = `
-              <img src="${data.image}">
+              <img src="./${name}/${data.image.split('/').pop()}">
               <div class="name">${data.artist}</div>
             `;
 
             card.onclick = () => {
-              window.location.href = `./?name=${encodeURIComponent(name)}`;
+              window.location.href = `?name=${encodeURIComponent(name)}`;
             };
 
             document.getElementById("grid").appendChild(card);
@@ -339,7 +340,7 @@ else {
   const songsDiv = document.getElementById("songs");
   songsDiv.style.display = "grid";
 
-  fetch(`./Artist/${artistName}/config.json`)
+  fetch(`./${artistName}/config.json`)
     .then(res => res.json())
     .then(data => {
 
