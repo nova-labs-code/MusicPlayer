@@ -86,7 +86,7 @@
       font-size: 13px;
     }
 
-    /* PLAYER */
+    /* PLAYER SHELL */
     .player {
       position: fixed;
       bottom: 0;
@@ -94,13 +94,18 @@
       right: 0;
       background: #181818;
       display: none;
-      align-items: center;
-      padding: 10px;
-      gap: 10px;
       z-index: 999;
     }
 
-    .player img {
+    /* MINI MODE */
+    .mini-ui {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      gap: 10px;
+    }
+
+    #cover-mini {
       width: 50px;
       height: 50px;
       border-radius: 6px;
@@ -136,31 +141,63 @@
       text-align: right;
     }
 
-    /* FULLSCREEN */
-    .player.fullscreen {
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      position: fixed;
+    /* FULLSCREEN MODE */
+    .fullscreen-ui {
+      display: none;
+      height: 100vh;
+      width: 100%;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
-      gap: 22px;
+      justify-content: center;
+      gap: 25px;
+      text-align: center;
       padding: 40px;
     }
 
-    .player.fullscreen img {
-      width: 260px;
-      height: 260px;
-      border-radius: 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    .player.fullscreen {
+      top: 0;
+      bottom: 0;
+      height: 100vh;
+      background: radial-gradient(circle at center, #1a1a1a, #000);
     }
 
-    .player.fullscreen .progress-container {
+    .player.fullscreen .mini-ui {
+      display: none;
+    }
+
+    .player.fullscreen .fullscreen-ui {
+      display: flex;
+    }
+
+    #cover-full {
+      width: 280px;
+      height: 280px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      object-fit: cover;
+    }
+
+    #fullTitle {
+      font-size: 22px;
+    }
+
+    #fullArtist {
+      opacity: 0.7;
+    }
+
+    .full-controls button {
+      font-size: 26px;
+      margin: 0 10px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    .progress-container.big {
       width: 60%;
       max-width: 500px;
+      height: 8px;
     }
   </style>
 </head>
@@ -174,24 +211,51 @@
 
 <!-- PLAYER -->
 <div class="player" id="player">
-  <img id="cover">
 
-  <div style="flex:1">
-    <div id="nowPlaying">Not Playing</div>
+  <!-- MINI MODE -->
+  <div class="mini-ui">
+    <img id="cover-mini">
 
-    <div class="progress-container" id="progressContainer">
-      <div class="progress" id="progress"></div>
+    <div style="flex:1">
+      <div id="nowPlaying">Not Playing</div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress" id="progress"></div>
+      </div>
     </div>
+
+    <div class="controls">
+      <button onclick="prevSong()">⏮</button>
+      <button onclick="togglePlay()">⏯</button>
+      <button onclick="nextSong()">⏭</button>
+      <button onclick="toggleFullscreen()">⛶</button>
+    </div>
+
+    <div class="time" id="time">0:00</div>
   </div>
 
-  <div class="controls">
-    <button onclick="prevSong()">⏮</button>
-    <button onclick="togglePlay()">⏯</button>
-    <button onclick="nextSong()">⏭</button>
-    <button onclick="toggleFullscreen()">⛶</button>
+  <!-- FULLSCREEN MODE -->
+  <div class="fullscreen-ui">
+
+    <img id="cover-full">
+
+    <div id="fullTitle">Not Playing</div>
+    <div id="fullArtist"></div>
+
+    <div class="full-controls">
+      <button onclick="prevSong()">⏮</button>
+      <button onclick="togglePlay()">⏯</button>
+      <button onclick="nextSong()">⏭</button>
+    </div>
+
+    <div class="progress-container big" id="progressContainerFull">
+      <div class="progress" id="progressFull"></div>
+    </div>
+
+    <div class="time" id="timeFull">0:00</div>
+
   </div>
 
-  <div class="time" id="time">0:00</div>
 </div>
 
 <script>
@@ -200,13 +264,6 @@ let audio = new Audio();
 let currentList = [];
 let currentIndex = 0;
 let currentArtist = "";
-
-/* THEME */
-function applyTheme(theme) {
-  if (!theme) return;
-  document.body.style.background = theme.bg || "#0f0f0f";
-  document.documentElement.style.setProperty("--accent", theme.accent || "#ffffff");
-}
 
 /* PLAY SONG */
 function playSong(list, index, artist) {
@@ -219,9 +276,16 @@ function playSong(list, index, artist) {
   audio.src = `./${artist}/${song.file}`;
   audio.play();
 
-  document.getElementById("player").style.display = "flex";
+  document.getElementById("player").style.display = "block";
+
+  // MINI UI
   document.getElementById("nowPlaying").innerText = song.title;
-  document.getElementById("cover").src = `./${artist}/${song.image}`;
+  document.getElementById("cover-mini").src = `./${artist}/${song.image}`;
+
+  // FULL UI
+  document.getElementById("cover-full").src = `./${artist}/${song.image}`;
+  document.getElementById("fullTitle").innerText = song.title;
+  document.getElementById("fullArtist").innerText = currentArtist;
 }
 
 /* BACK (5s rule) */
@@ -268,17 +332,21 @@ document.addEventListener("fullscreenchange", () => {
   }
 });
 
-/* PROGRESS */
+/* PROGRESS SYNC */
 audio.addEventListener("timeupdate", () => {
-  const bar = document.getElementById("progress");
+
   const percent = (audio.currentTime / audio.duration) * 100;
-  bar.style.width = percent + "%";
+
+  document.getElementById("progress").style.width = percent + "%";
+  document.getElementById("progressFull").style.width = percent + "%";
 
   const m = Math.floor(audio.currentTime / 60);
   const s = Math.floor(audio.currentTime % 60);
 
-  document.getElementById("time").innerText =
-    `${m}:${s < 10 ? "0" : ""}${s}`;
+  const time = `${m}:${s < 10 ? "0" : ""}${s}`;
+
+  document.getElementById("time").innerText = time;
+  document.getElementById("timeFull").innerText = time;
 });
 
 /* SEEK */
@@ -288,7 +356,7 @@ document.getElementById("progressContainer").onclick = (e) => {
   audio.currentTime = percent * audio.duration;
 };
 
-/* ROUTE */
+/* ROUTING */
 const params = new URLSearchParams(window.location.search);
 const artistName = params.get("name");
 
@@ -338,7 +406,6 @@ else {
     .then(res => res.json())
     .then(data => {
 
-      applyTheme(data.theme);
       document.getElementById("title").innerText = data.artist;
 
       data.songs.forEach((song, i) => {
