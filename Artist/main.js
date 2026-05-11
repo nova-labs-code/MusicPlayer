@@ -1,78 +1,96 @@
-let audio=new Audio();
-let list=[],index=0,artist="";
 
-let shuffle=false;
-let loopMode="none";
+/* AUDIO CORE */
+let audio = new Audio();
 
-let songElements=[];
+let list = [];
+let index = 0;
+let artist = "";
+
+let shuffle = false;
+let loopMode = "none";
+
+let songElements = [];
 
 /* NAV */
 function goHome(){
-  location.href="https://nova-labs-code.github.io/MusicPlayer";
+  location.href = "https://nova-labs-code.github.io/MusicPlayer";
 }
 
 function goBack(){
-  location.href="?";
+  location.href = "?";
+}
+
+/* TITLE SYSTEM */
+function setPageTitle(text){
+  document.getElementById("title").innerText = text;
+  document.title = text + " - MusicPlayer";
 }
 
 /* LOOP TEXT */
 function getLoopText(){
-  if(loopMode==="none") return "Loop: Off";
-  if(loopMode==="song") return "Loop: Current Song";
+  if(loopMode === "none") return "Loop: Off";
+  if(loopMode === "song") return "Loop: Current Song";
   return "Loop: Queue";
 }
 
 /* UI UPDATE */
 function updateButtons(){
 
-  shuffleBtn.classList.toggle("active",shuffle);
-  shuffleBtnFS.classList.toggle("active",shuffle);
+  // shuffle
+  shuffleBtn.classList.toggle("active", shuffle);
+  shuffleBtnFS.classList.toggle("active", shuffle);
 
-  [loopBtn,loopBtnFS].forEach(btn=>{
+  // loop (mini + fullscreen)
+  [loopBtn, loopBtnFS].forEach(btn => {
 
-    btn.classList.toggle("loop-active",loopMode!=="none");
-    btn.title=getLoopText();
+    btn.classList.toggle("loop-active", loopMode !== "none");
+    btn.title = getLoopText();
+
   });
 
+  // fullscreen loop text
   if(loopState){
-    loopState.innerText=getLoopText();
+    loopState.innerText = getLoopText();
   }
 }
 
-/* HIGHLIGHT */
+/* SONG HIGHLIGHTS */
 function updateSongHighlights(){
 
-  songElements.forEach((el,i)=>{
+  songElements.forEach((el, i) => {
 
-    el.classList.remove("active","queue");
+    el.classList.remove("active", "queue");
 
-    if(i===index) el.classList.add("active");
-    if(i>index) el.classList.add("queue");
+    if(i === index) el.classList.add("active");
+    if(i > index) el.classList.add("queue");
+
   });
 }
 
-/* PLAY */
-function playSong(l,i,a){
+/* PLAY SONG */
+function playSong(l, i, a){
 
-  list=l;
-  index=i;
-  artist=a;
+  list = l;
+  index = i;
+  artist = a;
 
-  let s=l[i];
+  let s = l[i];
 
-  audio.src=`./${a}/${s.file}`;
+  audio.src = `./${a}/${s.file}`;
+  audio.currentTime = 0;
   audio.play();
 
-  player.style.display="block";
+  player.style.display = "block";
 
-  now.innerText=s.title;
-  cover.src=`./${a}/${s.image}`;
-  coverBig.src=`./${a}/${s.image}`;
+  now.innerText = s.title;
+  cover.src = `./${a}/${s.image}`;
+  coverBig.src = `./${a}/${s.image}`;
 
-  songTitle.innerText=s.title;
-  artistName.innerText=a;
+  songTitle.innerText = s.title;
+  artistName.innerText = a;
 
-  document.title=`${s.title} - MusicPlayer`;
+  // 🎵 page title = song
+  document.title = `${s.title} - MusicPlayer`;
 
   updateButtons();
   updateSongHighlights();
@@ -80,50 +98,62 @@ function playSong(l,i,a){
 
 /* CONTROLS */
 function togglePlay(){
-  audio.paused?audio.play():audio.pause();
+  audio.paused ? audio.play() : audio.pause();
 }
 
 function toggleShuffle(){
-  shuffle=!shuffle;
+  shuffle = !shuffle;
   updateButtons();
 }
 
 function toggleLoop(){
-  loopMode=
-    loopMode==="none"?"song":
-    loopMode==="song"?"queue":"none";
+
+  loopMode =
+    loopMode === "none" ? "song" :
+    loopMode === "song" ? "queue" :
+    "none";
 
   updateButtons();
 }
 
+/* NEXT */
 function nextSong(){
 
   if(shuffle){
     let n;
     do{
-      n=Math.floor(Math.random()*list.length);
-    }while(list.length>1 && n===index);
+      n = Math.floor(Math.random() * list.length);
+    } while(list.length > 1 && n === index);
 
-    return playSong(list,n,artist);
+    return playSong(list, n, artist);
   }
 
-  if(index<list.length-1){
-    playSong(list,index+1,artist);
+  if(index < list.length - 1){
+    playSong(list, index + 1, artist);
   }
-  else if(loopMode==="queue"){
-    playSong(list,0,artist);
+  else if(loopMode === "queue"){
+    playSong(list, 0, artist);
   }
 }
 
+/* PREV */
 function prevSong(){
-  if(index>0) playSong(list,index-1,artist);
+
+  if(audio.currentTime > 5){
+    audio.currentTime = 0;
+    return;
+  }
+
+  if(index > 0){
+    playSong(list, index - 1, artist);
+  }
 }
 
-/* END */
-audio.addEventListener("ended",()=>{
+/* END LOGIC */
+audio.addEventListener("ended", () => {
 
-  if(loopMode==="song"){
-    audio.currentTime=0;
+  if(loopMode === "song"){
+    audio.currentTime = 0;
     audio.play();
     return;
   }
@@ -137,79 +167,88 @@ function toggleFullscreen(){
   if(!player.classList.contains("fullscreen")){
     player.classList.add("fullscreen");
     document.documentElement.requestFullscreen?.();
-  }else{
+  } else {
     document.exitFullscreen?.();
   }
 }
 
-document.addEventListener("fullscreenchange",()=>{
+/* EXIT FULLSCREEN FIX */
+document.addEventListener("fullscreenchange", () => {
+
   if(!document.fullscreenElement){
     player.classList.remove("fullscreen");
   }
+
 });
 
-/* SYNC */
-audio.addEventListener("timeupdate",()=>{
+/* PROGRESS SYNC */
+audio.addEventListener("timeupdate", () => {
 
-  let p=(audio.currentTime/audio.duration)*100;
+  if(!audio.duration) return;
 
-  progMini.style.width=p+"%";
-  progFull.style.width=p+"%";
+  let percent = (audio.currentTime / audio.duration) * 100;
 
-  let m=Math.floor(audio.currentTime/60);
-  let s=Math.floor(audio.currentTime%60);
+  progMini.style.width = percent + "%";
+  progFull.style.width = percent + "%";
 
-  time.innerText=`${m}:${s<10?"0":""}${s}`;
+  let m = Math.floor(audio.currentTime / 60);
+  let s = Math.floor(audio.currentTime % 60);
+
+  time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
 /* SEEK */
-barMini.onclick=e=>{
-  let r=barMini.getBoundingClientRect();
-  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+barMini.onclick = (e) => {
+  let r = barMini.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
-barFull.onclick=e=>{
-  let r=barFull.getBoundingClientRect();
-  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+barFull.onclick = (e) => {
+  let r = barFull.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
-/* ROUTE */
-const params=new URLSearchParams(location.search);
-const artistName=params.get("name");
-
-/* INIT LOOP STATE REF */
+/* LOOP STATE REF */
 let loopState;
 
-window.addEventListener("DOMContentLoaded",()=>{
-  loopState=document.getElementById("loopState");
+window.addEventListener("DOMContentLoaded", () => {
+  loopState = document.getElementById("loopState");
 });
 
-/* HOME */
-if(!artistName){
+/* ROUTING */
+const params = new URLSearchParams(location.search);
+const artistParam = params.get("name");
 
-  backBtn.style.display="none";
+/* HOME VIEW */
+if(!artistParam){
+
+  setPageTitle("🎧 Artists");
+  backBtn.style.display = "none";
 
   fetch("artist.json")
-    .then(r=>r.json())
-    .then(a=>{
+    .then(r => r.json())
+    .then(artists => {
 
-      a.forEach(name=>{
+      artists.forEach(name => {
 
         fetch(`./${name}/config.json`)
-          .then(r=>r.json())
-          .then(d=>{
+          .then(r => r.json())
+          .then(data => {
 
-            let c=document.createElement("div");
-            c.className="card";
+            let card = document.createElement("div");
+            card.className = "card";
 
-            c.innerHTML=`
-              <img src="./${name}/${d.image}">
-              <div>${d.artist}</div>
+            card.innerHTML = `
+              <img src="./${name}/${data.image}">
+              <div>${data.artist}</div>
             `;
 
-            c.onclick=()=>location.href=`?name=${name}`;
+            card.onclick = () => {
+              location.href = `?name=${name}`;
+            };
 
-            grid.appendChild(c);
+            grid.appendChild(card);
+
           });
 
       });
@@ -218,34 +257,35 @@ if(!artistName){
 
 }
 
-/* ARTIST */
+/* ARTIST VIEW */
 else{
 
-  backBtn.style.display="inline-block";
+  backBtn.style.display = "inline-block";
 
-  grid.style.display="none";
-  songs.style.display="grid";
+  grid.style.display = "none";
+  songs.style.display = "grid";
 
-  fetch(`./${artistName}/config.json`)
-    .then(r=>r.json())
-    .then(d=>{
+  fetch(`./${artistParam}/config.json`)
+    .then(r => r.json())
+    .then(data => {
 
-      setPageTitle(d.artist);
+      setPageTitle(data.artist);
 
-      d.songs.forEach((s,i)=>{
+      data.songs.forEach((s, i) => {
 
-        let el=document.createElement("div");
-        el.className="song";
+        let el = document.createElement("div");
+        el.className = "song";
 
-        el.innerHTML=`
-          <img src="./${artistName}/${s.image}">
+        el.innerHTML = `
+          <img src="./${artistParam}/${s.image}">
           <div>${s.title}</div>
         `;
 
-        el.onclick=()=>playSong(d.songs,i,artistName);
+        el.onclick = () => playSong(data.songs, i, artistParam);
 
         songs.appendChild(el);
         songElements.push(el);
+
       });
 
     });
