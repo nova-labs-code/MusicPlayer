@@ -50,13 +50,11 @@ const loopState = document.getElementById("loopState");
 const backBtn = document.getElementById("backBtn");
 
 /* =========================
-   🔧 PATCH ADDITION
+   FIX: HOME BUTTON
 ========================= */
 
-function cleanSongFromURL(){
-  const url = new URL(location.href);
-  url.searchParams.delete("song");
-  history.replaceState({}, "", url.toString());
+function goHome(){
+  location.href = "https://nova-labs-code.github.io/MusicPlayer";
 }
 
 /* =========================
@@ -78,6 +76,16 @@ function setURL(obj){
 }
 
 /* =========================
+   CLEAN SONG PARAM
+========================= */
+
+function cleanSongFromURL(){
+  const url = new URL(location.href);
+  url.searchParams.delete("song");
+  history.replaceState({}, "", url.toString());
+}
+
+/* =========================
    SHUFFLE ENGINE
 ========================= */
 
@@ -96,26 +104,8 @@ function shuffleArray(arr){
    NAV SYSTEM
 ========================= */
 
-function goHome(){
-  location.href = "https://nova-labs-code.github.io/MusicPlayer";
-}
-
-function resetToHomeUI(){
-
-  artist = "";
-  list = [];
-  allSongs = [];
-  songElements = [];
-
-  songs.innerHTML = "";
-  grid.style.display = "grid";
-  songs.style.display = "none";
-  songSearch.style.display = "none";
-  backBtn.style.display = "none";
-
-  player.style.display = "none";
-
-  setPageTitle("Artists");
+function goBack(){
+  location.href = "?";
 }
 
 /* =========================
@@ -177,8 +167,9 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
 
         setTimeout(() => {
           playSong(allSongs, autoSongIndex, name);
-          cleanSongFromURL(); // 🔥 PATCH
+          cleanSongFromURL();
         }, 0);
+
       }
 
     })
@@ -226,8 +217,7 @@ function playSong(l, i, a){
 
   const s = list.find(x => x._id === i) || list[i];
 
-  /* 🔥 PATCH: song file mapping */
-  const songNumber = i + 1;
+  const songNumber = i + 1; // FIX for song1.mp3 system
   audio.src = `./${a}/song${songNumber}.mp3`;
 
   audio.currentTime = 0;
@@ -472,6 +462,6 @@ if(!artistParam){
   loadArtist(artistParam, true, songIndex);
 
   setTimeout(() => {
-    cleanSongFromURL(); // 🔥 PATCH
+    cleanSongFromURL();
   }, 0);
 }
