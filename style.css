@@ -5,9 +5,9 @@ body {
   color: white;
 }
 
-/* TITLE (compact header) */
+/* TITLE */
 #title {
-  font-size: 18px;
+  font-size: clamp(16px, 3vw, 20px);
   padding: 10px 12px;
   margin: 0;
 }
@@ -28,12 +28,11 @@ body {
   outline: none;
 }
 
-/* CATEGORIES */
+/* CATEGORY BAR */
 #categories {
   display: flex;
   gap: 6px;
   padding: 0 12px 8px;
-  flex-wrap: wrap;
 }
 
 .cat {
@@ -51,11 +50,14 @@ body {
   color: black;
 }
 
-/* GRID (tight + responsive) */
+/* 🧠 SMART FLUID GRID (IMPORTANT CHANGE) */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
-  gap: 8px;
+
+  /* auto-fit makes it truly responsive */
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+
+  gap: 10px;
   padding: 10px;
 }
 
@@ -74,7 +76,7 @@ body {
   background: #242424;
 }
 
-/* IMAGE (no distortion) */
+/* IMAGE (natural scaling) */
 .card img {
   width: 100%;
   height: auto;
@@ -85,7 +87,7 @@ body {
 /* TEXT */
 .card div {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .card small {
@@ -93,10 +95,10 @@ body {
   opacity: 0.6;
 }
 
-/* 📱 MOBILE TIGHT MODE */
-@media (max-width: 500px) {
+/* 📱 MOBILE REFINEMENT */
+@media (max-width: 480px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    gap: 8px;
   }
 }
