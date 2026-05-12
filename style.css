@@ -3,14 +3,13 @@ body {
   font-family: Arial;
   background: #0f0f0f;
   color: white;
-  -webkit-font-smoothing: antialiased;
 }
 
+/* TITLE */
 #title {
   font-size: clamp(20px, 4vw, 28px);
   padding: 20px;
   margin: 0;
-  text-shadow: 0 0 10px rgba(255,255,255,0.15);
 }
 
 /* SEARCH */
@@ -25,11 +24,10 @@ body {
   border: none;
   background: #1c1c1c;
   color: white;
-  font-size: 14px;
   outline: none;
 }
 
-/* CATEGORY BAR */
+/* CATEGORIES */
 #categories {
   display: flex;
   gap: 10px;
@@ -44,12 +42,6 @@ body {
   padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
-  transition: 0.2s;
-  font-size: 13px;
-}
-
-.cat:hover {
-  background: #2a2a2a;
 }
 
 .cat.active {
@@ -60,8 +52,8 @@ body {
 /* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
   padding: 16px;
 }
 
@@ -72,7 +64,7 @@ body {
   padding: 10px;
   text-align: center;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s;
   overflow: hidden;
 }
 
@@ -87,7 +79,6 @@ body {
   height: auto;
   display: block;
   border-radius: 10px;
-  object-fit: contain;
 }
 
 .card div {
@@ -102,14 +93,8 @@ body {
 }
 
 /* 📱 MOBILE */
-@media (max-width: 600px) {
+@media (max-width: 500px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    padding: 12px;
-  }
-
-  #searchInput {
-    font-size: 16px;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
