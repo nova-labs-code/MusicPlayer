@@ -131,9 +131,9 @@ function makeArtistCard(artist) {
     <div>${artist.displayName}</div>
   `;
 
-  el.onclick = () => {
-    location.href = `./Artist/?name=${artist.name}`;
-  };
+el.onclick = () => {
+  location.href = `./Artist/?name=${encodeURIComponent(artist.name)}`;
+};
 
   return el;
 }
