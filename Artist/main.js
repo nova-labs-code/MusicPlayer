@@ -1,5 +1,3 @@
-
-/* AUDIO CORE */
 let audio = new Audio();
 
 let list = [];
@@ -36,19 +34,14 @@ function getLoopText(){
 /* UI UPDATE */
 function updateButtons(){
 
-  // shuffle
   shuffleBtn.classList.toggle("active", shuffle);
   shuffleBtnFS.classList.toggle("active", shuffle);
 
-  // loop (mini + fullscreen)
   [loopBtn, loopBtnFS].forEach(btn => {
-
     btn.classList.toggle("loop-active", loopMode !== "none");
     btn.title = getLoopText();
-
   });
 
-  // fullscreen loop text
   if(loopState){
     loopState.innerText = getLoopText();
   }
@@ -89,8 +82,7 @@ function playSong(l, i, a){
   songTitle.innerText = s.title;
   artistName.innerText = a;
 
-  // 🎵 page title = song
-  document.title = `${s.title} - MusicPlayer`;
+  setPageTitle(s.title);
 
   updateButtons();
   updateSongHighlights();
@@ -107,7 +99,6 @@ function toggleShuffle(){
 }
 
 function toggleLoop(){
-
   loopMode =
     loopMode === "none" ? "song" :
     loopMode === "song" ? "queue" :
@@ -174,14 +165,12 @@ function toggleFullscreen(){
 
 /* EXIT FULLSCREEN FIX */
 document.addEventListener("fullscreenchange", () => {
-
   if(!document.fullscreenElement){
     player.classList.remove("fullscreen");
   }
-
 });
 
-/* PROGRESS SYNC */
+/* PROGRESS */
 audio.addEventListener("timeupdate", () => {
 
   if(!audio.duration) return;
@@ -218,6 +207,7 @@ window.addEventListener("DOMContentLoaded", () => {
 /* ROUTING */
 const params = new URLSearchParams(location.search);
 const artistParam = params.get("name");
+const songParam = params.get("song");
 
 /* HOME VIEW */
 if(!artistParam){
@@ -258,7 +248,7 @@ if(!artistParam){
 }
 
 /* ARTIST VIEW */
-else{
+else {
 
   backBtn.style.display = "inline-block";
 
@@ -287,6 +277,23 @@ else{
         songElements.push(el);
 
       });
+
+      /* 🎯 AUTO PLAY FROM URL */
+      if(songParam !== null && !isNaN(songParam)){
+
+        const i = parseInt(songParam);
+
+        if(data.songs[i]){
+
+          playSong(data.songs, i, artistParam);
+
+          /* 🧼 CLEAN URL (remove song param) */
+          const url = new URL(window.location);
+          url.searchParams.delete("song");
+          window.history.replaceState({}, "", url);
+
+        }
+      }
 
     });
 
