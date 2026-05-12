@@ -50,7 +50,7 @@ setInterval(forceFixURL, 500);
 const songSearch = document.getElementById("songSearch");
 
 /* =========================
-   🎭 INSTANT ARTIST UI SWITCH
+   🎭 SAFE UI SWITCH (NO WIPE)
 ========================= */
 
 function enterArtistUI(name){
@@ -59,11 +59,11 @@ function enterArtistUI(name){
   songs.style.display = "grid";
   songSearch.style.display = "block";
 
-  songs.innerHTML = "";
-  songElements = [];
-
-  now.innerText = "Loading...";
   setPageTitle(name);
+
+  now.innerText = "Loading songs...";
+
+  // IMPORTANT: no clearing here anymore
 }
 
 /* =========================
@@ -130,7 +130,7 @@ function updateSongHighlights(){
 }
 
 /* =========================
-   PLAY SONG
+   PLAY SONG (STABLE INDEX)
 ========================= */
 
 function playSong(l, i, a){
@@ -387,8 +387,19 @@ if(!artistParam){
             `;
 
             card.onclick = () => {
-              enterArtistUI(data.artist);   // instant UI switch
+
               setURL({ name });
+
+              enterArtistUI(data.artist);
+
+              fetch(`./${name}/config.json`)
+                .then(r => r.json())
+                .then(data => {
+
+                  allSongs = data.songs;
+                  renderSongs(allSongs);
+
+                });
             };
 
             grid.appendChild(card);
@@ -402,7 +413,7 @@ if(!artistParam){
 }
 
 /* =========================
-   ARTIST VIEW
+   ARTIST VIEW (DIRECT LOAD)
 ========================= */
 
 else {
