@@ -10,6 +10,22 @@ let loopMode = "none";
 let songElements = [];
 
 /* =========================
+   🔧 URL CLEANER (PLUS FIX)
+========================= */
+
+function getCleanParam(name){
+  const raw = location.search;
+
+  // turn "+" into proper space encoding
+  const fixed = raw.replace(/\+/g, "%20");
+
+  const params = new URLSearchParams(fixed);
+  const value = params.get(name);
+
+  return value ? decodeURIComponent(value) : null;
+}
+
+/* =========================
    MEDIA SESSION
 ========================= */
 
@@ -289,12 +305,11 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   ROUTING (FIXED — NO + EVER)
+   ROUTING (FIXED + CLEAN)
 ========================= */
 
-const params = new URLSearchParams(location.search);
-const artistParam = params.get("name");
-const songParam = params.get("song");
+const artistParam = getCleanParam("name");
+const songParam = getCleanParam("song");
 
 /* =========================
    HOME VIEW
@@ -323,7 +338,6 @@ if(!artistParam){
               <div>${data.artist}</div>
             `;
 
-            /* ✅ SAFE NAVIGATION */
             card.onclick = () => {
               const url = new URL(location.href);
               url.searchParams.set("name", name);
@@ -376,7 +390,6 @@ else {
 
       });
 
-      /* ✅ SAFE SONG LOAD */
       if(songParam !== null && !isNaN(songParam)){
 
         const i = parseInt(songParam) - 1;
