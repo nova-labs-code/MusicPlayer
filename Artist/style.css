@@ -1,20 +1,35 @@
+/* =========================
+   BASE FLUID SYSTEM
+========================= */
+
+html{
+  font-size:16px;
+}
+
 body{
   margin:0;
   font-family:Arial;
   background:#0f0f0f;
   color:white;
-  padding-top:50px;
+
+  /* fluid breathing room */
+  padding-top:clamp(45px, 4vw, 70px);
 }
 
-/* NAV */
+/* =========================
+   NAV
+========================= */
+
 #nav{
   position:fixed;
   top:0;
   left:0;
   right:0;
+
   display:flex;
-  gap:10px;
-  padding:10px;
+  gap:clamp(6px, 1vw, 10px);
+  padding:clamp(6px, 1vw, 12px);
+
   background:rgba(0,0,0,0.6);
   backdrop-filter:blur(10px);
   z-index:1000;
@@ -24,30 +39,78 @@ body{
   background:#1c1c1c;
   border:none;
   color:white;
-  padding:8px 12px;
+
+  padding:clamp(6px, 1vw, 10px) clamp(10px, 1.2vw, 14px);
   border-radius:8px;
   cursor:pointer;
+
+  font-size:clamp(12px, 1vw, 14px);
 }
 
-/* 🔥 FIXED 5-COLUMN GRID */
+/* =========================
+   TITLE
+========================= */
+
+#title{
+  font-size:clamp(20px, 2.2vw, 32px);
+  font-weight:700;
+
+  padding:clamp(14px, 2vw, 24px) clamp(16px, 2vw, 24px) 10px;
+  margin:0;
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  letter-spacing:0.5px;
+  text-shadow:0 0 12px rgba(255,255,255,0.15);
+}
+
+/* divider line */
+#title::after{
+  content:"";
+  display:block;
+  width:100%;
+  height:1px;
+  margin-top:12px;
+  background:linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+#title span{
+  font-size:clamp(22px, 2.6vw, 34px);
+}
+
+/* =========================
+   GRID (3 COLUMN LOCKED)
+========================= */
+
 .grid,
 .songs{
   display:grid;
-  grid-template-columns:repeat(3, 1fr); /* ALWAYS 5 */
-  gap:10px;
-  padding:16px;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:clamp(8px, 1vw, 12px);
+
+  padding:clamp(12px, 2vw, 18px);
+  max-width:1200px;
+  margin:0 auto;
 }
 
-/* CARDS */
+/* =========================
+   CARDS / SONGS
+========================= */
+
 .card,
 .song{
   background:#1c1c1c;
-  border-radius:10px;
-  padding:8px;
+  border-radius:12px;
+
+  padding:clamp(6px, 1vw, 10px);
   text-align:center;
+
   cursor:pointer;
   transition:0.15s;
   box-sizing:border-box;
+
   width:100%;
 }
 
@@ -56,7 +119,10 @@ body{
   transform:scale(1.03);
 }
 
-/* IMAGES (no distortion) */
+/* =========================
+   IMAGES
+========================= */
+
 img{
   width:100%;
   height:auto;
@@ -65,63 +131,50 @@ img{
   object-fit:cover;
 }
 
-/* SONG STATES */
-.song.active{
-  outline:2px solid white;
-  box-shadow:0 0 12px white;
-}
+/* =========================
+   PLAYER BAR
+========================= */
 
-.song.queue{
-  outline:2px solid #00ff7f;
-  box-shadow:0 0 10px #00ff7f;
-}
-
-/* PLAYER */
 .player{
   position:fixed;
   bottom:0;
   left:0;
   right:0;
+
   background:#181818;
   display:none;
   z-index:999;
 }
 
-/* MINI UI */
+/* mini UI */
 .ui{
   display:flex;
   align-items:center;
   gap:10px;
-  padding:10px;
+
+  padding:clamp(8px, 1vw, 12px);
 }
 
 #cover{
-  width:44px;
-  height:44px;
+  width:clamp(36px, 4vw, 44px);
+  height:clamp(36px, 4vw, 44px);
   border-radius:6px;
 }
 
-/* BUTTONS */
+/* buttons */
 button{
   background:none;
   border:none;
   color:#666;
-  font-size:18px;
+
+  font-size:clamp(14px, 1.6vw, 18px);
   cursor:pointer;
 }
 
-button.active{
-  color:white;
-  text-shadow:0 0 8px white;
-}
+/* =========================
+   PROGRESS
+========================= */
 
-/* LOOP */
-button.loop-active{
-  color:white !important;
-  text-shadow:0 0 10px white;
-}
-
-/* PROGRESS */
 .progress-container{
   flex:1;
   height:4px;
@@ -143,7 +196,10 @@ button.loop-active{
   text-align:right;
 }
 
-/* FULLSCREEN */
+/* =========================
+   FULLSCREEN MODE
+========================= */
+
 .player.fullscreen{
   top:0;
   height:100vh;
@@ -169,61 +225,48 @@ button.loop-active{
 }
 
 #coverBig{
-  width:260px;
-  height:260px;
+  width:clamp(160px, 25vw, 260px);
+  height:clamp(160px, 25vw, 260px);
   border-radius:18px;
 }
 
-/* CONTROLS */
+/* controls */
 .controls{
   display:flex;
   gap:15px;
 }
 
 .controls button{
-  font-size:28px;
+  font-size:clamp(22px, 3vw, 28px);
 }
 
-/* FULL BAR */
+/* full progress */
 .full-progress{
   position:absolute;
   bottom:20px;
   left:50%;
   transform:translateX(-50%);
+
   width:min(700px,85vw);
   height:4px;
+
   background:#333;
   border-radius:999px;
   overflow:hidden;
 }
 
-/* TITLE */
-#title{
-  font-size:28px;
-  font-weight:700;
-  padding:20px 24px 10px;
-  margin:0;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  letter-spacing:0.5px;
-  text-shadow:0 0 12px rgba(255,255,255,0.15);
-}
+/* =========================
+   MOBILE TWEAKS
+========================= */
 
-#title::after{
-  content:"";
-  display:block;
-  width:100%;
-  height:1px;
-  margin-top:12px;
-  background:linear-gradient(
-    to right,
-    transparent,
-    rgba(255,255,255,0.2),
-    transparent
-  );
-}
+@media (max-width: 600px){
+  .grid,
+  .songs{
+    gap:8px;
+  }
 
-#title span{
-  font-size:30px;
+  .card,
+  .song{
+    border-radius:10px;
+  }
 }
