@@ -6,7 +6,7 @@ let artistsData = [];
 let isLoaded = false;
 let currentCategory = "all";
 
-/* 🎯 CATEGORY SWITCH */
+/* 🎛️ CATEGORY SWITCH */
 document.querySelectorAll(".cat").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".cat").forEach(b => b.classList.remove("active"));
@@ -25,14 +25,12 @@ async function loadData() {
     for (const name of artistList) {
       const config = await fetch(`./Artist/${name}/config.json`).then(r => r.json());
 
-      const artistObj = {
+      artistsData.push({
         name,
         displayName: config.artist,
         image: config.image,
         songs: config.songs || []
-      };
-
-      artistsData.push(artistObj);
+      });
 
       const card = document.createElement("div");
       card.className = "card";
@@ -68,69 +66,53 @@ function debounce(fn, delay = 120) {
   };
 }
 
-/* 🔎 SEARCH ENGINE */
+/* 🔎 SEARCH + CATEGORY ENGINE */
 const runSearch = debounce(() => {
   if (!isLoaded) return;
 
   const q = searchInput.value.toLowerCase().trim();
 
-  if (!q) {
-    grid.style.display = "grid";
-    results.style.display = "none";
-    return;
-  }
+  results.innerHTML = "";
+
+  const showArtists = currentCategory === "all" || currentCategory === "artists";
+  const showMusic = currentCategory === "all" || currentCategory === "music";
 
   grid.style.display = "none";
   results.style.display = "grid";
-  results.innerHTML = "";
 
+  /* 🟢 NO SEARCH TEXT → SHOW CATEGORY BROWSE */
+  if (!q) {
+    for (const artist of artistsData) {
+
+      if (showArtists) {
+        results.appendChild(makeArtistCard(artist));
+      }
+
+      if (showMusic) {
+        artist.songs.forEach((song, i) => {
+          results.appendChild(makeSongCard(artist, song, i));
+        });
+      }
+    }
+    return;
+  }
+
+  /* 🔎 SEARCH MODE */
   for (const artist of artistsData) {
 
     const artistMatch =
       artist.displayName.toLowerCase().includes(q) ||
       artist.name.toLowerCase().includes(q);
 
-    /* 🎤 ARTISTS */
-    if ((currentCategory === "all" || currentCategory === "artists") && artistMatch) {
-
-      const el = document.createElement("div");
-      el.className = "card";
-
-      el.innerHTML = `
-        <img src="./Artist/${artist.name}/${artist.image}">
-        <div>${artist.displayName}</div>
-      `;
-
-      el.onclick = () => {
-        location.href = `./Artist/?name=${artist.name}`;
-      };
-
-      results.appendChild(el);
+    if (showArtists && artistMatch) {
+      results.appendChild(makeArtistCard(artist));
     }
 
-    /* 🎵 SONGS */
-    if (currentCategory === "all" || currentCategory === "music") {
-
+    if (showMusic) {
       artist.songs.forEach((song, i) => {
-
         if (song.title.toLowerCase().includes(q)) {
-
-          const el = document.createElement("div");
-          el.className = "card";
-
-          el.innerHTML = `
-            <img src="./Artist/${artist.name}/${song.image}">
-            <div>${song.title}</div>
-            <small>${artist.displayName}</small>
-          `;
-
-          el.onclick = () => {
-            location.href = `./Artist/?name=${artist.name}&song=${i}`;
-          };
-
-          results.appendChild(el);
+          results.appendChild(makeSongCard(artist, song, i));
         }
-
       });
     }
   }
@@ -138,3 +120,38 @@ const runSearch = debounce(() => {
 }, 120);
 
 searchInput.addEventListener("input", runSearch);
+
+/* 🎤 ARTIST CARD */
+function makeArtistCard(artist) {
+  const el = document.createElement("div");
+  el.className = "card";
+
+  el.innerHTML = `
+    <img src="./Artist/${artist.name}/${artist.image}">
+    <div>${artist.displayName}</div>
+  `;
+
+  el.onclick = () => {
+    location.href = `./Artist/?name=${artist.name}`;
+  };
+
+  return el;
+}
+
+/* 🎵 SONG CARD */
+function makeSongCard(artist, song, i) {
+  const el = document.createElement("div");
+  el.className = "card";
+
+  el.innerHTML = `
+    <img src="./Artist/${artist.name}/${song.image}">
+    <div>${song.title}</div>
+    <small>${artist.displayName}</small>
+  `;
+
+  el.onclick = () => {
+    location.href = `./Artist/?name=${artist.name}&song=${i}`;
+  };
+
+  return el;
+}
