@@ -10,6 +10,14 @@ let loopMode = "none";
 let songElements = [];
 
 /* =========================
+   SAFE URL HELPER (CRITICAL)
+========================= */
+
+function toURL(v){
+  return encodeURIComponent(String(v));
+}
+
+/* =========================
    MEDIA SESSION
 ========================= */
 
@@ -138,7 +146,6 @@ function playSong(l, i, a){
   setPageTitle(artist);
 
   updateMediaSession(s);
-
   updateButtons();
   updateSongHighlights();
 }
@@ -295,7 +302,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   ROUTING (FIXED %20 HERE)
+   ROUTING (NO + EVER)
 ========================= */
 
 const params = new URLSearchParams(location.search);
@@ -329,9 +336,9 @@ if(!artistParam){
               <div>${data.artist}</div>
             `;
 
-            /* 🔥 FIXED URL ENCODING */
+            /* 🔥 SAFE URL */
             card.onclick = () => {
-              location.href = `?name=${encodeURIComponent(name)}`;
+              location.href = `?name=${toURL(name)}`;
             };
 
             grid.appendChild(card);
