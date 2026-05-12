@@ -4,9 +4,9 @@ const searchInput = document.getElementById("searchInput");
 
 let artistsData = [];
 let isLoaded = false;
-let currentCategory = "artists"; // default now
+let currentCategory = "artists";
 
-/* 🎛️ CATEGORY SWITCH (NO ALL ANYMORE) */
+/* 🎛️ CATEGORY SWITCH */
 document.querySelectorAll(".cat").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".cat").forEach(b => b.classList.remove("active"));
@@ -80,7 +80,7 @@ const runSearch = debounce(() => {
   grid.style.display = "none";
   results.style.display = "grid";
 
-  /* 🟢 NO SEARCH TEXT → BROWSE MODE */
+  /* 🟢 BROWSE MODE */
   if (!q) {
     for (const artist of artistsData) {
 
@@ -121,7 +121,7 @@ const runSearch = debounce(() => {
 
 searchInput.addEventListener("input", runSearch);
 
-/* 🎤 ARTIST */
+/* 🎤 ARTIST CARD */
 function makeArtistCard(artist) {
   const el = document.createElement("div");
   el.className = "card";
@@ -138,7 +138,7 @@ function makeArtistCard(artist) {
   return el;
 }
 
-/* 🎵 SONG */
+/* 🎵 SONG CARD */
 function makeSongCard(artist, song, i) {
   const el = document.createElement("div");
   el.className = "card";
