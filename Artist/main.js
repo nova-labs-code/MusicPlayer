@@ -50,7 +50,22 @@ setInterval(forceFixURL, 500);
 const songSearch = document.getElementById("songSearch");
 
 /* =========================
-   🎭 SAFE UI SWITCH (NO WIPE)
+   🎲 SHUFFLE UTILITY (NEW ORDER EVERY LOAD)
+========================= */
+
+function shuffleArray(arr){
+  const a = [...arr];
+
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+
+  return a;
+}
+
+/* =========================
+   🎭 UI SWITCH (NO DATA)
 ========================= */
 
 function enterArtistUI(name){
@@ -59,11 +74,43 @@ function enterArtistUI(name){
   songs.style.display = "grid";
   songSearch.style.display = "block";
 
-  setPageTitle(name);
+  songs.innerHTML = "";
+  songElements = [];
 
   now.innerText = "Loading songs...";
+  setPageTitle(name);
+}
 
-  // IMPORTANT: no clearing here anymore
+/* =========================
+   🎧 SINGLE LOADER (FIXED CORE)
+========================= */
+
+function loadArtist(name, skipURL = false){
+
+  artist = name;
+
+  enterArtistUI(name);
+
+  if(!skipURL){
+    setURL({ name });
+  }
+
+  fetch(`./${name}/config.json`)
+    .then(r => r.json())
+    .then(data => {
+
+      setPageTitle(data.artist);
+
+      /* 🎲 RANDOM ORDER EVERY LOAD */
+      allSongs = shuffleArray(data.songs);
+
+      renderSongs(allSongs);
+
+    })
+    .catch(err => {
+      now.innerText = "Failed to load artist";
+      console.error(err);
+    });
 }
 
 /* =========================
@@ -130,7 +177,7 @@ function updateSongHighlights(){
 }
 
 /* =========================
-   PLAY SONG (STABLE INDEX)
+   PLAY SONG
 ========================= */
 
 function playSong(l, i, a){
@@ -387,19 +434,7 @@ if(!artistParam){
             `;
 
             card.onclick = () => {
-
-              setURL({ name });
-
-              enterArtistUI(data.artist);
-
-              fetch(`./${name}/config.json`)
-                .then(r => r.json())
-                .then(data => {
-
-                  allSongs = data.songs;
-                  renderSongs(allSongs);
-
-                });
+              loadArtist(name);
             };
 
             grid.appendChild(card);
@@ -413,41 +448,14 @@ if(!artistParam){
 }
 
 /* =========================
-   ARTIST VIEW (DIRECT LOAD)
+   ARTIST VIEW (URL LOAD)
 ========================= */
 
 else {
 
-  artist = artistParam;
-
   songSearch.style.display = "block";
-
   backBtn.style.display = "inline-block";
 
-  enterArtistUI(artistParam);
-
-  fetch(`./${artistParam}/config.json`)
-    .then(r => r.json())
-    .then(data => {
-
-      setPageTitle(data.artist);
-
-      allSongs = data.songs;
-      renderSongs(allSongs);
-
-      if(songParam !== null && !isNaN(songParam)){
-
-        const i = parseInt(songParam) - 1;
-
-        if(data.songs[i]){
-          playSong(data.songs, i, artistParam);
-
-          const url = new URL(location.href);
-          url.searchParams.delete("song");
-          history.replaceState({}, "", url);
-        }
-      }
-
-    });
+  loadArtist(artistParam, true);
 
 }
