@@ -6,7 +6,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* TITLE */
 #title {
   font-size: clamp(20px, 4vw, 28px);
   padding: 20px;
@@ -26,8 +25,36 @@ body {
   border: none;
   background: #1c1c1c;
   color: white;
-  outline: none;
   font-size: 14px;
+  outline: none;
+}
+
+/* CATEGORY BAR */
+#categories {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px 10px;
+  flex-wrap: wrap;
+}
+
+.cat {
+  background: #1c1c1c;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 13px;
+}
+
+.cat:hover {
+  background: #2a2a2a;
+}
+
+.cat.active {
+  background: white;
+  color: black;
 }
 
 /* GRID */
@@ -54,18 +81,15 @@ body {
   background: #242424;
 }
 
-/* 🖼️ REAL IMAGE BEHAVIOR (no distortion) */
+/* REAL IMAGE SHAPE */
 .card img {
   width: 100%;
   height: auto;
   display: block;
   border-radius: 10px;
-
-  /* key part: keeps natural shape */
   object-fit: contain;
 }
 
-/* TEXT */
 .card div {
   margin-top: 8px;
   font-size: 14px;
@@ -77,16 +101,12 @@ body {
   opacity: 0.6;
 }
 
-/* 📱 MOBILE TWEAKS */
+/* 📱 MOBILE */
 @media (max-width: 600px) {
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
     padding: 12px;
-  }
-
-  .card {
-    padding: 8px;
   }
 
   #searchInput {
