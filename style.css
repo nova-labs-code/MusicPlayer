@@ -7,7 +7,7 @@ body {
 
 /* TITLE */
 #title {
-  font-size: clamp(16px, 3vw, 20px);
+  font-size: 18px;
   padding: 10px 12px;
   margin: 0;
 }
@@ -28,7 +28,7 @@ body {
   outline: none;
 }
 
-/* CATEGORY BAR */
+/* CATEGORIES */
 #categories {
   display: flex;
   gap: 6px;
@@ -50,14 +50,11 @@ body {
   color: black;
 }
 
-/* 🧠 SMART FLUID GRID (IMPORTANT CHANGE) */
+/* 🔥 FIXED 5-COLUMN GRID */
 .grid {
   display: grid;
-
-  /* auto-fit makes it truly responsive */
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-
-  gap: 10px;
+  grid-template-columns: repeat(5, 1fr); /* ALWAYS 5 */
+  gap: 8px;
   padding: 10px;
 }
 
@@ -69,14 +66,16 @@ body {
   text-align: center;
   cursor: pointer;
   transition: 0.15s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: scale(1.03);
   background: #242424;
 }
 
-/* IMAGE (natural scaling) */
+/* IMAGE */
 .card img {
   width: 100%;
   height: auto;
@@ -87,7 +86,7 @@ body {
 /* TEXT */
 .card div {
   margin-top: 5px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .card small {
@@ -95,10 +94,14 @@ body {
   opacity: 0.6;
 }
 
-/* 📱 MOBILE REFINEMENT */
-@media (max-width: 480px) {
+/* 📱 MOBILE: still 5 columns, just tighter spacing */
+@media (max-width: 700px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .card {
+    padding: 5px;
   }
 }
