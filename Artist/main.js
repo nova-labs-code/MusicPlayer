@@ -9,6 +9,42 @@ let loopMode = "none";
 
 let songElements = [];
 
+/* =========================
+   DEVICE MEDIA CONTROLS
+========================= */
+
+function updateMediaSession(song){
+
+  if(!("mediaSession" in navigator)) return;
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: song.title,
+    artist: artist,
+    album: artist,
+    artwork: [
+      {
+        src: `./${artist}/${song.image}`,
+        sizes: "512x512",
+        type: "image/png"
+      }
+    ]
+  });
+
+  navigator.mediaSession.setActionHandler("play", () => audio.play());
+  navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+
+  navigator.mediaSession.setActionHandler("previoustrack", () => prevSong());
+  navigator.mediaSession.setActionHandler("nexttrack", () => nextSong());
+
+  navigator.mediaSession.setActionHandler("seekbackward", () => {
+    audio.currentTime = Math.max(0, audio.currentTime - 10);
+  });
+
+  navigator.mediaSession.setActionHandler("seekforward", () => {
+    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+  });
+}
+
 /* NAV */
 function goHome(){
   location.href = "https://nova-labs-code.github.io/MusicPlayer";
@@ -84,6 +120,9 @@ function playSong(l, i, a){
 
   setPageTitle(s.title);
 
+  /* 🔥 DEVICE MEDIA SYNC */
+  updateMediaSession(s);
+
   updateButtons();
   updateSongHighlights();
 }
@@ -150,6 +189,19 @@ audio.addEventListener("ended", () => {
   }
 
   nextSong();
+});
+
+/* PLAY / PAUSE SYNC TO DEVICE */
+audio.addEventListener("play", () => {
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = "playing";
+  }
+});
+
+audio.addEventListener("pause", () => {
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = "paused";
+  }
 });
 
 /* FULLSCREEN */
@@ -278,17 +330,14 @@ else {
 
       });
 
-      /* 🎯 AUTO PLAY FROM URL (1-based FIX) */
       if(songParam !== null && !isNaN(songParam)){
 
-        // 🔥 convert 1-based → 0-based
         const i = parseInt(songParam) - 1;
 
         if(data.songs[i]){
 
           playSong(data.songs, i, artistParam);
 
-          /* 🧼 CLEAN URL */
           const url = new URL(window.location);
           url.searchParams.delete("song");
           window.history.replaceState({}, "", url);
