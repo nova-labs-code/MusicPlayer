@@ -18,11 +18,22 @@ document.querySelectorAll(".cat").forEach(btn => {
 });
 
 /* =========================
-   URL SAFE HELPER (FORCE %20)
+   NAV HELPER (CLEAN ROUTING)
 ========================= */
 
-function toURL(value){
-  return encodeURIComponent(String(value));
+function goArtist(name){
+  const url = new URL(location.href);
+  url.pathname = "./Artist/";
+  url.searchParams.set("name", name);
+  location.href = url.toString();
+}
+
+function goSong(name, index){
+  const url = new URL(location.href);
+  url.pathname = "./Artist/";
+  url.searchParams.set("name", name);
+  url.searchParams.set("song", index);
+  location.href = url.toString();
 }
 
 /* 📦 LOAD DATA */
@@ -48,10 +59,8 @@ async function loadData() {
         <div>${config.artist}</div>
       `;
 
-      /* 🎤 ARTIST CLICK (SAFE URL) */
-      card.onclick = () => {
-        location.href = `./Artist/?name=${toURL(name)}`;
-      };
+      /* 🎤 ARTIST CARD CLICK */
+      card.onclick = () => goArtist(name);
 
       grid.appendChild(card);
     }
@@ -140,10 +149,7 @@ function makeArtistCard(artist) {
     <div>${artist.displayName}</div>
   `;
 
-  /* 🎤 SAFE URL */
-  el.onclick = () => {
-    location.href = `./Artist/?name=${toURL(artist.name)}`;
-  };
+  el.onclick = () => goArtist(artist.name);
 
   return el;
 }
@@ -159,10 +165,7 @@ function makeSongCard(artist, song, i) {
     <small>${artist.displayName}</small>
   `;
 
-  /* 🎵 SAFE URL */
-  el.onclick = () => {
-    location.href = `./Artist/?name=${toURL(artist.name)}&song=${i + 1}`;
-  };
+  el.onclick = () => goSong(artist.name, i + 1);
 
   return el;
 }
