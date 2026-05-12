@@ -53,7 +53,7 @@ body {
 /* 🔥 FIXED 5-COLUMN GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* ALWAYS 5 */
+  grid-template-columns: repeat(4, 1fr); /* ALWAYS 5 */
   gap: 8px;
   padding: 10px;
 }

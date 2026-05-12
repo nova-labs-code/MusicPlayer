@@ -86,7 +86,7 @@ body{
 .grid,
 .songs{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
+  grid-template-columns:repeat(4, minmax(0, 1fr));
   gap:clamp(8px, 1vw, 12px);
 
   padding:clamp(12px, 2vw, 18px);
