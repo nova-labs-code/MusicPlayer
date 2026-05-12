@@ -1,5 +1,5 @@
 /* =========================
-   BASE FLUID SYSTEM
+   BASE SYSTEM
 ========================= */
 
 html{
@@ -12,7 +12,6 @@ body{
   background:#0f0f0f;
   color:white;
 
-  /* fluid breathing room */
   padding-top:clamp(45px, 4vw, 70px);
 }
 
@@ -66,13 +65,13 @@ body{
   text-shadow:0 0 12px rgba(255,255,255,0.15);
 }
 
-/* divider line */
 #title::after{
   content:"";
   display:block;
   width:100%;
   height:1px;
   margin-top:12px;
+
   background:linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
 }
 
@@ -81,7 +80,7 @@ body{
 }
 
 /* =========================
-   GRID (3 COLUMN LOCKED)
+   GRID (LOCKED 3 COLUMN)
 ========================= */
 
 .grid,
@@ -108,15 +107,39 @@ body{
   text-align:center;
 
   cursor:pointer;
-  transition:0.15s;
+  transition:0.2s ease;
   box-sizing:border-box;
 
   width:100%;
 }
 
+/* hover */
 .song:hover,
 .card:hover{
   transform:scale(1.03);
+}
+
+/* =========================
+   🔥 HIGHLIGHT STATES
+========================= */
+
+/* CURRENTLY PLAYING */
+.song.active{
+  outline:2px solid white;
+
+  box-shadow:
+    0 0 clamp(10px, 1.5vw, 18px) rgba(255,255,255,0.75);
+
+  transform:scale(1.04) translateY(-2px);
+  z-index:2;
+}
+
+/* QUEUED */
+.song.queue{
+  outline:2px solid #00ff7f;
+
+  box-shadow:
+    0 0 clamp(8px, 1.2vw, 14px) rgba(0,255,127,0.6);
 }
 
 /* =========================
@@ -169,6 +192,16 @@ button{
 
   font-size:clamp(14px, 1.6vw, 18px);
   cursor:pointer;
+}
+
+button.active{
+  color:white;
+  text-shadow:0 0 8px white;
+}
+
+button.loop-active{
+  color:white !important;
+  text-shadow:0 0 10px white;
 }
 
 /* =========================
@@ -268,5 +301,9 @@ button{
   .card,
   .song{
     border-radius:10px;
+  }
+
+  #title{
+    font-size:20px;
   }
 }
