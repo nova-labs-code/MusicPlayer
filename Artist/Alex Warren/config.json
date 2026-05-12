@@ -21,7 +21,7 @@
       "title": "Fever Dream",
       "image": "img3.png"
     },
-     {
+    {
       "file": "song4.mp3",
       "title": "Getaway Car",
       "image": "img4.png"
@@ -31,8 +31,7 @@
       "title": "Who I Am",
       "image": "img4.png"
     },
-
-  {
+    {
       "file": "song6.mp3",
       "title": "You Can't Stop This",
       "image": "img4.png"
@@ -47,7 +46,7 @@
       "title": "Eternity",
       "image": "img4.png"
     },
-     {
+    {
       "file": "song9.mp3",
       "title": "Everything",
       "image": "img4.png"
