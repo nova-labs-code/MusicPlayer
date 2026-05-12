@@ -57,7 +57,7 @@ function goBack(){
 }
 
 /* =========================
-   TITLE SYSTEM (FINAL RULE)
+   TITLE SYSTEM
 ========================= */
 
 function setPageTitle(text){
@@ -135,7 +135,6 @@ function playSong(l, i, a){
   songTitle.innerText = s.title;
   artistName.innerText = a;
 
-  /* 🔥 TITLE RULE: ALWAYS ARTIST */
   setPageTitle(artist);
 
   updateMediaSession(s);
@@ -296,7 +295,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   ROUTING
+   ROUTING (FIXED %20 HERE)
 ========================= */
 
 const params = new URLSearchParams(location.search);
@@ -304,7 +303,7 @@ const artistParam = params.get("name");
 const songParam = params.get("song");
 
 /* =========================
-   HOME VIEW (ARTIST SELECTOR)
+   HOME VIEW
 ========================= */
 
 if(!artistParam){
@@ -330,8 +329,9 @@ if(!artistParam){
               <div>${data.artist}</div>
             `;
 
+            /* 🔥 FIXED URL ENCODING */
             card.onclick = () => {
-              location.href = `?name=${name}`;
+              location.href = `?name=${encodeURIComponent(name)}`;
             };
 
             grid.appendChild(card);
