@@ -50,7 +50,7 @@ const loopState = document.getElementById("loopState");
 const backBtn = document.getElementById("backBtn");
 
 /* =========================
-   URL HELPERS
+   URL
 ========================= */
 
 function getParam(name){
@@ -68,7 +68,7 @@ function setURL(obj){
 }
 
 /* =========================
-   SHUFFLE
+   SHUFFLE ENGINE
 ========================= */
 
 function shuffleArray(arr){
@@ -83,19 +83,33 @@ function shuffleArray(arr){
 }
 
 /* =========================
-   NAV
+   NAV SYSTEM
 ========================= */
 
 function goHome(){
   location.href = "https://nova-labs-code.github.io/MusicPlayer";
 }
 
-function goBack(){
-  location.href = "?";
+function resetToHomeUI(){
+
+  artist = "";
+  list = [];
+  allSongs = [];
+  songElements = [];
+
+  songs.innerHTML = "";
+  grid.style.display = "grid";
+  songs.style.display = "none";
+  songSearch.style.display = "none";
+  backBtn.style.display = "none";
+
+  player.style.display = "none";
+
+  setPageTitle("Artists");
 }
 
 /* =========================
-   UI STATES
+   TITLE
 ========================= */
 
 function setPageTitle(text){
@@ -103,15 +117,23 @@ function setPageTitle(text){
   document.title = text + " - MusicPlayer";
 }
 
-function enterArtistUI(name){
+/* =========================
+   ENTER ARTIST MODE (FULL SWITCH)
+========================= */
+
+function enterArtistMode(name){
+
   grid.style.display = "none";
   songs.style.display = "grid";
   songSearch.style.display = "block";
+  backBtn.style.display = "inline-block";
 
   songs.innerHTML = "";
   songElements = [];
 
   player.style.display = "none";
+
+  window.scrollTo(0,0);
 }
 
 /* =========================
@@ -122,18 +144,19 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
 
   artist = name;
 
-  enterArtistUI(name);
-
-  if(!skipURL){
-    setURL({ name });
-  }
-
   fetch(`./${name}/config.json`)
     .then(r => r.json())
     .then(data => {
 
+      enterArtistMode(name);
+
       setPageTitle(data.artist);
 
+      if(!skipURL){
+        setURL({ name });
+      }
+
+      /* 🎲 RANDOM ORDER */
       allSongs = shuffleArray(data.songs).map((s, i) => ({
         ...s,
         _id: i
@@ -147,6 +170,10 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
         }, 0);
       }
 
+    })
+    .catch(err => {
+      console.error(err);
+      now.innerText = "Failed to load artist";
     });
 }
 
@@ -169,9 +196,7 @@ function renderSongs(arr){
       <div>${s.title}</div>
     `;
 
-    el.onclick = () => {
-      playSong(allSongs, s._id, artist);
-    };
+    el.onclick = () => playSong(allSongs, s._id, artist);
 
     songs.appendChild(el);
     songElements.push(el);
@@ -245,25 +270,6 @@ function updateHighlights(){
 function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
 }
-
-function toggleShuffle(){
-  shuffle = !shuffle;
-  updateButtons();
-}
-
-function toggleLoop(){
-
-  loopMode =
-    loopMode === "none" ? "song" :
-    loopMode === "song" ? "queue" :
-    "none";
-
-  updateButtons();
-}
-
-/* =========================
-   NEXT / PREV
-========================= */
 
 function nextSong(){
 
@@ -404,7 +410,7 @@ function updateMediaSession(song){
 }
 
 /* =========================
-   ROUTING (DEEP LINK)
+   ROUTING (HOME + DEEP LINK)
 ========================= */
 
 const artistParam = getParam("name");
@@ -414,6 +420,8 @@ if(!artistParam){
 
   songSearch.style.display = "none";
   backBtn.style.display = "none";
+
+  setPageTitle("Artists");
 
   fetch("artist.json")
     .then(r => r.json())
@@ -444,9 +452,6 @@ if(!artistParam){
     });
 
 } else {
-
-  songSearch.style.display = "block";
-  backBtn.style.display = "inline-block";
 
   const songIndex = songParam ? parseInt(songParam) - 1 : null;
 
