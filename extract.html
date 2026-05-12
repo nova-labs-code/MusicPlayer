@@ -6,22 +6,31 @@
 
 <style>
   body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background: #0f172a;
     color: white;
     text-align: center;
     padding: 40px;
   }
+
   img {
-    max-width: 300px;
+    max-width: 320px;
     margin-top: 20px;
-    border-radius: 10px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  #output {
+    margin-top: 20px;
+    font-size: 14px;
+    opacity: 0.9;
+    white-space: pre-wrap;
   }
 </style>
 </head>
 <body>
 
-<h1>🎵 Album Art Extractor</h1>
+<h1>🎵 MP3 Album Art Extractor</h1>
 <input type="file" id="fileInput" accept=".mp3">
 <div id="output">Waiting for file...</div>
 
@@ -30,27 +39,35 @@ window.addEventListener("load", () => {
   const input = document.getElementById("fileInput");
   const output = document.getElementById("output");
 
+  function log(msg) {
+    console.log(msg);
+    output.textContent += msg + "\n";
+  }
+
   input.addEventListener("change", async () => {
+    output.textContent = "";
+
     const file = input.files[0];
     if (!file) return;
 
-    output.textContent = "⏳ Reading file...";
-    console.log("File selected:", file.name);
+    log("📂 File: " + file.name);
+    log("⏳ Reading...");
 
     const buffer = await file.arrayBuffer();
     const view = new DataView(buffer);
 
+    // Check ID3 header
     if (
       view.getUint8(0) !== 0x49 ||
       view.getUint8(1) !== 0x44 ||
       view.getUint8(2) !== 0x33
     ) {
-      output.textContent = "❌ No ID3 tag found";
+      log("❌ No ID3 tag found");
       return;
     }
 
     const version = view.getUint8(3);
-    console.log("ID3 version:", version);
+    log("🎚 ID3 version: " + version);
 
     const tagSize =
       ((view.getUint8(6) & 0x7f) << 21) |
@@ -61,111 +78,91 @@ window.addEventListener("load", () => {
     let offset = 10;
 
     while (offset < tagSize) {
-      let frameID;
+      let frameID = String.fromCharCode(
+        view.getUint8(offset),
+        view.getUint8(offset + 1),
+        view.getUint8(offset + 2),
+        view.getUint8(offset + 3)
+      );
+
+      if (!frameID.trim()) break;
+
       let frameSize;
 
-      if (version === 2) {
-        // ID3v2.2
-        frameID = String.fromCharCode(
-          view.getUint8(offset),
-          view.getUint8(offset + 1),
-          view.getUint8(offset + 2)
-        );
-
+      if (version === 4) {
         frameSize =
-          (view.getUint8(offset + 3) << 16) |
-          (view.getUint8(offset + 4) << 8) |
-          view.getUint8(offset + 5);
-
-        if (frameID === "PIC") {
-          let i = offset + 6;
-
-          i++; // encoding
-
-          let format = String.fromCharCode(
-            view.getUint8(i),
-            view.getUint8(i+1),
-            view.getUint8(i+2)
-          );
-          i += 3;
-
-          i++; // picture type
-
-          while (view.getUint8(i) !== 0) i++;
-          i++;
-
-          const imageData = buffer.slice(i, offset + 6 + frameSize);
-
-          const mime = format === "PNG" ? "image/png" : "image/jpeg";
-          const blob = new Blob([imageData], { type: mime });
-          const url = URL.createObjectURL(blob);
-
-          output.innerHTML = `<img src="${url}">`;
-          console.log("✅ Found PIC frame");
-          return;
-        }
-
-        offset += 6 + frameSize;
+          ((view.getUint8(offset + 4) & 0x7f) << 21) |
+          ((view.getUint8(offset + 5) & 0x7f) << 14) |
+          ((view.getUint8(offset + 6) & 0x7f) << 7) |
+          (view.getUint8(offset + 7) & 0x7f);
       } else {
-        // ID3v2.3 / v2.4
-        frameID = String.fromCharCode(
-          view.getUint8(offset),
-          view.getUint8(offset + 1),
-          view.getUint8(offset + 2),
-          view.getUint8(offset + 3)
-        );
-
-        if (!frameID.trim()) break;
-
-        if (version === 4) {
-          frameSize =
-            ((view.getUint8(offset + 4) & 0x7f) << 21) |
-            ((view.getUint8(offset + 5) & 0x7f) << 14) |
-            ((view.getUint8(offset + 6) & 0x7f) << 7) |
-            (view.getUint8(offset + 7) & 0x7f);
-        } else {
-          frameSize =
-            (view.getUint8(offset + 4) << 24) |
-            (view.getUint8(offset + 5) << 16) |
-            (view.getUint8(offset + 6) << 8) |
-            view.getUint8(offset + 7);
-        }
-
-        console.log("Frame:", frameID);
-
-        if (frameID === "APIC") {
-          let i = offset + 10;
-
-          i++; // encoding
-
-          let mime = "";
-          while (view.getUint8(i) !== 0) {
-            mime += String.fromCharCode(view.getUint8(i));
-            i++;
-          }
-          i++;
-
-          i++; // picture type
-
-          while (view.getUint8(i) !== 0 && i < offset + frameSize) i++;
-          i++;
-
-          const imageData = buffer.slice(i, offset + 10 + frameSize);
-
-          const blob = new Blob([imageData], { type: mime || "image/jpeg" });
-          const url = URL.createObjectURL(blob);
-
-          output.innerHTML = `<img src="${url}">`;
-          console.log("✅ Found APIC frame");
-          return;
-        }
-
-        offset += 10 + frameSize;
+        frameSize =
+          (view.getUint8(offset + 4) << 24) |
+          (view.getUint8(offset + 5) << 16) |
+          (view.getUint8(offset + 6) << 8) |
+          view.getUint8(offset + 7);
       }
+
+      log("📦 Frame: " + frameID);
+
+      // 🎯 IMAGE FRAME FOUND
+      if (frameID === "APIC") {
+        let i = offset + 10;
+
+        i++; // encoding
+
+        // MIME
+        let mime = "";
+        while (view.getUint8(i) !== 0) {
+          mime += String.fromCharCode(view.getUint8(i));
+          i++;
+        }
+        i++;
+
+        i++; // picture type
+
+        // skip description
+        while (view.getUint8(i) !== 0 && i < offset + frameSize) i++;
+        i++;
+
+        const start = i;
+        const end = offset + 10 + frameSize;
+
+        const imageBytes = new Uint8Array(buffer.slice(start, end));
+
+        log("📊 Image bytes: " + imageBytes.length);
+
+        // 🧠 Detect format from magic bytes
+        let detectedMime = "image/jpeg";
+
+        if (imageBytes[0] === 0x89 && imageBytes[1] === 0x50) {
+          detectedMime = "image/png";
+        } else if (imageBytes[0] === 0xFF && imageBytes[1] === 0xD8) {
+          detectedMime = "image/jpeg";
+        }
+
+        log("🧪 MIME (tag): " + mime);
+        log("🧪 MIME (detected): " + detectedMime);
+
+        const blob = new Blob([imageBytes], { type: detectedMime });
+        const url = URL.createObjectURL(blob);
+
+        const img = document.createElement("img");
+        img.src = url;
+
+        img.onload = () => log("✅ Image rendered");
+        img.onerror = () => log("❌ Image failed to render");
+
+        output.appendChild(document.createElement("br"));
+        output.appendChild(img);
+
+        return;
+      }
+
+      offset += 10 + frameSize;
     }
 
-    output.textContent = "⚠️ No album art found";
-    console.log("❌ No image frame found");
+    log("⚠️ No album art found in file");
   });
 });
 </script>
