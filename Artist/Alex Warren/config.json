@@ -55,6 +55,114 @@
       "file": "song10.mp3",
       "title": "First Time On Earth",
       "image": "img4.png"
+    },
+        {
+      "file": "song11.mp3",
+      "title": "Never Be Far",
+      "image": "img4.png"
+    },
+        {
+      "file": "song12.mp3",
+      "title": "Ordinary - Wedding Version",
+      "image": "img5.png"
+    },    {
+      "file": "song13.mp3",
+      "title": "The Outside",
+      "image": "img4.png"
+    },    {
+      "file": "song14.mp3",
+      "title": "Bloodline",
+      "image": "img4.png"
+    },
+        {
+      "file": "song15.mp3",
+      "title": "Burning Down",
+      "image": "img6.png"
+    },
+        {
+      "file": "song16.mp3",
+      "title": "Catch My Breath",
+      "image": "img7.png"
+    },
+        {
+      "file": "song17.mp3",
+      "title": "Heaven Without You",
+      "image": "img7.png"
+    },
+        {
+      "file": "song18.mp3",
+      "title": "Troubled Waters",
+      "image": "img8.png"
+    },
+        {
+      "file": "song19.mp3",
+      "title": "You’ll Be Alright, Kid",
+      "image": "img7.png"
+    },
+        {
+      "file": "song20.mp3",
+      "title": "Burning Down (with Joe Jonas)",
+      "image": "img9.png"
+    },
+        {
+      "file": "song21.mp3",
+      "title": "Carry You Home",
+      "image": "img10.png"
+    },
+        {
+      "file": "song22.mp3",
+      "title": "Give You Love",
+      "image": "img11.png"
+    },
+        {
+      "file": "song23.mp3",
+      "title": "Headlights",
+      "image": "img12.png"
+    },
+        {
+      "file": "song24.mp3",
+      "title": "How Could You (Be OK)",
+      "image": "img13.png"
+    },
+        {
+      "file": "song25.mp3",
+      "title": "One More I Love You",
+      "image": "img14.png"
+    },
+        {
+      "file": "song26.mp3",
+      "title": "Remember Me Happy",
+      "image": "img15.png"
+    },
+        {
+      "file": "song27.mp3",
+      "title": "Before You Leave Me",
+      "image": "img16.png"
+    },
+        {
+      "file": "song28.mp3",
+      "title": "Change Your Mind",
+      "image": "img17.png"
+    },
+        {
+      "file": "song29.mp3",
+      "title": "Chasing Shadows",
+      "image": "img18.png"
+    },
+        {
+      "file": "song30.mp3",
+      "title": "Save You a Seat",
+      "image": "img19.png"
+    },
+        {
+      "file": "song31.mp3",
+      "title": "Screaming Underwater",
+      "image": "img20.png"
+    },
+        {
+      "file": "song32.mp3",
+      "title": "Yard Sale",
+      "image": "img21.png"
     }
   ]
 }
