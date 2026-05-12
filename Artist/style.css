@@ -29,30 +29,40 @@ body{
   cursor:pointer;
 }
 
-/* GRID */
-.grid,.songs{
+/* 🔥 FIXED 5-COLUMN GRID */
+.grid,
+.songs{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:16px;
-  padding:20px;
+  grid-template-columns:repeat(3, 1fr); /* ALWAYS 5 */
+  gap:10px;
+  padding:16px;
 }
 
-.card,.song{
+/* CARDS */
+.card,
+.song{
   background:#1c1c1c;
   border-radius:10px;
-  padding:10px;
+  padding:8px;
   text-align:center;
   cursor:pointer;
-  transition:0.2s;
+  transition:0.15s;
+  box-sizing:border-box;
+  width:100%;
 }
 
-.song:hover,.card:hover{transform:scale(1.03)}
+.song:hover,
+.card:hover{
+  transform:scale(1.03);
+}
 
+/* IMAGES (no distortion) */
 img{
   width:100%;
-  aspect-ratio:1/1;
-  object-fit:cover;
+  height:auto;
+  display:block;
   border-radius:8px;
+  object-fit:cover;
 }
 
 /* SONG STATES */
@@ -77,7 +87,7 @@ img{
   z-index:999;
 }
 
-/* MINI */
+/* MINI UI */
 .ui{
   display:flex;
   align-items:center;
@@ -193,25 +203,19 @@ button.loop-active{
   font-weight:700;
   padding:20px 24px 10px;
   margin:0;
-
   display:flex;
   align-items:center;
   gap:10px;
-
   letter-spacing:0.5px;
-
-  /* glow effect */
   text-shadow:0 0 12px rgba(255,255,255,0.15);
 }
 
-/* subtle divider under title */
 #title::after{
   content:"";
   display:block;
   width:100%;
   height:1px;
   margin-top:12px;
-
   background:linear-gradient(
     to right,
     transparent,
@@ -220,7 +224,6 @@ button.loop-active{
   );
 }
 
-/* make emoji slightly bigger */
 #title span{
   font-size:30px;
 }
