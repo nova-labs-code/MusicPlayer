@@ -66,7 +66,7 @@ function debounce(fn, delay = 120) {
   };
 }
 
-/* 🔎 SEARCH */
+/* 🔎 SEARCH ENGINE */
 const runSearch = debounce(() => {
   if (!isLoaded) return;
 
@@ -138,7 +138,7 @@ function makeArtistCard(artist) {
   return el;
 }
 
-/* 🎵 SONG CARD */
+/* 🎵 SONG CARD (🔥 1-BASED INDEX HERE) */
 function makeSongCard(artist, song, i) {
   const el = document.createElement("div");
   el.className = "card";
@@ -150,7 +150,8 @@ function makeSongCard(artist, song, i) {
   `;
 
   el.onclick = () => {
-    location.href = `./Artist/?name=${artist.name}&song=${i}`;
+    // 🔥 +1 so URL starts at 1
+    location.href = `./Artist/?name=${artist.name}&song=${i + 1}`;
   };
 
   return el;
