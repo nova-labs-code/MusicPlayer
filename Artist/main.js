@@ -260,10 +260,22 @@ songSearch?.addEventListener("input", e => {
 ========================= */
 
 function updateHighlights(){
-  songElements.forEach((el,i)=>{
-    el.classList.remove("active","queue");
-    if(i===index) el.classList.add("active");
-    if(i>index) el.classList.add("queue");
+
+  const visibleSongs = document.querySelectorAll(".song");
+
+  visibleSongs.forEach((el) => {
+    el.classList.remove("active", "queue");
+  });
+
+  const current = visibleSongs[index];
+  if(current){
+    current.classList.add("active");
+  }
+
+  visibleSongs.forEach((el, i) => {
+    if(i > index){
+      el.classList.add("queue");
+    }
   });
 }
 
