@@ -50,7 +50,7 @@ setInterval(forceFixURL, 500);
 const songSearch = document.getElementById("songSearch");
 
 /* =========================
-   🎲 SHUFFLE UTILITY (NEW ORDER EVERY LOAD)
+   🎲 SHUFFLE
 ========================= */
 
 function shuffleArray(arr){
@@ -65,7 +65,7 @@ function shuffleArray(arr){
 }
 
 /* =========================
-   🎭 UI SWITCH (NO DATA)
+   🎭 UI SWITCH
 ========================= */
 
 function enterArtistUI(name){
@@ -82,7 +82,7 @@ function enterArtistUI(name){
 }
 
 /* =========================
-   🎧 SINGLE LOADER (FIXED CORE)
+   🎧 MASTER LOADER (FIXED)
 ========================= */
 
 function loadArtist(name, skipURL = false){
@@ -101,8 +101,11 @@ function loadArtist(name, skipURL = false){
 
       setPageTitle(data.artist);
 
-      /* 🎲 RANDOM ORDER EVERY LOAD */
-      allSongs = shuffleArray(data.songs);
+      /* 🆔 GIVE EACH SONG A STABLE ID */
+      allSongs = shuffleArray(data.songs).map((s, i) => ({
+        ...s,
+        _id: i
+      }));
 
       renderSongs(allSongs);
 
@@ -177,7 +180,7 @@ function updateSongHighlights(){
 }
 
 /* =========================
-   PLAY SONG
+   🎧 PLAY SONG (ID SAFE)
 ========================= */
 
 function playSong(l, i, a){
@@ -186,7 +189,7 @@ function playSong(l, i, a){
   index = i;
   artist = a;
 
-  const s = l[i];
+  const s = list.find(x => x._id === i) || list[i];
 
   audio.src = `./${a}/${s.file}`;
   audio.currentTime = 0;
@@ -331,7 +334,7 @@ barFull.onclick = (e) => {
 };
 
 /* =========================
-   SEARCH SYSTEM
+   🔍 SEARCH + CLICK FIXED
 ========================= */
 
 function renderSongs(filtered){
@@ -339,7 +342,7 @@ function renderSongs(filtered){
   songs.innerHTML = "";
   songElements = [];
 
-  filtered.forEach((s, i) => {
+  filtered.forEach((s) => {
 
     const el = document.createElement("div");
     el.className = "song";
@@ -349,9 +352,9 @@ function renderSongs(filtered){
       <div>${s.title}</div>
     `;
 
+    /* 🆔 ALWAYS USE STABLE ID */
     el.onclick = () => {
-      const realIndex = allSongs.indexOf(s);
-      playSong(allSongs, realIndex, artist);
+      playSong(allSongs, s._id, artist);
     };
 
     songs.appendChild(el);
@@ -448,7 +451,7 @@ if(!artistParam){
 }
 
 /* =========================
-   ARTIST VIEW (URL LOAD)
+   ARTIST VIEW (URL)
 ========================= */
 
 else {
