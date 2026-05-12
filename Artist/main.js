@@ -10,7 +10,7 @@ let loopMode = "none";
 let songElements = [];
 
 /* =========================
-   DEVICE MEDIA CONTROLS
+   MEDIA SESSION
 ========================= */
 
 function updateMediaSession(song){
@@ -57,20 +57,12 @@ function goBack(){
 }
 
 /* =========================
-   TITLE SYSTEM (FIXED)
+   TITLE SYSTEM (FINAL RULE)
 ========================= */
 
-function setPageTitle(text, mode = "artist"){
-
+function setPageTitle(text){
   document.getElementById("title").innerText = text;
-
-  if(mode === "artist"){
-    document.title = text + " - MusicPlayer";
-  }
-
-  if(mode === "song"){
-    document.title = text + " - " + artist + " | MusicPlayer";
-  }
+  document.title = text + " - MusicPlayer";
 }
 
 /* =========================
@@ -143,8 +135,8 @@ function playSong(l, i, a){
   songTitle.innerText = s.title;
   artistName.innerText = a;
 
-  /* 🔥 FIXED TITLE BEHAVIOR */
-  setPageTitle(s.title, "song");
+  /* 🔥 TITLE RULE: ALWAYS ARTIST */
+  setPageTitle(artist);
 
   updateMediaSession(s);
 
@@ -294,7 +286,7 @@ barFull.onclick = (e) => {
 };
 
 /* =========================
-   LOOP STATE REF
+   LOOP STATE
 ========================= */
 
 let loopState;
@@ -312,12 +304,12 @@ const artistParam = params.get("name");
 const songParam = params.get("song");
 
 /* =========================
-   HOME VIEW (ARTISTS)
+   HOME VIEW (ARTIST SELECTOR)
 ========================= */
 
 if(!artistParam){
 
-  setPageTitle("Artists", "artist");
+  setPageTitle("Artist");
   backBtn.style.display = "none";
 
   fetch("artist.json")
@@ -369,7 +361,7 @@ else {
     .then(r => r.json())
     .then(data => {
 
-      setPageTitle(data.artist, "artist");
+      setPageTitle(data.artist);
 
       data.songs.forEach((s, i) => {
 
