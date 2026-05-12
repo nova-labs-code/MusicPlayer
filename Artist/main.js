@@ -10,27 +10,45 @@ let loopMode = "none";
 let songElements = [];
 
 /* =========================
-   🔧 URL CLEANER (READ FIX)
+   🧼 URL SAFETY CORE
 ========================= */
 
-function getCleanParam(name){
+function cleanPlus(str){
+  return str ? str.replace(/\+/g, "%20") : "";
+}
 
-  const fixed = location.search.replace(/\+/g, "%20");
+function getCleanParam(name){
+  const fixed = cleanPlus(location.search);
   const params = new URLSearchParams(fixed);
   const value = params.get(name);
-
   return value ? decodeURIComponent(value) : null;
 }
 
+function setURL(paramsObj){
+  const url = new URL(location.href);
+
+  Object.entries(paramsObj).forEach(([k, v]) => {
+    url.searchParams.set(k, v);
+  });
+
+  location.href = encodeURI(url.toString());
+}
+
 /* =========================
-   🔥 SAFE NAVIGATION (WRITE FIX)
+   🛡️ WATCHDOG (requested)
 ========================= */
 
-function goTo(paramsObj){
-  location.href = encodeURI(
-    "?" + new URLSearchParams(paramsObj).toString()
-  );
-}
+setInterval(() => {
+  if (!location.search.includes("+")) return;
+
+  const fixed = cleanPlus(location.search);
+  const params = new URLSearchParams(fixed);
+
+  const url = new URL(location.href);
+  url.search = params.toString();
+
+  history.replaceState({}, "", url);
+}, 1000);
 
 /* =========================
    MEDIA SESSION
@@ -44,13 +62,11 @@ function updateMediaSession(song){
     title: song.title,
     artist: artist,
     album: artist,
-    artwork: [
-      {
-        src: `./${artist}/${song.image}`,
-        sizes: "512x512",
-        type: "image/png"
-      }
-    ]
+    artwork: [{
+      src: `./${artist}/${song.image}`,
+      sizes: "512x512",
+      type: "image/png"
+    }]
   });
 
   navigator.mediaSession.setActionHandler("play", () => audio.play());
@@ -140,7 +156,7 @@ function playSong(l, i, a){
   index = i;
   artist = a;
 
-  let s = l[i];
+  const s = l[i];
 
   audio.src = `./${a}/${s.file}`;
   audio.currentTime = 0;
@@ -276,13 +292,13 @@ audio.addEventListener("timeupdate", () => {
 
   if(!audio.duration) return;
 
-  let percent = (audio.currentTime / audio.duration) * 100;
+  const percent = (audio.currentTime / audio.duration) * 100;
 
   progMini.style.width = percent + "%";
   progFull.style.width = percent + "%";
 
-  let m = Math.floor(audio.currentTime / 60);
-  let s = Math.floor(audio.currentTime % 60);
+  const m = Math.floor(audio.currentTime / 60);
+  const s = Math.floor(audio.currentTime % 60);
 
   time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
 });
@@ -292,12 +308,12 @@ audio.addEventListener("timeupdate", () => {
 ========================= */
 
 barMini.onclick = (e) => {
-  let r = barMini.getBoundingClientRect();
+  const r = barMini.getBoundingClientRect();
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
 barFull.onclick = (e) => {
-  let r = barFull.getBoundingClientRect();
+  const r = barFull.getBoundingClientRect();
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
@@ -312,7 +328,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   ROUTING
+   ROUTING (FIXED)
 ========================= */
 
 const artistParam = getCleanParam("name");
@@ -337,7 +353,7 @@ if(!artistParam){
           .then(r => r.json())
           .then(data => {
 
-            let card = document.createElement("div");
+            const card = document.createElement("div");
             card.className = "card";
 
             card.innerHTML = `
@@ -346,7 +362,7 @@ if(!artistParam){
             `;
 
             card.onclick = () => {
-              goTo({ name });
+              setURL({ name });
             };
 
             grid.appendChild(card);
@@ -380,7 +396,7 @@ else {
 
       data.songs.forEach((s, i) => {
 
-        let el = document.createElement("div");
+        const el = document.createElement("div");
         el.className = "song";
 
         el.innerHTML = `
