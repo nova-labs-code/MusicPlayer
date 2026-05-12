@@ -68,7 +68,7 @@ function setURL(obj){
 }
 
 /* =========================
-   SHUFFLE ENGINE
+   SHUFFLE
 ========================= */
 
 function shuffleArray(arr){
@@ -83,8 +83,25 @@ function shuffleArray(arr){
 }
 
 /* =========================
-   UI STATE SWITCH
+   NAV
 ========================= */
+
+function goHome(){
+  location.href = "https://nova-labs-code.github.io/MusicPlayer";
+}
+
+function goBack(){
+  location.href = "?";
+}
+
+/* =========================
+   UI STATES
+========================= */
+
+function setPageTitle(text){
+  document.getElementById("title").innerText = text;
+  document.title = text + " - MusicPlayer";
+}
 
 function enterArtistUI(name){
   grid.style.display = "none";
@@ -94,11 +111,11 @@ function enterArtistUI(name){
   songs.innerHTML = "";
   songElements = [];
 
-  now.innerText = "Loading...";
+  player.style.display = "none";
 }
 
 /* =========================
-   LOAD ARTIST (CORE)
+   LOAD ARTIST
 ========================= */
 
 function loadArtist(name, skipURL = false, autoSongIndex = null){
@@ -117,7 +134,6 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
 
       setPageTitle(data.artist);
 
-      /* RANDOM ORDER */
       allSongs = shuffleArray(data.songs).map((s, i) => ({
         ...s,
         _id: i
@@ -131,11 +147,35 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
         }, 0);
       }
 
-    })
-    .catch(err => {
-      console.error(err);
-      now.innerText = "Load failed";
     });
+}
+
+/* =========================
+   RENDER SONGS
+========================= */
+
+function renderSongs(arr){
+
+  songs.innerHTML = "";
+  songElements = [];
+
+  arr.forEach((s) => {
+
+    const el = document.createElement("div");
+    el.className = "song";
+
+    el.innerHTML = `
+      <img src="./${artist}/${s.image}">
+      <div>${s.title}</div>
+    `;
+
+    el.onclick = () => {
+      playSong(allSongs, s._id, artist);
+    };
+
+    songs.appendChild(el);
+    songElements.push(el);
+  });
 }
 
 /* =========================
@@ -163,41 +203,13 @@ function playSong(l, i, a){
   songTitle.innerText = s.title;
   artistName.innerText = a;
 
-  updateMediaSession(s);
   updateButtons();
-  updateSongHighlights();
+  updateHighlights();
+  updateMediaSession(s);
 }
 
 /* =========================
-   RENDER SONGS
-========================= */
-
-function renderSongs(filtered){
-
-  songs.innerHTML = "";
-  songElements = [];
-
-  filtered.forEach((s) => {
-
-    const el = document.createElement("div");
-    el.className = "song";
-
-    el.innerHTML = `
-      <img src="./${artist}/${s.image}">
-      <div>${s.title}</div>
-    `;
-
-    el.onclick = () => {
-      playSong(allSongs, s._id, artist);
-    };
-
-    songs.appendChild(el);
-    songElements.push(el);
-  });
-}
-
-/* =========================
-   SEARCH ENGINE
+   SEARCH
 ========================= */
 
 songSearch?.addEventListener("input", (e) => {
@@ -212,10 +224,10 @@ songSearch?.addEventListener("input", (e) => {
 });
 
 /* =========================
-   SONG HIGHLIGHT
+   HIGHLIGHTS
 ========================= */
 
-function updateSongHighlights(){
+function updateHighlights(){
 
   songElements.forEach((el, i) => {
 
@@ -285,7 +297,7 @@ function prevSong(){
 }
 
 /* =========================
-   END LOGIC
+   END
 ========================= */
 
 audio.addEventListener("ended", () => {
@@ -300,7 +312,7 @@ audio.addEventListener("ended", () => {
 });
 
 /* =========================
-   PROGRESS BAR
+   PROGRESS
 ========================= */
 
 audio.addEventListener("timeupdate", () => {
@@ -329,7 +341,7 @@ barFull.onclick = (e) => {
 };
 
 /* =========================
-   BUTTON UI
+   UI BUTTONS
 ========================= */
 
 function updateButtons(){
@@ -385,14 +397,14 @@ function updateMediaSession(song){
     }]
   });
 
-  navigator.mediaSession.setActionHandler("play", () => audio.play());
-  navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+  navigator.mediaSession.setActionHandler("play", togglePlay);
+  navigator.mediaSession.setActionHandler("pause", togglePlay);
   navigator.mediaSession.setActionHandler("nexttrack", nextSong);
   navigator.mediaSession.setActionHandler("previoustrack", prevSong);
 }
 
 /* =========================
-   ROUTING (DEEP LINK FIX)
+   ROUTING (DEEP LINK)
 ========================= */
 
 const artistParam = getParam("name");
