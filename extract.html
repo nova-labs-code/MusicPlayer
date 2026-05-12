@@ -21,103 +21,111 @@
 </head>
 <body>
 
-<h1>🎵 Album Art Extractor (No CDN)</h1>
+<h1>🎵 Album Art Extractor</h1>
 <input type="file" id="fileInput" accept=".mp3">
-<div id="output"></div>
+<div id="output">Waiting for file...</div>
 
 <script>
-const input = document.getElementById("fileInput");
-const output = document.getElementById("output");
+window.addEventListener("load", () => {
+  console.log("✅ Page fully loaded");
 
-input.addEventListener("change", async () => {
-  const file = input.files[0];
-  if (!file) return;
+  const input = document.getElementById("fileInput");
+  const output = document.getElementById("output");
 
-  const buffer = await file.arrayBuffer();
-  const view = new DataView(buffer);
-
-  // Check ID3
-  if (
-    view.getUint8(0) !== 0x49 ||
-    view.getUint8(1) !== 0x44 ||
-    view.getUint8(2) !== 0x33
-  ) {
-    output.innerHTML = "❌ No ID3 tag";
+  if (!input || !output) {
+    console.error("❌ Elements not found");
     return;
   }
 
-  const version = view.getUint8(3); // 3 = v2.3, 4 = v2.4
+  input.addEventListener("change", async () => {
+    console.log("📂 File selected");
 
-  const tagSize =
-    ((view.getUint8(6) & 0x7f) << 21) |
-    ((view.getUint8(7) & 0x7f) << 14) |
-    ((view.getUint8(8) & 0x7f) << 7) |
-    (view.getUint8(9) & 0x7f);
+    const file = input.files[0];
+    if (!file) return;
 
-  let offset = 10;
+    output.textContent = "Reading file...";
 
-  while (offset < tagSize) {
-    let frameID = String.fromCharCode(
-      view.getUint8(offset),
-      view.getUint8(offset + 1),
-      view.getUint8(offset + 2),
-      view.getUint8(offset + 3)
-    );
+    const buffer = await file.arrayBuffer();
+    const view = new DataView(buffer);
 
-    if (!frameID.trim()) break;
-
-    let frameSize;
-
-    if (version === 4) {
-      // syncsafe
-      frameSize =
-        ((view.getUint8(offset + 4) & 0x7f) << 21) |
-        ((view.getUint8(offset + 5) & 0x7f) << 14) |
-        ((view.getUint8(offset + 6) & 0x7f) << 7) |
-        (view.getUint8(offset + 7) & 0x7f);
-    } else {
-      // normal int
-      frameSize =
-        (view.getUint8(offset + 4) << 24) |
-        (view.getUint8(offset + 5) << 16) |
-        (view.getUint8(offset + 6) << 8) |
-        view.getUint8(offset + 7);
-    }
-
-    if (frameID === "APIC") {
-      let i = offset + 10;
-
-      // encoding
-      i++;
-
-      // MIME
-      let mime = "";
-      while (view.getUint8(i) !== 0) {
-        mime += String.fromCharCode(view.getUint8(i));
-        i++;
-      }
-      i++;
-
-      // picture type
-      i++;
-
-      // description (skip safely)
-      while (view.getUint8(i) !== 0 && i < offset + frameSize) i++;
-      i++;
-
-      const imageData = buffer.slice(i, offset + 10 + frameSize);
-
-      const blob = new Blob([imageData], { type: mime || "image/jpeg" });
-      const url = URL.createObjectURL(blob);
-
-      output.innerHTML = `<img src="${url}">`;
+    // Check ID3
+    if (
+      view.getUint8(0) !== 0x49 ||
+      view.getUint8(1) !== 0x44 ||
+      view.getUint8(2) !== 0x33
+    ) {
+      output.textContent = "❌ No ID3 tag";
       return;
     }
 
-    offset += 10 + frameSize;
-  }
+    const version = view.getUint8(3);
 
-  output.innerHTML = "⚠️ No album art found";
+    const tagSize =
+      ((view.getUint8(6) & 0x7f) << 21) |
+      ((view.getUint8(7) & 0x7f) << 14) |
+      ((view.getUint8(8) & 0x7f) << 7) |
+      (view.getUint8(9) & 0x7f);
+
+    let offset = 10;
+
+    while (offset < tagSize) {
+      let frameID = String.fromCharCode(
+        view.getUint8(offset),
+        view.getUint8(offset + 1),
+        view.getUint8(offset + 2),
+        view.getUint8(offset + 3)
+      );
+
+      if (!frameID.trim()) break;
+
+      let frameSize;
+
+      if (version === 4) {
+        frameSize =
+          ((view.getUint8(offset + 4) & 0x7f) << 21) |
+          ((view.getUint8(offset + 5) & 0x7f) << 14) |
+          ((view.getUint8(offset + 6) & 0x7f) << 7) |
+          (view.getUint8(offset + 7) & 0x7f);
+      } else {
+        frameSize =
+          (view.getUint8(offset + 4) << 24) |
+          (view.getUint8(offset + 5) << 16) |
+          (view.getUint8(offset + 6) << 8) |
+          view.getUint8(offset + 7);
+      }
+
+      if (frameID === "APIC") {
+        let i = offset + 10;
+
+        i++; // encoding
+
+        let mime = "";
+        while (view.getUint8(i) !== 0) {
+          mime += String.fromCharCode(view.getUint8(i));
+          i++;
+        }
+        i++;
+
+        i++; // picture type
+
+        while (view.getUint8(i) !== 0 && i < offset + frameSize) i++;
+        i++;
+
+        const imageData = buffer.slice(i, offset + 10 + frameSize);
+
+        const blob = new Blob([imageData], { type: mime || "image/jpeg" });
+        const url = URL.createObjectURL(blob);
+
+        output.innerHTML = `<img src="${url}">`;
+        console.log("🖼️ Album art extracted");
+        return;
+      }
+
+      offset += 10 + frameSize;
+    }
+
+    output.textContent = "⚠️ No album art found";
+  });
 });
 </script>
 
