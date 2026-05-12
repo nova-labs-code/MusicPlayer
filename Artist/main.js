@@ -411,7 +411,7 @@ function updateMediaSession(song){
   navigator.mediaSession.setActionHandler("pause", togglePlay);
   navigator.mediaSession.setActionHandler("nexttrack", nextSong);
   navigator.mediaSession.setActionHandler("previoustrack", prevSong);
-});
+};
 
 /* =========================
    ROUTING
