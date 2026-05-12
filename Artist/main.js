@@ -10,20 +10,23 @@ let loopMode = "none";
 let songElements = [];
 
 /* =========================
-   🧼 URL SAFETY CORE
+   🧼 FULL URL CLEAN SYSTEM
 ========================= */
 
-function cleanPlus(str){
+/* fixes incoming + instantly */
+function cleanURLString(str){
   return str ? str.replace(/\+/g, "%20") : "";
 }
 
+/* read URL safely */
 function getCleanParam(name){
-  const fixed = cleanPlus(location.search);
+  const fixed = cleanURLString(location.search);
   const params = new URLSearchParams(fixed);
   const value = params.get(name);
   return value ? decodeURIComponent(value) : null;
 }
 
+/* write URL safely (NO + EVER) */
 function setURL(paramsObj){
   const url = new URL(location.href);
 
@@ -31,24 +34,24 @@ function setURL(paramsObj){
     url.searchParams.set(k, v);
   });
 
-  location.href = encodeURI(url.toString());
+  history.pushState({}, "", encodeURI(url.toString()));
 }
 
 /* =========================
-   🛡️ WATCHDOG (requested)
+   🛡️ EMERGENCY URL WATCHDOG
 ========================= */
 
-setInterval(() => {
-  if (!location.search.includes("+")) return;
+function forceFixURL(){
+  if (!location.href.includes("+")) return;
 
-  const fixed = cleanPlus(location.search);
-  const params = new URLSearchParams(fixed);
+  const fixed = location.href.replace(/\+/g, "%20");
 
-  const url = new URL(location.href);
-  url.search = params.toString();
+  history.replaceState({}, "", fixed);
+}
 
-  history.replaceState({}, "", url);
-}, 1000);
+/* run immediately + keep safe */
+forceFixURL();
+setInterval(forceFixURL, 500);
 
 /* =========================
    MEDIA SESSION
@@ -328,7 +331,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   ROUTING (FIXED)
+   ROUTING
 ========================= */
 
 const artistParam = getCleanParam("name");
