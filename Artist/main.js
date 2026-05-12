@@ -278,16 +278,17 @@ else {
 
       });
 
-      /* 🎯 AUTO PLAY FROM URL */
+      /* 🎯 AUTO PLAY FROM URL (1-based FIX) */
       if(songParam !== null && !isNaN(songParam)){
 
-        const i = parseInt(songParam);
+        // 🔥 convert 1-based → 0-based
+        const i = parseInt(songParam) - 1;
 
         if(data.songs[i]){
 
           playSong(data.songs, i, artistParam);
 
-          /* 🧼 CLEAN URL (remove song param) */
+          /* 🧼 CLEAN URL */
           const url = new URL(window.location);
           url.searchParams.delete("song");
           window.history.replaceState({}, "", url);
