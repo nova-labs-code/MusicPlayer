@@ -25,12 +25,14 @@ async function loadData() {
     for (const name of artistList) {
       const config = await fetch(`./Artist/${name}/config.json`).then(r => r.json());
 
-      artistsData.push({
+      const artist = {
         name,
         displayName: config.artist,
         image: config.image,
         songs: config.songs || []
-      });
+      };
+
+      artistsData.push(artist);
 
       const card = document.createElement("div");
       card.className = "card";
@@ -66,7 +68,7 @@ function debounce(fn, delay = 120) {
   };
 }
 
-/* 🔎 SEARCH + CATEGORY ENGINE */
+/* 🔎 SEARCH ENGINE */
 const runSearch = debounce(() => {
   if (!isLoaded) return;
 
@@ -80,7 +82,7 @@ const runSearch = debounce(() => {
   grid.style.display = "none";
   results.style.display = "grid";
 
-  /* 🟢 NO SEARCH TEXT → SHOW CATEGORY BROWSE */
+  /* 🟢 NO SEARCH → BROWSE MODE */
   if (!q) {
     for (const artist of artistsData) {
 
