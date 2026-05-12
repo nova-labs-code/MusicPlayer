@@ -2,53 +2,67 @@ const grid = document.getElementById("grid");
 const results = document.getElementById("results");
 const searchInput = document.getElementById("searchInput");
 
-let artistsData = []; // [{name, displayName, image, songs[]}]
+let artistsData = [];
+let isLoaded = false;
 
-/* LOAD FROM REAL FILES */
-async function loadData(){
+/* 🧠 LOAD DATA */
+async function loadData() {
+  try {
+    const artistList = await fetch("./Artist/artist.json").then(r => r.json());
 
-  const artistList = await fetch("./Artist/artist.json").then(r=>r.json());
+    for (const name of artistList) {
+      const config = await fetch(`./Artist/${name}/config.json`).then(r => r.json());
 
-  for(const name of artistList){
+      const artistObj = {
+        name,
+        displayName: config.artist,
+        image: config.image,
+        songs: config.songs || []
+      };
 
-    const data = await fetch(`./Artist/${name}/config.json`).then(r=>r.json());
+      artistsData.push(artistObj);
 
-    const artistObj = {
-      name: name,
-      displayName: data.artist,
-      image: data.image,
-      songs: data.songs
-    };
+      const card = document.createElement("div");
+      card.className = "card";
 
-    artistsData.push(artistObj);
+      card.innerHTML = `
+        <img src="./Artist/${name}/${config.image}">
+        <div>${config.artist}</div>
+      `;
 
-    // 🎤 RENDER ARTIST CARD
-    const card = document.createElement("div");
-    card.className = "card";
+      card.onclick = () => {
+        location.href = `./Artist/?name=${name}`;
+      };
 
-    card.innerHTML = `
-      <img src="./Artist/${name}/${data.image}">
-      <div>${data.artist}</div>
-    `;
+      grid.appendChild(card);
+    }
 
-    card.onclick = () => {
-      location.href = `./Artist/?name=${name}`;
-    };
+    isLoaded = true;
 
-    grid.appendChild(card);
+  } catch (err) {
+    console.error("Load error:", err);
+    grid.innerHTML = "<p>Failed to load artists.</p>";
   }
 }
 
 loadData();
 
----
+/* ⏱️ simple debounce (prevents spam re-rendering) */
+function debounce(fn, delay = 120) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), delay);
+  };
+}
 
-/* 🔎 SEARCH (USES SAME DATA — NO FAKE STUFF) */
-searchInput.addEventListener("input", ()=>{
+/* 🔎 SEARCH */
+const runSearch = debounce(() => {
+  if (!isLoaded) return;
 
   const q = searchInput.value.toLowerCase().trim();
 
-  if(!q){
+  if (!q) {
     grid.style.display = "grid";
     results.style.display = "none";
     return;
@@ -58,11 +72,13 @@ searchInput.addEventListener("input", ()=>{
   results.style.display = "grid";
   results.innerHTML = "";
 
-  artistsData.forEach(artist => {
+  for (const artist of artistsData) {
 
-    /* 🎤 MATCH ARTIST */
-    if(artist.displayName.toLowerCase().includes(q) || artist.name.toLowerCase().includes(q)){
+    const artistMatch =
+      artist.displayName.toLowerCase().includes(q) ||
+      artist.name.toLowerCase().includes(q);
 
+    if (artistMatch) {
       const el = document.createElement("div");
       el.className = "card";
 
@@ -78,11 +94,8 @@ searchInput.addEventListener("input", ()=>{
       results.appendChild(el);
     }
 
-    /* 🎵 MATCH SONGS */
-    artist.songs.forEach((song, i)=>{
-
-      if(song.title.toLowerCase().includes(q)){
-
+    artist.songs.forEach((song, i) => {
+      if (song.title.toLowerCase().includes(q)) {
         const el = document.createElement("div");
         el.className = "card";
 
@@ -98,9 +111,10 @@ searchInput.addEventListener("input", ()=>{
 
         results.appendChild(el);
       }
-
     });
 
-  });
+  }
 
-});
+}, 120);
+
+searchInput.addEventListener("input", runSearch);
