@@ -65,7 +65,7 @@ function shuffleArray(arr){
 }
 
 /* =========================
-   🎭 UI SWITCH
+   UI SWITCH
 ========================= */
 
 function enterArtistUI(name){
@@ -82,10 +82,10 @@ function enterArtistUI(name){
 }
 
 /* =========================
-   🎧 MASTER LOADER (FIXED)
+   🎧 MASTER LOADER (WITH DEEP LINK SUPPORT)
 ========================= */
 
-function loadArtist(name, skipURL = false){
+function loadArtist(name, skipURL = false, autoSongIndex = null){
 
   artist = name;
 
@@ -101,13 +101,22 @@ function loadArtist(name, skipURL = false){
 
       setPageTitle(data.artist);
 
-      /* 🆔 GIVE EACH SONG A STABLE ID */
+      /* 🎲 RANDOM ORDER */
       allSongs = shuffleArray(data.songs).map((s, i) => ({
         ...s,
         _id: i
       }));
 
       renderSongs(allSongs);
+
+      /* 🎯 DEEP LINK SONG AUTO PLAY */
+      if(autoSongIndex !== null && allSongs[autoSongIndex]){
+
+        setTimeout(() => {
+          playSong(allSongs, autoSongIndex, name);
+        }, 0);
+
+      }
 
     })
     .catch(err => {
@@ -180,7 +189,7 @@ function updateSongHighlights(){
 }
 
 /* =========================
-   🎧 PLAY SONG (ID SAFE)
+   PLAY SONG
 ========================= */
 
 function playSong(l, i, a){
@@ -334,7 +343,7 @@ barFull.onclick = (e) => {
 };
 
 /* =========================
-   🔍 SEARCH + CLICK FIXED
+   SEARCH
 ========================= */
 
 function renderSongs(filtered){
@@ -352,7 +361,6 @@ function renderSongs(filtered){
       <div>${s.title}</div>
     `;
 
-    /* 🆔 ALWAYS USE STABLE ID */
     el.onclick = () => {
       playSong(allSongs, s._id, artist);
     };
@@ -398,18 +406,14 @@ function updateMediaSession(song){
   navigator.mediaSession.setActionHandler("pause", () => audio.pause());
   navigator.mediaSession.setActionHandler("previoustrack", () => prevSong());
   navigator.mediaSession.setActionHandler("nexttrack", () => nextSong());
-}
+});
 
 /* =========================
-   ROUTING
+   ROUTING (DEEP LINK FIX)
 ========================= */
 
 const artistParam = getCleanParam("name");
 const songParam = getCleanParam("song");
-
-/* =========================
-   HOME VIEW
-========================= */
 
 if(!artistParam){
 
@@ -450,15 +454,13 @@ if(!artistParam){
 
 }
 
-/* =========================
-   ARTIST VIEW (URL)
-========================= */
-
 else {
 
   songSearch.style.display = "block";
   backBtn.style.display = "inline-block";
 
-  loadArtist(artistParam, true);
+  const songIndex = songParam ? parseInt(songParam) - 1 : null;
+
+  loadArtist(artistParam, true, songIndex);
 
 }
