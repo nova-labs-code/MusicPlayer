@@ -50,6 +50,23 @@ setInterval(forceFixURL, 500);
 const songSearch = document.getElementById("songSearch");
 
 /* =========================
+   🎭 INSTANT ARTIST UI SWITCH
+========================= */
+
+function enterArtistUI(name){
+
+  grid.style.display = "none";
+  songs.style.display = "grid";
+  songSearch.style.display = "block";
+
+  songs.innerHTML = "";
+  songElements = [];
+
+  now.innerText = "Loading...";
+  setPageTitle(name);
+}
+
+/* =========================
    NAV
 ========================= */
 
@@ -113,7 +130,7 @@ function updateSongHighlights(){
 }
 
 /* =========================
-   PLAY SONG (IMPORTANT FIX)
+   PLAY SONG
 ========================= */
 
 function playSong(l, i, a){
@@ -136,8 +153,6 @@ function playSong(l, i, a){
 
   songTitle.innerText = s.title;
   artistName.innerText = a;
-
-  setPageTitle(artist);
 
   updateButtons();
   updateSongHighlights();
@@ -269,7 +284,7 @@ barFull.onclick = (e) => {
 };
 
 /* =========================
-   SEARCH SYSTEM (ARTIST ONLY)
+   SEARCH SYSTEM
 ========================= */
 
 function renderSongs(filtered){
@@ -372,6 +387,7 @@ if(!artistParam){
             `;
 
             card.onclick = () => {
+              enterArtistUI(data.artist);   // instant UI switch
               setURL({ name });
             };
 
@@ -397,8 +413,7 @@ else {
 
   backBtn.style.display = "inline-block";
 
-  grid.style.display = "none";
-  songs.style.display = "grid";
+  enterArtistUI(artistParam);
 
   fetch(`./${artistParam}/config.json`)
     .then(r => r.json())
