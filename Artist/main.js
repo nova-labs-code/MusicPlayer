@@ -8,17 +8,16 @@ let shuffle = false;
 let loopMode = "none";
 
 let songElements = [];
+let allSongs = [];
 
 /* =========================
-   🧼 FULL URL CLEAN SYSTEM
+   🧼 URL CLEAN SYSTEM
 ========================= */
 
-/* fixes incoming + instantly */
 function cleanURLString(str){
   return str ? str.replace(/\+/g, "%20") : "";
 }
 
-/* read URL safely */
 function getCleanParam(name){
   const fixed = cleanURLString(location.search);
   const params = new URLSearchParams(fixed);
@@ -26,7 +25,6 @@ function getCleanParam(name){
   return value ? decodeURIComponent(value) : null;
 }
 
-/* write URL safely (NO + EVER) */
 function setURL(paramsObj){
   const url = new URL(location.href);
 
@@ -37,54 +35,19 @@ function setURL(paramsObj){
   history.pushState({}, "", encodeURI(url.toString()));
 }
 
-/* =========================
-   🛡️ EMERGENCY URL WATCHDOG
-========================= */
-
 function forceFixURL(){
   if (!location.href.includes("+")) return;
-
-  const fixed = location.href.replace(/\+/g, "%20");
-
-  history.replaceState({}, "", fixed);
+  history.replaceState({}, "", location.href.replace(/\+/g, "%20"));
 }
 
-/* run immediately + keep safe */
 forceFixURL();
 setInterval(forceFixURL, 500);
 
 /* =========================
-   MEDIA SESSION
+   ELEMENTS
 ========================= */
 
-function updateMediaSession(song){
-
-  if(!("mediaSession" in navigator)) return;
-
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: song.title,
-    artist: artist,
-    album: artist,
-    artwork: [{
-      src: `./${artist}/${song.image}`,
-      sizes: "512x512",
-      type: "image/png"
-    }]
-  });
-
-  navigator.mediaSession.setActionHandler("play", () => audio.play());
-  navigator.mediaSession.setActionHandler("pause", () => audio.pause());
-  navigator.mediaSession.setActionHandler("previoustrack", () => prevSong());
-  navigator.mediaSession.setActionHandler("nexttrack", () => nextSong());
-
-  navigator.mediaSession.setActionHandler("seekbackward", () => {
-    audio.currentTime = Math.max(0, audio.currentTime - 10);
-  });
-
-  navigator.mediaSession.setActionHandler("seekforward", () => {
-    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
-  });
-}
+const songSearch = document.getElementById("songSearch");
 
 /* =========================
    NAV
@@ -99,7 +62,7 @@ function goBack(){
 }
 
 /* =========================
-   TITLE SYSTEM
+   TITLE
 ========================= */
 
 function setPageTitle(text){
@@ -150,7 +113,7 @@ function updateSongHighlights(){
 }
 
 /* =========================
-   PLAY SONG
+   PLAY SONG (IMPORTANT FIX)
 ========================= */
 
 function playSong(l, i, a){
@@ -176,9 +139,10 @@ function playSong(l, i, a){
 
   setPageTitle(artist);
 
-  updateMediaSession(s);
   updateButtons();
   updateSongHighlights();
+
+  updateMediaSession(s);
 }
 
 /* =========================
@@ -252,22 +216,6 @@ audio.addEventListener("ended", () => {
 });
 
 /* =========================
-   MEDIA STATE SYNC
-========================= */
-
-audio.addEventListener("play", () => {
-  if ("mediaSession" in navigator) {
-    navigator.mediaSession.playbackState = "playing";
-  }
-});
-
-audio.addEventListener("pause", () => {
-  if ("mediaSession" in navigator) {
-    navigator.mediaSession.playbackState = "paused";
-  }
-});
-
-/* =========================
    FULLSCREEN
 ========================= */
 
@@ -321,14 +269,71 @@ barFull.onclick = (e) => {
 };
 
 /* =========================
-   LOOP STATE
+   SEARCH SYSTEM (ARTIST ONLY)
 ========================= */
 
-let loopState;
+function renderSongs(filtered){
 
-window.addEventListener("DOMContentLoaded", () => {
-  loopState = document.getElementById("loopState");
+  songs.innerHTML = "";
+  songElements = [];
+
+  filtered.forEach((s, i) => {
+
+    const el = document.createElement("div");
+    el.className = "song";
+
+    el.innerHTML = `
+      <img src="./${artist}/${s.image}">
+      <div>${s.title}</div>
+    `;
+
+    el.onclick = () => {
+      const realIndex = allSongs.indexOf(s);
+      playSong(allSongs, realIndex, artist);
+    };
+
+    songs.appendChild(el);
+    songElements.push(el);
+  });
+
+}
+
+songSearch?.addEventListener("input", (e) => {
+
+  const q = e.target.value.toLowerCase();
+
+  const filtered = allSongs.filter(s =>
+    s.title.toLowerCase().includes(q)
+  );
+
+  renderSongs(filtered);
+
 });
+
+/* =========================
+   MEDIA SESSION
+========================= */
+
+function updateMediaSession(song){
+
+  if(!("mediaSession" in navigator)) return;
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: song.title,
+    artist: artist,
+    album: artist,
+    artwork: [{
+      src: `./${artist}/${song.image}`,
+      sizes: "512x512",
+      type: "image/png"
+    }]
+  });
+
+  navigator.mediaSession.setActionHandler("play", () => audio.play());
+  navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+  navigator.mediaSession.setActionHandler("previoustrack", () => prevSong());
+  navigator.mediaSession.setActionHandler("nexttrack", () => nextSong());
+}
 
 /* =========================
    ROUTING
@@ -342,6 +347,8 @@ const songParam = getCleanParam("song");
 ========================= */
 
 if(!artistParam){
+
+  songSearch.style.display = "none";
 
   setPageTitle("Artist");
   backBtn.style.display = "none";
@@ -386,6 +393,8 @@ else {
 
   artist = artistParam;
 
+  songSearch.style.display = "block";
+
   backBtn.style.display = "inline-block";
 
   grid.style.display = "none";
@@ -397,22 +406,8 @@ else {
 
       setPageTitle(data.artist);
 
-      data.songs.forEach((s, i) => {
-
-        const el = document.createElement("div");
-        el.className = "song";
-
-        el.innerHTML = `
-          <img src="./${artistParam}/${s.image}">
-          <div>${s.title}</div>
-        `;
-
-        el.onclick = () => playSong(data.songs, i, artistParam);
-
-        songs.appendChild(el);
-        songElements.push(el);
-
-      });
+      allSongs = data.songs;
+      renderSongs(allSongs);
 
       if(songParam !== null && !isNaN(songParam)){
 
