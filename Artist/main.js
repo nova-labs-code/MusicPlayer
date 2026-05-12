@@ -50,22 +50,25 @@ const loopState = document.getElementById("loopState");
 const backBtn = document.getElementById("backBtn");
 
 /* =========================
-   FIX: + → %20 (URL NORMALIZER)
+   URL FIX (+ → %20 LIVE)
 ========================= */
 
-(function fixURL(){
+function cleanURL(){
   const fixed = location.href.replace(/\+/g, "%20");
-  if (fixed !== location.href) {
+  if(fixed !== location.href){
     history.replaceState({}, "", fixed);
   }
-})();
+}
+
+setInterval(cleanURL, 1000);
+cleanURL();
 
 /* =========================
-   SONG NUMBER PARSER (IMPORTANT FIX)
+   SONG NUMBER EXTRACTOR
 ========================= */
 
 function getSongNumber(song){
-  if (!song?.file) return null;
+  if(!song?.file) return null;
   const match = song.file.match(/\d+/);
   return match ? parseInt(match[0]) : null;
 }
@@ -73,12 +76,6 @@ function getSongNumber(song){
 /* =========================
    URL HELPERS
 ========================= */
-setInterval(() => {
-  if (location.href.includes("+")) {
-    const fixed = location.href.replace(/\+/g, "%20");
-    history.replaceState({}, "", fixed);
-  }
-}, 1000);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name);
@@ -112,15 +109,17 @@ function setPageTitle(text){
 }
 
 /* =========================
-   SHUFFLE (UNCHANGED BEHAVIOR)
+   SHUFFLE
 ========================= */
 
 function shuffleArray(arr){
   const a = [...arr];
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
+
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+
   return a;
 }
 
@@ -133,9 +132,12 @@ function enterArtistMode(){
   songs.style.display = "grid";
   songSearch.style.display = "block";
   backBtn.style.display = "inline-block";
+
   songs.innerHTML = "";
   songElements = [];
+
   player.style.display = "none";
+
   window.scrollTo(0,0);
 }
 
@@ -148,8 +150,8 @@ function loadArtist(name, skipURL=false, autoSong=null){
   artist = name;
 
   fetch(`./${name}/config.json`)
-    .then(r=>r.json())
-    .then(data=>{
+    .then(r => r.json())
+    .then(data => {
 
       enterArtistMode();
       setPageTitle(data.artist);
@@ -165,7 +167,6 @@ function loadArtist(name, skipURL=false, autoSong=null){
 
       renderSongs(allSongs);
 
-      /* FIXED DEEP LINK */
       if(autoSong !== null){
 
         const target = allSongs.find(s =>
@@ -173,9 +174,9 @@ function loadArtist(name, skipURL=false, autoSong=null){
         );
 
         if(target){
-          setTimeout(()=>{
-            playSong(allSongs,target._id,name);
-          },0);
+          setTimeout(() => {
+            playSong(allSongs, target._id, name);
+          }, 0);
         }
       }
 
@@ -183,7 +184,7 @@ function loadArtist(name, skipURL=false, autoSong=null){
 }
 
 /* =========================
-   RENDER
+   RENDER SONGS
 ========================= */
 
 function renderSongs(arr){
@@ -191,17 +192,17 @@ function renderSongs(arr){
   songs.innerHTML = "";
   songElements = [];
 
-  arr.forEach(s=>{
+  arr.forEach(s => {
 
-    const el=document.createElement("div");
-    el.className="song";
+    const el = document.createElement("div");
+    el.className = "song";
 
-    el.innerHTML=`
+    el.innerHTML = `
       <img src="./${artist}/${s.image}">
       <div>${s.title}</div>
     `;
 
-    el.onclick=()=>playSong(allSongs,s._id,artist);
+    el.onclick = () => playSong(allSongs, s._id, artist);
 
     songs.appendChild(el);
     songElements.push(el);
@@ -209,32 +210,31 @@ function renderSongs(arr){
 }
 
 /* =========================
-   PLAY (FIXED FILE LOGIC ONLY)
+   PLAY SONG
 ========================= */
 
 function playSong(l,i,a){
 
-  list=l;
-  index=i;
-  artist=a;
+  list = l;
+  index = i;
+  artist = a;
 
-  const s=list.find(x=>x._id===i)||list[i];
+  const s = list.find(x=>x._id===i)||list[i];
 
   const songNumber = getSongNumber(s);
+  audio.src = `./${a}/song${songNumber}.mp3`;
 
-  audio.src=`./${a}/song${songNumber}.mp3`;
-
-  audio.currentTime=0;
+  audio.currentTime = 0;
   audio.play();
 
-  player.style.display="block";
+  player.style.display = "block";
 
-  now.innerText=s.title;
-  cover.src=`./${a}/${s.image}`;
-  coverBig.src=`./${a}/${s.image}`;
+  now.innerText = s.title;
+  cover.src = `./${a}/${s.image}`;
+  coverBig.src = `./${a}/${s.image}`;
 
-  songTitle.innerText=s.title;
-  artistName.innerText=a;
+  songTitle.innerText = s.title;
+  artistName.innerText = a;
 
   updateButtons();
   updateHighlights();
@@ -242,14 +242,16 @@ function playSong(l,i,a){
 }
 
 /* =========================
-   SEARCH (UNCHANGED)
+   SEARCH
 ========================= */
 
-songSearch?.addEventListener("input",e=>{
-  const q=e.target.value.toLowerCase();
+songSearch?.addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
 
   renderSongs(
-    allSongs.filter(s=>s.title.toLowerCase().includes(q))
+    allSongs.filter(s =>
+      s.title.toLowerCase().includes(q)
+    )
   );
 });
 
@@ -260,17 +262,17 @@ songSearch?.addEventListener("input",e=>{
 function updateHighlights(){
   songElements.forEach((el,i)=>{
     el.classList.remove("active","queue");
-    if(i===index)el.classList.add("active");
-    if(i>index)el.classList.add("queue");
+    if(i===index) el.classList.add("active");
+    if(i>index) el.classList.add("queue");
   });
 }
 
 /* =========================
-   CONTROLS (UNCHANGED)
+   CONTROLS
 ========================= */
 
 function togglePlay(){
-  audio.paused?audio.play():audio.pause();
+  audio.paused ? audio.play() : audio.pause();
 }
 
 function nextSong(){
@@ -284,7 +286,8 @@ function nextSong(){
 
   if(index<list.length-1){
     playSong(list,index+1,artist);
-  }else if(loopMode==="queue"){
+  }
+  else if(loopMode==="queue"){
     playSong(list,0,artist);
   }
 }
@@ -317,49 +320,75 @@ audio.addEventListener("ended",()=>{
 ========================= */
 
 audio.addEventListener("timeupdate",()=>{
-  if(!audio.duration)return;
+  if(!audio.duration) return;
 
-  const p=(audio.currentTime/audio.duration)*100;
+  const p = (audio.currentTime/audio.duration)*100;
 
-  progMini.style.width=p+"%";
-  progFull.style.width=p+"%";
+  progMini.style.width = p+"%";
+  progFull.style.width = p+"%";
 
-  const m=Math.floor(audio.currentTime/60);
-  const s=Math.floor(audio.currentTime%60);
+  const m = Math.floor(audio.currentTime/60);
+  const s = Math.floor(audio.currentTime%60);
 
-  time.innerText=`${m}:${s<10?"0":""}${s}`;
+  time.innerText = `${m}:${s<10?"0":""}${s}`;
 });
 
-barMini.onclick=e=>{
-  const r=barMini.getBoundingClientRect();
-  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+barMini.onclick = e=>{
+  const r = barMini.getBoundingClientRect();
+  audio.currentTime = ((e.clientX-r.left)/r.width)*audio.duration;
 };
 
-barFull.onclick=e=>{
-  const r=barFull.getBoundingClientRect();
-  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+barFull.onclick = e=>{
+  const r = barFull.getBoundingClientRect();
+  audio.currentTime = ((e.clientX-r.left)/r.width)*audio.duration;
 };
 
 /* =========================
-   UI BUTTONS
+   UI
 ========================= */
 
 function updateButtons(){
 
-  shuffleBtn.classList.toggle("active",shuffle);
-  shuffleBtnFS.classList.toggle("active",shuffle);
+  shuffleBtn.classList.toggle("active", shuffle);
+  shuffleBtnFS.classList.toggle("active", shuffle);
 
-  loopBtn.classList.toggle("loop-active",loopMode!=="none");
-  loopBtnFS.classList.toggle("loop-active",loopMode!=="none");
+  loopBtn.classList.toggle("loop-active", loopMode!=="none");
+  loopBtnFS.classList.toggle("loop-active", loopMode!=="none");
 
-  loopState.innerText=
+  loopState.innerText =
     loopMode==="none"?"Loop: Off":
     loopMode==="song"?"Loop: Song":
     "Loop: Queue";
 }
 
 /* =========================
-   MEDIA SESSION (FIXED SYNTAX)
+   FULLSCREEN FIX (IMPORTANT)
+========================= */
+
+function toggleFullscreen(){
+
+  if(!player) return;
+
+  if(!document.fullscreenElement){
+    player.classList.add("fullscreen");
+    document.documentElement.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
+}
+
+/* 👇 CRITICAL: expose for HTML onclick */
+window.toggleFullscreen = toggleFullscreen;
+
+/* sync exit */
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement){
+    player.classList.remove("fullscreen");
+  }
+});
+
+/* =========================
+   MEDIA SESSION
 ========================= */
 
 function updateMediaSession(song){
@@ -384,11 +413,11 @@ function updateMediaSession(song){
 }
 
 /* =========================
-   ROUTING (FIXED)
+   ROUTING
 ========================= */
 
-const artistParam=getParam("name");
-const songParam=getParam("song");
+const artistParam = getParam("name");
+const songParam = getParam("song");
 
 if(!artistParam){
 
@@ -427,7 +456,7 @@ if(!artistParam){
 
 }else{
 
-  const songIndex=songParam?parseInt(songParam):null;
+  const songIndex = songParam ? parseInt(songParam) : null;
 
   loadArtist(artistParam,true,songIndex);
 
