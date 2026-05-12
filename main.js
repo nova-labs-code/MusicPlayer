@@ -4,8 +4,20 @@ const searchInput = document.getElementById("searchInput");
 
 let artistsData = [];
 let isLoaded = false;
+let currentCategory = "all";
 
-/* 🧠 LOAD DATA */
+/* 🎯 CATEGORY SWITCH */
+document.querySelectorAll(".cat").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".cat").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    currentCategory = btn.dataset.type;
+    runSearch();
+  });
+});
+
+/* 📦 LOAD DATA */
 async function loadData() {
   try {
     const artistList = await fetch("./Artist/artist.json").then(r => r.json());
@@ -40,14 +52,14 @@ async function loadData() {
     isLoaded = true;
 
   } catch (err) {
-    console.error("Load error:", err);
+    console.error(err);
     grid.innerHTML = "<p>Failed to load artists.</p>";
   }
 }
 
 loadData();
 
-/* ⏱️ simple debounce (prevents spam re-rendering) */
+/* ⏱️ debounce */
 function debounce(fn, delay = 120) {
   let t;
   return (...args) => {
@@ -56,7 +68,7 @@ function debounce(fn, delay = 120) {
   };
 }
 
-/* 🔎 SEARCH */
+/* 🔎 SEARCH ENGINE */
 const runSearch = debounce(() => {
   if (!isLoaded) return;
 
@@ -78,7 +90,9 @@ const runSearch = debounce(() => {
       artist.displayName.toLowerCase().includes(q) ||
       artist.name.toLowerCase().includes(q);
 
-    if (artistMatch) {
+    /* 🎤 ARTISTS */
+    if ((currentCategory === "all" || currentCategory === "artists") && artistMatch) {
+
       const el = document.createElement("div");
       el.className = "card";
 
@@ -94,25 +108,31 @@ const runSearch = debounce(() => {
       results.appendChild(el);
     }
 
-    artist.songs.forEach((song, i) => {
-      if (song.title.toLowerCase().includes(q)) {
-        const el = document.createElement("div");
-        el.className = "card";
+    /* 🎵 SONGS */
+    if (currentCategory === "all" || currentCategory === "music") {
 
-        el.innerHTML = `
-          <img src="./Artist/${artist.name}/${song.image}">
-          <div>${song.title}</div>
-          <small>${artist.displayName}</small>
-        `;
+      artist.songs.forEach((song, i) => {
 
-        el.onclick = () => {
-          location.href = `./Artist/?name=${artist.name}&song=${i}`;
-        };
+        if (song.title.toLowerCase().includes(q)) {
 
-        results.appendChild(el);
-      }
-    });
+          const el = document.createElement("div");
+          el.className = "card";
 
+          el.innerHTML = `
+            <img src="./Artist/${artist.name}/${song.image}">
+            <div>${song.title}</div>
+            <small>${artist.displayName}</small>
+          `;
+
+          el.onclick = () => {
+            location.href = `./Artist/?name=${artist.name}&song=${i}`;
+          };
+
+          results.appendChild(el);
+        }
+
+      });
+    }
   }
 
 }, 120);
