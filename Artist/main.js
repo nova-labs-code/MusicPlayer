@@ -10,19 +10,31 @@ let loopMode = "none";
 let songElements = [];
 
 /* =========================
-   🔧 URL CLEANER (PLUS FIX)
+   🔧 URL CLEANER (FULL FIX)
 ========================= */
 
 function getCleanParam(name){
-  const raw = location.search;
-
-  // turn "+" into proper space encoding
-  const fixed = raw.replace(/\+/g, "%20");
-
-  const params = new URLSearchParams(fixed);
+  const fixedSearch = location.search.replace(/\+/g, "%20");
+  const params = new URLSearchParams(fixedSearch);
   const value = params.get(name);
 
   return value ? decodeURIComponent(value) : null;
+}
+
+/* =========================
+   🔥 SAFE URL BUILDER (NO + EVER)
+========================= */
+
+function buildURL(paramsObj){
+
+  const url = new URL(location.href);
+
+  for (const key in paramsObj) {
+    url.searchParams.set(key, paramsObj[key]);
+  }
+
+  // forces clean encoding (%20 instead of +)
+  return encodeURI(url.toString());
 }
 
 /* =========================
@@ -305,104 +317,8 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   ROUTING (FIXED + CLEAN)
+   ROUTING (CLEAN)
 ========================= */
 
 const artistParam = getCleanParam("name");
 const songParam = getCleanParam("song");
-
-/* =========================
-   HOME VIEW
-========================= */
-
-if(!artistParam){
-
-  setPageTitle("Artist");
-  backBtn.style.display = "none";
-
-  fetch("artist.json")
-    .then(r => r.json())
-    .then(artists => {
-
-      artists.forEach(name => {
-
-        fetch(`./${name}/config.json`)
-          .then(r => r.json())
-          .then(data => {
-
-            let card = document.createElement("div");
-            card.className = "card";
-
-            card.innerHTML = `
-              <img src="./${name}/${data.image}">
-              <div>${data.artist}</div>
-            `;
-
-            card.onclick = () => {
-              const url = new URL(location.href);
-              url.searchParams.set("name", name);
-              location.href = url.toString();
-            };
-
-            grid.appendChild(card);
-
-          });
-
-      });
-
-    });
-
-}
-
-/* =========================
-   ARTIST VIEW
-========================= */
-
-else {
-
-  artist = artistParam;
-
-  backBtn.style.display = "inline-block";
-
-  grid.style.display = "none";
-  songs.style.display = "grid";
-
-  fetch(`./${artistParam}/config.json`)
-    .then(r => r.json())
-    .then(data => {
-
-      setPageTitle(data.artist);
-
-      data.songs.forEach((s, i) => {
-
-        let el = document.createElement("div");
-        el.className = "song";
-
-        el.innerHTML = `
-          <img src="./${artistParam}/${s.image}">
-          <div>${s.title}</div>
-        `;
-
-        el.onclick = () => playSong(data.songs, i, artistParam);
-
-        songs.appendChild(el);
-        songElements.push(el);
-
-      });
-
-      if(songParam !== null && !isNaN(songParam)){
-
-        const i = parseInt(songParam) - 1;
-
-        if(data.songs[i]){
-          playSong(data.songs, i, artistParam);
-
-          const url = new URL(location.href);
-          url.searchParams.delete("song");
-          history.replaceState({}, "", url);
-        }
-      }
-
-    });
-
-}
