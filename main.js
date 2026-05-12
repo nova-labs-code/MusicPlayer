@@ -40,8 +40,9 @@ async function loadData() {
         <div>${config.artist}</div>
       `;
 
+      /* 🎯 ARTIST CLICK (FIXED %20) */
       card.onclick = () => {
-        location.href = `./Artist/?name=${name}`;
+        location.href = `./Artist/?name=${encodeURIComponent(name)}`;
       };
 
       grid.appendChild(card);
@@ -131,14 +132,15 @@ function makeArtistCard(artist) {
     <div>${artist.displayName}</div>
   `;
 
-el.onclick = () => {
-  location.href = `./Artist/?name=${encodeURIComponent(artist.name)}`;
-};
+  /* 🎯 FIXED %20 */
+  el.onclick = () => {
+    location.href = `./Artist/?name=${encodeURIComponent(artist.name)}`;
+  };
 
   return el;
 }
 
-/* 🎵 SONG CARD (🔥 1-BASED INDEX HERE) */
+/* 🎵 SONG CARD (🔥 1-BASED INDEX) */
 function makeSongCard(artist, song, i) {
   const el = document.createElement("div");
   el.className = "card";
@@ -149,9 +151,9 @@ function makeSongCard(artist, song, i) {
     <small>${artist.displayName}</small>
   `;
 
+  /* 🎯 FIXED %20 */
   el.onclick = () => {
-    // 🔥 +1 so URL starts at 1
-    location.href = `./Artist/?name=${artist.name}&song=${i + 1}`;
+    location.href = `./Artist/?name=${encodeURIComponent(artist.name)}&song=${i + 1}`;
   };
 
   return el;
