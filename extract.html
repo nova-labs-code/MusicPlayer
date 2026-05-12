@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MP3 Album Art Extractor</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    text-align: center;
+    padding: 40px;
+  }
+
+  input {
+    margin: 20px;
+  }
+
+  img {
+    max-width: 300px;
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    background: #22c55e;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  button:hover {
+    background: #16a34a;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎵 MP3 Album Art Extractor</h1>
+<input type="file" id="fileInput" accept=".mp3">
+
+<div id="result"></div>
+<button id="downloadBtn" class="hidden">Download Image</button>
+
+<script>
+const input = document.getElementById("fileInput");
+const result = document.getElementById("result");
+const downloadBtn = document.getElementById("downloadBtn");
+
+let imageBlob = null;
+
+input.addEventListener("change", async () => {
+  const file = input.files[0];
+  if (!file) return;
+
+  const buffer = await file.arrayBuffer();
+  const view = new DataView(buffer);
+
+  // Check ID3 header
+  if (
+    view.getUint8(0) !== 0x49 || // I
+    view.getUint8(1) !== 0x44 || // D
+    view.getUint8(2) !== 0x33    // 3
+  ) {
+    result.innerHTML = "❌ No ID3 tag found.";
+    return;
+  }
+
+  // ID3 size (syncsafe)
+  const size =
+    ((view.getUint8(6) & 0x7f) << 21) |
+    ((view.getUint8(7) & 0x7f) << 14) |
+    ((view.getUint8(8) & 0x7f) << 7) |
+    (view.getUint8(9) & 0x7f);
+
+  let offset = 10;
+
+  while (offset < size) {
+    const frameID = String.fromCharCode(
+      view.getUint8(offset),
+      view.getUint8(offset + 1),
+      view.getUint8(offset + 2),
+      view.getUint8(offset + 3)
+    );
+
+    const frameSize =
+      (view.getUint8(offset + 4) << 24) |
+      (view.getUint8(offset + 5) << 16) |
+      (view.getUint8(offset + 6) << 8) |
+      view.getUint8(offset + 7);
+
+    if (frameID === "APIC") {
+      let i = offset + 10;
+
+      const encoding = view.getUint8(i);
+      i++;
+
+      // MIME type
+      let mime = "";
+      while (view.getUint8(i) !== 0) {
+        mime += String.fromCharCode(view.getUint8(i));
+        i++;
+      }
+      i++;
+
+      // picture type
+      i++;
+
+      // description
+      while (view.getUint8(i) !== 0) i++;
+      i++;
+
+      const imageData = buffer.slice(i, offset + 10 + frameSize);
+
+      imageBlob = new Blob([imageData], { type: mime });
+      const url = URL.createObjectURL(imageBlob);
+
+      result.innerHTML = `<img src="${url}">`;
+      downloadBtn.classList.remove("hidden");
+
+      return;
+    }
+
+    offset += 10 + frameSize;
+  }
+
+  result.innerHTML = "⚠️ No album art found.";
+  downloadBtn.classList.add("hidden");
+});
+
+downloadBtn.addEventListener("click", () => {
+  if (!imageBlob) return;
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(imageBlob);
+  a.download = "album-art";
+  a.click();
+});
+</script>
+
+</body>
+</html>
