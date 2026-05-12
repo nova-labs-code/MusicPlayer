@@ -4,9 +4,9 @@ const searchInput = document.getElementById("searchInput");
 
 let artistsData = [];
 let isLoaded = false;
-let currentCategory = "all";
+let currentCategory = "artists"; // default now
 
-/* 🎛️ CATEGORY SWITCH */
+/* 🎛️ CATEGORY SWITCH (NO ALL ANYMORE) */
 document.querySelectorAll(".cat").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".cat").forEach(b => b.classList.remove("active"));
@@ -25,14 +25,12 @@ async function loadData() {
     for (const name of artistList) {
       const config = await fetch(`./Artist/${name}/config.json`).then(r => r.json());
 
-      const artist = {
+      artistsData.push({
         name,
         displayName: config.artist,
         image: config.image,
         songs: config.songs || []
-      };
-
-      artistsData.push(artist);
+      });
 
       const card = document.createElement("div");
       card.className = "card";
@@ -68,7 +66,7 @@ function debounce(fn, delay = 120) {
   };
 }
 
-/* 🔎 SEARCH ENGINE */
+/* 🔎 SEARCH */
 const runSearch = debounce(() => {
   if (!isLoaded) return;
 
@@ -76,13 +74,13 @@ const runSearch = debounce(() => {
 
   results.innerHTML = "";
 
-  const showArtists = currentCategory === "all" || currentCategory === "artists";
-  const showMusic = currentCategory === "all" || currentCategory === "music";
+  const showArtists = currentCategory === "artists";
+  const showMusic = currentCategory === "music";
 
   grid.style.display = "none";
   results.style.display = "grid";
 
-  /* 🟢 NO SEARCH → BROWSE MODE */
+  /* 🟢 NO SEARCH TEXT → BROWSE MODE */
   if (!q) {
     for (const artist of artistsData) {
 
@@ -123,7 +121,7 @@ const runSearch = debounce(() => {
 
 searchInput.addEventListener("input", runSearch);
 
-/* 🎤 ARTIST CARD */
+/* 🎤 ARTIST */
 function makeArtistCard(artist) {
   const el = document.createElement("div");
   el.className = "card";
@@ -140,7 +138,7 @@ function makeArtistCard(artist) {
   return el;
 }
 
-/* 🎵 SONG CARD */
+/* 🎵 SONG */
 function makeSongCard(artist, song, i) {
   const el = document.createElement("div");
   el.className = "card";
