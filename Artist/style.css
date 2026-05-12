@@ -2,6 +2,10 @@
    BASE SYSTEM
 ========================= */
 
+:root{
+  --player-height: 80px;
+}
+
 html{
   font-size:16px;
 }
@@ -13,6 +17,7 @@ body{
   color:white;
 
   padding-top:clamp(45px, 4vw, 70px);
+  padding-bottom:calc(var(--player-height) + 20px);
 }
 
 /* =========================
@@ -113,17 +118,15 @@ body{
   width:100%;
 }
 
-/* hover */
 .song:hover,
 .card:hover{
   transform:scale(1.03);
 }
 
 /* =========================
-   🔥 HIGHLIGHT STATES
+   HIGHLIGHT STATES
 ========================= */
 
-/* CURRENTLY PLAYING */
 .song.active{
   outline:2px solid white;
 
@@ -134,7 +137,6 @@ body{
   z-index:2;
 }
 
-/* QUEUED */
 .song.queue{
   outline:2px solid #00ff7f;
 
@@ -164,7 +166,9 @@ img{
   left:0;
   right:0;
 
+  height:var(--player-height);
   background:#181818;
+
   display:none;
   z-index:999;
 }
