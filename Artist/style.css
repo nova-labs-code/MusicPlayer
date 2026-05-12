@@ -85,7 +85,35 @@ body{
 }
 
 /* =========================
-   GRID (LOCKED 3 COLUMN)
+   SEARCH BAR
+========================= */
+
+#songSearch{
+  display:block;
+  margin:10px auto 0;
+  width:min(400px, 90vw);
+
+  padding:10px 12px;
+  border-radius:10px;
+
+  border:none;
+  outline:none;
+
+  background:#1c1c1c;
+  color:white;
+
+  font-size:14px;
+
+  transition:0.2s ease;
+}
+
+#songSearch:focus{
+  background:#222;
+  box-shadow:0 0 0 2px rgba(255,255,255,0.15);
+}
+
+/* =========================
+   GRID
 ========================= */
 
 .grid,
@@ -124,7 +152,7 @@ body{
 }
 
 /* =========================
-   HIGHLIGHT STATES
+   ACTIVE STATES
 ========================= */
 
 .song.active{
@@ -173,7 +201,7 @@ img{
   z-index:999;
 }
 
-/* mini UI */
+/* MINI UI */
 .ui{
   display:flex;
   align-items:center;
