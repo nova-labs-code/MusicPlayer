@@ -50,6 +50,16 @@ const loopState = document.getElementById("loopState");
 const backBtn = document.getElementById("backBtn");
 
 /* =========================
+   🔧 PATCH ADDITION
+========================= */
+
+function cleanSongFromURL(){
+  const url = new URL(location.href);
+  url.searchParams.delete("song");
+  history.replaceState({}, "", url.toString());
+}
+
+/* =========================
    URL
 ========================= */
 
@@ -118,7 +128,7 @@ function setPageTitle(text){
 }
 
 /* =========================
-   ENTER ARTIST MODE (FULL SWITCH)
+   ENTER ARTIST MODE
 ========================= */
 
 function enterArtistMode(name){
@@ -156,7 +166,6 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
         setURL({ name });
       }
 
-      /* 🎲 RANDOM ORDER */
       allSongs = shuffleArray(data.songs).map((s, i) => ({
         ...s,
         _id: i
@@ -165,8 +174,10 @@ function loadArtist(name, skipURL = false, autoSongIndex = null){
       renderSongs(allSongs);
 
       if(autoSongIndex !== null && allSongs[autoSongIndex]){
+
         setTimeout(() => {
           playSong(allSongs, autoSongIndex, name);
+          cleanSongFromURL(); // 🔥 PATCH
         }, 0);
       }
 
@@ -215,7 +226,10 @@ function playSong(l, i, a){
 
   const s = list.find(x => x._id === i) || list[i];
 
-  audio.src = `./${a}/${s.file}`;
+  /* 🔥 PATCH: song file mapping */
+  const songNumber = i + 1;
+  audio.src = `./${a}/song${songNumber}.mp3`;
+
   audio.currentTime = 0;
   audio.play();
 
@@ -407,10 +421,10 @@ function updateMediaSession(song){
   navigator.mediaSession.setActionHandler("pause", togglePlay);
   navigator.mediaSession.setActionHandler("nexttrack", nextSong);
   navigator.mediaSession.setActionHandler("previoustrack", prevSong);
-}
+});
 
 /* =========================
-   ROUTING (HOME + DEEP LINK)
+   ROUTING
 ========================= */
 
 const artistParam = getParam("name");
@@ -457,4 +471,7 @@ if(!artistParam){
 
   loadArtist(artistParam, true, songIndex);
 
+  setTimeout(() => {
+    cleanSongFromURL(); // 🔥 PATCH
+  }, 0);
 }
