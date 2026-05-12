@@ -73,6 +73,12 @@ function getSongNumber(song){
 /* =========================
    URL HELPERS
 ========================= */
+setInterval(() => {
+  if (location.href.includes("+")) {
+    const fixed = location.href.replace(/\+/g, "%20");
+    history.replaceState({}, "", fixed);
+  }
+}, 1000);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name);
