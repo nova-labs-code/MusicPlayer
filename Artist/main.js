@@ -32,7 +32,6 @@ function updateMediaSession(song){
 
   navigator.mediaSession.setActionHandler("play", () => audio.play());
   navigator.mediaSession.setActionHandler("pause", () => audio.pause());
-
   navigator.mediaSession.setActionHandler("previoustrack", () => prevSong());
   navigator.mediaSession.setActionHandler("nexttrack", () => nextSong());
 
@@ -45,7 +44,10 @@ function updateMediaSession(song){
   });
 }
 
-/* NAV */
+/* =========================
+   NAV
+========================= */
+
 function goHome(){
   location.href = "https://nova-labs-code.github.io/MusicPlayer";
 }
@@ -54,20 +56,37 @@ function goBack(){
   location.href = "?";
 }
 
-/* TITLE SYSTEM */
-function setPageTitle(text){
+/* =========================
+   TITLE SYSTEM (FIXED)
+========================= */
+
+function setPageTitle(text, mode = "artist"){
+
   document.getElementById("title").innerText = text;
-  document.title = text + " - MusicPlayer";
+
+  if(mode === "artist"){
+    document.title = text + " - MusicPlayer";
+  }
+
+  if(mode === "song"){
+    document.title = text + " - " + artist + " | MusicPlayer";
+  }
 }
 
-/* LOOP TEXT */
+/* =========================
+   LOOP TEXT
+========================= */
+
 function getLoopText(){
   if(loopMode === "none") return "Loop: Off";
   if(loopMode === "song") return "Loop: Current Song";
   return "Loop: Queue";
 }
 
-/* UI UPDATE */
+/* =========================
+   UI UPDATE
+========================= */
+
 function updateButtons(){
 
   shuffleBtn.classList.toggle("active", shuffle);
@@ -83,7 +102,10 @@ function updateButtons(){
   }
 }
 
-/* SONG HIGHLIGHTS */
+/* =========================
+   SONG HIGHLIGHTS
+========================= */
+
 function updateSongHighlights(){
 
   songElements.forEach((el, i) => {
@@ -96,7 +118,10 @@ function updateSongHighlights(){
   });
 }
 
-/* PLAY SONG */
+/* =========================
+   PLAY SONG
+========================= */
+
 function playSong(l, i, a){
 
   list = l;
@@ -118,16 +143,19 @@ function playSong(l, i, a){
   songTitle.innerText = s.title;
   artistName.innerText = a;
 
-  setPageTitle(s.title);
+  /* 🔥 FIXED TITLE BEHAVIOR */
+  setPageTitle(s.title, "song");
 
-  /* 🔥 DEVICE MEDIA SYNC */
   updateMediaSession(s);
 
   updateButtons();
   updateSongHighlights();
 }
 
-/* CONTROLS */
+/* =========================
+   CONTROLS
+========================= */
+
 function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
 }
@@ -146,7 +174,10 @@ function toggleLoop(){
   updateButtons();
 }
 
-/* NEXT */
+/* =========================
+   NEXT / PREV
+========================= */
+
 function nextSong(){
 
   if(shuffle){
@@ -166,7 +197,6 @@ function nextSong(){
   }
 }
 
-/* PREV */
 function prevSong(){
 
   if(audio.currentTime > 5){
@@ -179,7 +209,10 @@ function prevSong(){
   }
 }
 
-/* END LOGIC */
+/* =========================
+   END LOGIC
+========================= */
+
 audio.addEventListener("ended", () => {
 
   if(loopMode === "song"){
@@ -191,7 +224,10 @@ audio.addEventListener("ended", () => {
   nextSong();
 });
 
-/* PLAY / PAUSE SYNC TO DEVICE */
+/* =========================
+   MEDIA STATE SYNC
+========================= */
+
 audio.addEventListener("play", () => {
   if ("mediaSession" in navigator) {
     navigator.mediaSession.playbackState = "playing";
@@ -204,7 +240,10 @@ audio.addEventListener("pause", () => {
   }
 });
 
-/* FULLSCREEN */
+/* =========================
+   FULLSCREEN
+========================= */
+
 function toggleFullscreen(){
 
   if(!player.classList.contains("fullscreen")){
@@ -215,14 +254,16 @@ function toggleFullscreen(){
   }
 }
 
-/* EXIT FULLSCREEN FIX */
 document.addEventListener("fullscreenchange", () => {
   if(!document.fullscreenElement){
     player.classList.remove("fullscreen");
   }
 });
 
-/* PROGRESS */
+/* =========================
+   PROGRESS
+========================= */
+
 audio.addEventListener("timeupdate", () => {
 
   if(!audio.duration) return;
@@ -238,7 +279,10 @@ audio.addEventListener("timeupdate", () => {
   time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
-/* SEEK */
+/* =========================
+   SEEK
+========================= */
+
 barMini.onclick = (e) => {
   let r = barMini.getBoundingClientRect();
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
@@ -249,22 +293,31 @@ barFull.onclick = (e) => {
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
-/* LOOP STATE REF */
+/* =========================
+   LOOP STATE REF
+========================= */
+
 let loopState;
 
 window.addEventListener("DOMContentLoaded", () => {
   loopState = document.getElementById("loopState");
 });
 
-/* ROUTING */
+/* =========================
+   ROUTING
+========================= */
+
 const params = new URLSearchParams(location.search);
 const artistParam = params.get("name");
 const songParam = params.get("song");
 
-/* HOME VIEW */
+/* =========================
+   HOME VIEW (ARTISTS)
+========================= */
+
 if(!artistParam){
 
-  setPageTitle("Artists");
+  setPageTitle("Artists", "artist");
   backBtn.style.display = "none";
 
   fetch("artist.json")
@@ -299,8 +352,13 @@ if(!artistParam){
 
 }
 
-/* ARTIST VIEW */
+/* =========================
+   ARTIST VIEW
+========================= */
+
 else {
+
+  artist = artistParam;
 
   backBtn.style.display = "inline-block";
 
@@ -311,7 +369,7 @@ else {
     .then(r => r.json())
     .then(data => {
 
-      setPageTitle(data.artist);
+      setPageTitle(data.artist, "artist");
 
       data.songs.forEach((s, i) => {
 
