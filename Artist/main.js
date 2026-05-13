@@ -404,14 +404,26 @@ function updateButtons(){
     loopMode === "song" ? "Loop: Song" :
     "Loop: Queue";
 
-  /* ⭐ NEW: hover message */
-  const hoverText =
-    loopMode === "none" ? "Loop is off" :
-    loopMode === "song" ? "Repeats current song" :
-    "Loops entire queue";
+  /* =========================
+     LOOP HOVER TEXT
+  ========================= */
 
-  if (loopBtn) loopBtn.title = hoverText;
-  if (loopBtnFS) loopBtnFS.title = hoverText;
+  const hoverText =
+    loopMode === "none"
+      ? "Loop is off"
+      : loopMode === "song"
+        ? "Repeats current song"
+        : "Loops full queue";
+
+  if (loopBtn) {
+    loopBtn.title = hoverText;
+    loopBtn.dataset.hover = hoverText;
+  }
+
+  if (loopBtnFS) {
+    loopBtnFS.title = hoverText;
+    loopBtnFS.dataset.hover = hoverText;
+  }
 }
 
 /* =========================
