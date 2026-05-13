@@ -219,12 +219,13 @@ function playSong(l,i,a){
   artist = a;
 
   const s = list.find(x=>x._id===i)||list[i];
+  if(!s) return;
 
   const songNumber = getSongNumber(s);
   audio.src = `./${a}/song${songNumber}.mp3`;
 
   audio.currentTime = 0;
-  audio.play();
+  audio.play().catch(()=>{});
 
   player.style.display = "block";
 
@@ -237,7 +238,8 @@ function playSong(l,i,a){
 
   updateButtons();
   updateHighlights();
-  updateMediaSession(s);
+
+  updateMediaSession?.(s);
 }
 
 /* =========================
@@ -279,7 +281,7 @@ function updateHighlights(){
 }
 
 /* =========================
-   CONTROLS
+   CONTROLS (FIXED)
 ========================= */
 
 function togglePlay(){
@@ -316,7 +318,7 @@ function prevSong(){
 }
 
 /* =========================
-   🔥 MISSING TOGGLES (FIX)
+   TOGGLES (FIXED)
 ========================= */
 
 function toggleShuffle(){
@@ -389,11 +391,13 @@ barFull.onclick = e => {
 
 function updateButtons(){
 
-  shuffleBtn.classList.toggle("active", shuffle);
-  shuffleBtnFS.classList.toggle("active", shuffle);
+  shuffleBtn?.classList.toggle("active", shuffle);
+  shuffleBtnFS?.classList.toggle("active", shuffle);
 
-  loopBtn.classList.toggle("loop-active", loopMode !== "none");
-  loopBtnFS.classList.toggle("loop-active", loopMode !== "none");
+  const loopActive = loopMode !== "none";
+
+  loopBtn?.classList.toggle("loop-active", loopActive);
+  loopBtnFS?.classList.toggle("loop-active", loopActive);
 
   loopState.innerText =
     loopMode === "none" ? "Loop: Off" :
