@@ -109,7 +109,7 @@ function setPageTitle(text){
 }
 
 /* =========================
-   SHUFFLE
+   SHUFFLE ARRAY
 ========================= */
 
 function shuffleArray(arr){
@@ -168,7 +168,6 @@ function loadArtist(name, skipURL=false, autoSong=null){
       renderSongs(allSongs);
 
       if(autoSong !== null){
-
         const target = allSongs.find(s =>
           getSongNumber(s) === autoSong
         );
@@ -263,7 +262,7 @@ function updateHighlights(){
 
   const visibleSongs = document.querySelectorAll(".song");
 
-  visibleSongs.forEach((el) => {
+  visibleSongs.forEach(el => {
     el.classList.remove("active", "queue");
   });
 
@@ -288,42 +287,70 @@ function togglePlay(){
 }
 
 function nextSong(){
+
   if(shuffle){
     let n;
-    do{
-      n=Math.floor(Math.random()*list.length);
-    }while(list.length>1&&n===index);
-    return playSong(list,n,artist);
+    do {
+      n = Math.floor(Math.random() * list.length);
+    } while(list.length > 1 && n === index);
+
+    return playSong(list, n, artist);
   }
 
-  if(index<list.length-1){
-    playSong(list,index+1,artist);
+  if(index < list.length - 1){
+    playSong(list, index + 1, artist);
   }
-  else if(loopMode==="queue"){
-    playSong(list,0,artist);
+  else if(loopMode === "queue"){
+    playSong(list, 0, artist);
   }
 }
 
 function prevSong(){
-  if(audio.currentTime>5){
-    audio.currentTime=0;
+  if(audio.currentTime > 5){
+    audio.currentTime = 0;
     return;
   }
-  if(index>0){
-    playSong(list,index-1,artist);
+  if(index > 0){
+    playSong(list, index - 1, artist);
   }
+}
+
+/* =========================
+   🔥 MISSING TOGGLES (FIX)
+========================= */
+
+function toggleShuffle(){
+  shuffle = !shuffle;
+  updateButtons();
+}
+
+function toggleLoop(){
+
+  if(loopMode === "none"){
+    loopMode = "queue";
+  }
+  else if(loopMode === "queue"){
+    loopMode = "song";
+  }
+  else {
+    loopMode = "none";
+  }
+
+  updateButtons();
 }
 
 /* =========================
    END EVENT
 ========================= */
 
-audio.addEventListener("ended",()=>{
-  if(loopMode==="song"){
-    audio.currentTime=0;
+audio.addEventListener("ended", () => {
+
+  if(loopMode === "song"){
+    audio.currentTime = 0;
     audio.play();
     return;
   }
+
   nextSong();
 });
 
@@ -331,32 +358,33 @@ audio.addEventListener("ended",()=>{
    PROGRESS
 ========================= */
 
-audio.addEventListener("timeupdate",()=>{
+audio.addEventListener("timeupdate", () => {
+
   if(!audio.duration) return;
 
-  const p = (audio.currentTime/audio.duration)*100;
+  const p = (audio.currentTime / audio.duration) * 100;
 
-  progMini.style.width = p+"%";
-  progFull.style.width = p+"%";
+  progMini.style.width = p + "%";
+  progFull.style.width = p + "%";
 
-  const m = Math.floor(audio.currentTime/60);
-  const s = Math.floor(audio.currentTime%60);
+  const m = Math.floor(audio.currentTime / 60);
+  const s = Math.floor(audio.currentTime % 60);
 
-  time.innerText = `${m}:${s<10?"0":""}${s}`;
+  time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
-barMini.onclick = e=>{
+barMini.onclick = e => {
   const r = barMini.getBoundingClientRect();
-  audio.currentTime = ((e.clientX-r.left)/r.width)*audio.duration;
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
-barFull.onclick = e=>{
+barFull.onclick = e => {
   const r = barFull.getBoundingClientRect();
-  audio.currentTime = ((e.clientX-r.left)/r.width)*audio.duration;
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
 /* =========================
-   UI
+   UI BUTTONS
 ========================= */
 
 function updateButtons(){
@@ -364,17 +392,17 @@ function updateButtons(){
   shuffleBtn.classList.toggle("active", shuffle);
   shuffleBtnFS.classList.toggle("active", shuffle);
 
-  loopBtn.classList.toggle("loop-active", loopMode!=="none");
-  loopBtnFS.classList.toggle("loop-active", loopMode!=="none");
+  loopBtn.classList.toggle("loop-active", loopMode !== "none");
+  loopBtnFS.classList.toggle("loop-active", loopMode !== "none");
 
   loopState.innerText =
-    loopMode==="none"?"Loop: Off":
-    loopMode==="song"?"Loop: Song":
+    loopMode === "none" ? "Loop: Off" :
+    loopMode === "song" ? "Loop: Song" :
     "Loop: Queue";
 }
 
 /* =========================
-   FULLSCREEN FIX (IMPORTANT)
+   FULLSCREEN
 ========================= */
 
 function toggleFullscreen(){
@@ -389,11 +417,9 @@ function toggleFullscreen(){
   }
 }
 
-/* 👇 CRITICAL: expose for HTML onclick */
 window.toggleFullscreen = toggleFullscreen;
 
-/* sync exit */
-document.addEventListener("fullscreenchange",()=>{
+document.addEventListener("fullscreenchange", () => {
   if(!document.fullscreenElement){
     player.classList.remove("fullscreen");
   }
@@ -405,23 +431,23 @@ document.addEventListener("fullscreenchange",()=>{
 
 function updateMediaSession(song){
 
-  if(!("mediaSession"in navigator))return;
+  if(!("mediaSession" in navigator)) return;
 
-  navigator.mediaSession.metadata=new MediaMetadata({
-    title:song.title,
-    artist:artist,
-    album:artist,
-    artwork:[{
-      src:`./${artist}/${song.image}`,
-      sizes:"512x512",
-      type:"image/png"
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: song.title,
+    artist: artist,
+    album: artist,
+    artwork: [{
+      src: `./${artist}/${song.image}`,
+      sizes: "512x512",
+      type: "image/png"
     }]
   });
 
-  navigator.mediaSession.setActionHandler("play",togglePlay);
-  navigator.mediaSession.setActionHandler("pause",togglePlay);
-  navigator.mediaSession.setActionHandler("nexttrack",nextSong);
-  navigator.mediaSession.setActionHandler("previoustrack",prevSong);
+  navigator.mediaSession.setActionHandler("play", togglePlay);
+  navigator.mediaSession.setActionHandler("pause", togglePlay);
+  navigator.mediaSession.setActionHandler("nexttrack", nextSong);
+  navigator.mediaSession.setActionHandler("previoustrack", prevSong);
 }
 
 /* =========================
@@ -433,48 +459,47 @@ const songParam = getParam("song");
 
 if(!artistParam){
 
-  songSearch.style.display="none";
-  backBtn.style.display="none";
+  songSearch.style.display = "none";
+  backBtn.style.display = "none";
 
   setPageTitle("Artists");
 
   fetch("artist.json")
-    .then(r=>r.json())
-    .then(artists=>{
+    .then(r => r.json())
+    .then(artists => {
 
-      artists.forEach(name=>{
+      artists.forEach(name => {
 
         fetch(`./${name}/config.json`)
-          .then(r=>r.json())
-          .then(data=>{
+          .then(r => r.json())
+          .then(data => {
 
-            const card=document.createElement("div");
-            card.className="card";
+            const card = document.createElement("div");
+            card.className = "card";
 
-            card.innerHTML=`
+            card.innerHTML = `
               <img src="./${name}/${data.image}">
               <div>${data.artist}</div>
             `;
 
-            card.onclick=()=>loadArtist(name);
+            card.onclick = () => loadArtist(name);
 
             grid.appendChild(card);
-
           });
 
       });
 
     });
 
-}else{
+} else {
 
   const songIndex = songParam ? parseInt(songParam) : null;
 
-  loadArtist(artistParam,true,songIndex);
+  loadArtist(artistParam, true, songIndex);
 
-  setTimeout(()=>{
-    const url=new URL(location.href);
+  setTimeout(() => {
+    const url = new URL(location.href);
     url.searchParams.delete("song");
     history.replaceState({}, "", url.toString());
-  },0);
+  }, 0);
 }
