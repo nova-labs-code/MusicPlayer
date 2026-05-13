@@ -403,6 +403,15 @@ function updateButtons(){
     loopMode === "none" ? "Loop: Off" :
     loopMode === "song" ? "Loop: Song" :
     "Loop: Queue";
+
+  /* ⭐ NEW: hover message */
+  const hoverText =
+    loopMode === "none" ? "Loop is off" :
+    loopMode === "song" ? "Repeats current song" :
+    "Loops entire queue";
+
+  if (loopBtn) loopBtn.title = hoverText;
+  if (loopBtnFS) loopBtnFS.title = hoverText;
 }
 
 /* =========================
