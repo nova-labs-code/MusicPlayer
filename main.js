@@ -99,7 +99,7 @@ function renderMusic(list) {
     `;
 
     el.onclick = () => {
-      location.href = `?name=${song.artistKey}&song=${song.id}`;
+      location.href = `./Artist?name=${song.artistKey}&song=${song.id}`;
     };
 
     musicView.appendChild(el);
