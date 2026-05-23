@@ -33,7 +33,7 @@ tabMusic.onclick = () => {
    LOAD ARTISTS
 ========================= */
 
-fetch("artist.json")
+fetch("./Artist/artist.json")
   .then(r => r.json())
   .then(artists => {
 
