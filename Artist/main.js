@@ -1,30 +1,12 @@
-let audio = new Audio();
-
-/* =========================
-   STATE
-========================= */
-
-let list = [];
-let index = 0;
-let artist = "";
-
-let allSongs = [];
-let songElements = [];
-
-let shuffle = false;
-let loopMode = "none";
-
-let recentShuffleHistory = [];
-
 /* =========================
    ELEMENTS
 ========================= */
 
 const grid = document.getElementById("grid");
 const songs = document.getElementById("songs");
-const player = document.getElementById("player");
+const searchInput = document.getElementById("songSearch");
 
-const songSearch = document.getElementById("songSearch");
+const audio = document.getElementById("audio");
 
 const now = document.getElementById("now");
 const cover = document.getElementById("cover");
@@ -41,24 +23,27 @@ const barFull = document.getElementById("barFull");
 
 const time = document.getElementById("time");
 
-const shuffleBtn = document.getElementById("shuffleBtn");
-const shuffleBtnFS = document.getElementById("shuffleBtnFS");
+const player = document.getElementById("player");
 
-const loopBtn = document.getElementById("loopBtn");
-const loopBtnFS = document.getElementById("loopBtnFS");
+/* =========================
+   STATE
+========================= */
 
-const visualBtn = document.getElementById("visualBtn");
-const visualBtnFS = document.getElementById("visualBtnFS");
+let artistsData = [];
+let allSongs = [];
 
-const loopState = document.getElementById("loopState");
+let list = [];
+let index = 0;
+let artist = "";
 
-const backBtn = document.getElementById("backBtn");
+let currentCategory = "artists";
 
-const visualizer =
-  document.getElementById("visualizer");
+let shuffle = false;
+let loopMode = "none";
 
-const vctx =
-  visualizer.getContext("2d");
+/* 🔥 no-repeat memory */
+let lastPlayed = [];
+const NO_REPEAT_BUFFER = 3;
 
 /* =========================
    VISUALIZER STATE
@@ -66,446 +51,327 @@ const vctx =
 
 let visualizerEnabled = false;
 
-/* =========================
-   URL FIX
-========================= */
+const canvas = document.getElementById("visualizer");
+const ctx = canvas.getContext("2d");
 
-function cleanURL(){
-
-  const fixed =
-    location.href.replace(/\+/g, "%20");
-
-  if(fixed !== location.href){
-
-    history.replaceState(
-      {},
-      "",
-      fixed
-    );
-  }
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
+window.addEventListener("resize", resize);
+resize();
 
-setInterval(cleanURL, 1000);
-
-cleanURL();
-
-/* =========================
-   RESIZE VISUALIZER
-========================= */
-
-function resizeVisualizer(){
-
-  visualizer.width =
-    window.innerWidth;
-
-  visualizer.height =
-    window.innerHeight;
-}
-
-window.addEventListener(
-  "resize",
-  resizeVisualizer
-);
-
-resizeVisualizer();
+canvas.style.display = "none";
 
 /* =========================
-   AUDIO ANALYZER
+   AUDIO ENGINE
 ========================= */
 
-const audioCtx =
-  new (
-    window.AudioContext ||
-    window.webkitAudioContext
-  )();
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioCtx.createAnalyser();
+analyser.fftSize = 32768;
 
-const analyser =
-  audioCtx.createAnalyser();
-
-analyser.fftSize = 2048;
-
-const source =
-  audioCtx.createMediaElementSource(audio);
-
+const source = audioCtx.createMediaElementSource(audio);
 source.connect(analyser);
-
 analyser.connect(audioCtx.destination);
 
-const bufferLength =
-  analyser.frequencyBinCount;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+const smoothArray = new Float32Array(bufferLength);
 
-const dataArray =
-  new Uint8Array(bufferLength);
-
-const smoothArray =
-  new Float32Array(bufferLength);
-
-/* =========================
-   ENABLE AUDIO CONTEXT
-========================= */
-
-function unlockAudioContext(){
-
+/* unlock audio */
+document.addEventListener("click", () => {
   if(audioCtx.state === "suspended"){
     audioCtx.resume();
   }
-}
-
-document.addEventListener(
-  "click",
-  unlockAudioContext,
-  { once:false }
-);
+});
 
 /* =========================
-   SONG NUMBER
+   VISUALIZER (YOUR STYLE)
 ========================= */
 
-function getSongNumber(song){
+const actualBars = 15000;
+const maxFreq = 1200;
 
-  if(!song?.file){
-    return null;
+function draw(){
+  requestAnimationFrame(draw);
+
+  if(!visualizerEnabled) return;
+
+  analyser.getByteFrequencyData(dataArray);
+
+  for(let i = 0; i < bufferLength; i++){
+    smoothArray[i] =
+      smoothArray[i] * 0.7 +
+      dataArray[i] * 0.3;
   }
 
-  const match =
-    song.file.match(/\d+/);
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
 
-  return match
-    ? parseInt(match[0])
-    : null;
-}
+  const base = Math.min(canvas.width, canvas.height) * 0.12;
+  let radius;
 
-/* =========================
-   URL HELPERS
-========================= */
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-function getParam(name){
+  let bass = 0;
+  for(let i = 0; i < 60; i++) bass += smoothArray[i];
+  bass /= 60;
 
-  return new URLSearchParams(
-    location.search
-  ).get(name);
-}
+  radius = base + (bass/255) * base * 0.5;
 
-function setURL(obj){
+  const hueShift = Date.now() * 0.02;
 
-  const url =
-    new URL(location.href);
+  for(let i = 0; i < actualBars; i++){
 
-  Object.entries(obj)
-    .forEach(([k,v]) => {
+    const angle = (i / actualBars) * Math.PI * 2;
+    const freq = Math.floor((i / actualBars) * maxFreq);
 
-      url.searchParams.set(k,v);
-    });
+    const spike =
+      (smoothArray[freq]/255) * base * 1.5 +
+      bass * 0.2;
 
-  history.pushState(
-    {},
-    "",
-    url.toString()
-  );
-}
+    const x1 = cx + Math.cos(angle) * radius;
+    const y1 = cy + Math.sin(angle) * radius;
 
-/* =========================
-   NAV
-========================= */
+    const x2 = cx + Math.cos(angle) * (radius + spike);
+    const y2 = cy + Math.sin(angle) * (radius + spike);
 
-function goHome(){
+    ctx.strokeStyle =
+      `hsl(${(i*360/actualBars + hueShift)%360},100%,50%)`;
 
-  location.href =
-    "https://nova-labs-code.github.io/MusicPlayer";
-}
+    ctx.lineWidth = 0.35;
 
-function goBack(){
-
-  location.href = "?";
-}
-
-/* =========================
-   TITLE
-========================= */
-
-function setPageTitle(text){
-
-  document.getElementById(
-    "title"
-  ).innerText = text;
-
-  document.title =
-    text + " - MusicPlayer";
-}
-
-/* =========================
-   SHUFFLE ARRAY
-========================= */
-
-function shuffleArray(arr){
-
-  const a = [...arr];
-
-  for(
-    let i = a.length - 1;
-    i > 0;
-    i--
-  ){
-
-    const j =
-      Math.floor(
-        Math.random() * (i + 1)
-      );
-
-    [a[i], a[j]] =
-      [a[j], a[i]];
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    ctx.stroke();
   }
 
-  return a;
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.arc(cx,cy,radius*0.9,0,Math.PI*2);
+  ctx.fill();
+}
+
+draw();
+
+/* =========================
+   VISUAL TOGGLE
+========================= */
+
+function toggleVisualizer(){
+  visualizerEnabled = !visualizerEnabled;
+  canvas.style.display = visualizerEnabled ? "block" : "none";
+  updateButtons();
 }
 
 /* =========================
-   ARTIST MODE
+   CATEGORY SWITCH
 ========================= */
 
-function enterArtistMode(){
-
-  grid.style.display = "none";
-
-  songs.style.display = "grid";
-
-  songSearch.style.display = "block";
-
-  backBtn.style.display =
-    "inline-block";
-
-  songs.innerHTML = "";
-
-  songElements = [];
-
-  player.style.display = "none";
-
-  window.scrollTo(0,0);
-}
+document.querySelectorAll(".cat").forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll(".cat").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCategory = btn.dataset.type;
+    runSearch();
+  };
+});
 
 /* =========================
-   LOAD ARTIST
+   LOAD DATA
 ========================= */
 
-function loadArtist(
-  name,
-  skipURL = false,
-  autoSong = null
-){
+async function loadData(){
 
-  artist = name;
+  const artistList =
+    await fetch("./Artist/artist.json")
+    .then(r=>r.json());
 
-  fetch(`./${name}/config.json`)
-    .then(r => r.json())
-    .then(data => {
+  for(const name of artistList){
 
-      enterArtistMode();
+    const config =
+      await fetch(`./Artist/${name}/config.json`)
+      .then(r=>r.json());
 
-      setPageTitle(data.artist);
-
-      if(data.theme){
-
-        document.documentElement
-          .style
-          .setProperty(
-            "--bg",
-            data.theme.bg
-          );
-
-        document.documentElement
-          .style
-          .setProperty(
-            "--accent",
-            data.theme.accent
-          );
-      }
-
-      if(!skipURL){
-
-        setURL({ name });
-      }
-
-      allSongs =
-        shuffleArray(data.songs)
-          .map((s,i)=>({
-            ...s,
-            _id:i
-          }));
-
-      renderSongs(allSongs);
-
-      if(autoSong !== null){
-
-        const target =
-          allSongs.find(s =>
-            getSongNumber(s)
-            === autoSong
-          );
-
-        if(target){
-
-          setTimeout(() => {
-
-            playSong(
-              allSongs,
-              target._id,
-              name
-            );
-
-          }, 0);
-        }
-      }
+    artistsData.push({
+      name,
+      displayName: config.artist,
+      image: config.image,
+      songs: config.songs
     });
-}
 
-/* =========================
-   RENDER SONGS
-========================= */
+    const card = document.createElement("div");
+    card.className = "card";
 
-function renderSongs(arr){
-
-  songs.innerHTML = "";
-
-  songElements = [];
-
-  arr.forEach(s => {
-
-    const el =
-      document.createElement("div");
-
-    el.className = "song";
-
-    el.innerHTML = `
-      <img src="./${artist}/${s.image}">
-      <div>${s.title}</div>
+    card.innerHTML = `
+      <img src="./Artist/${name}/${config.image}">
+      <div>${config.artist}</div>
     `;
 
-    el.onclick = () =>
-      playSong(
-        allSongs,
-        s._id,
-        artist
-      );
+    card.onclick = () => {
+      location.href =
+        `./Artist/?name=${encodeURIComponent(name)}`;
+    };
 
-    songs.appendChild(el);
-
-    songElements.push(el);
-  });
-}
-
-/* =========================
-   PLAY SONG
-========================= */
-
-function playSong(l,i,a){
-
-  list = l;
-  index = i;
-  artist = a;
-
-  const s =
-    list.find(x=>x._id===i)
-    || list[i];
-
-  if(!s){
-    return;
+    grid.appendChild(card);
   }
 
-  const filePath =
-    `./${a}/${s.file}`;
-
-  audio.src = filePath;
-
-  audio.currentTime = 0;
-
-  audio.play().catch(()=>{});
-
-  player.style.display =
-    "block";
-
-  now.innerText =
-    s.title;
-
-  cover.src =
-    `./${a}/${s.image}`;
-
-  coverBig.src =
-    `./${a}/${s.image}`;
-
-  songTitle.innerText =
-    s.title;
-
-  artistName.innerText =
-    a;
-
-  updateButtons();
-
-  updateHighlights();
-
-  updateMediaSession(s);
+  runSearch();
 }
+
+loadData();
 
 /* =========================
    SEARCH
 ========================= */
 
-songSearch?.addEventListener(
-  "input",
-  e => {
+function debounce(fn, d=120){
+  let t;
+  return (...a)=>{
+    clearTimeout(t);
+    t = setTimeout(()=>fn(...a),d);
+  };
+}
 
-    const q =
-      e.target.value.toLowerCase();
+const runSearch = debounce(()=>{
 
-    renderSongs(
+  const q = searchInput.value.toLowerCase();
 
-      allSongs.filter(s =>
+  const results = document.getElementById("results");
 
-        s.title
-          .toLowerCase()
-          .includes(q)
-      )
-    );
+  results.innerHTML = "";
+  grid.style.display = "none";
+  results.style.display = "grid";
+
+  if(!q){
+
+    for(const a of artistsData){
+
+      if(currentCategory==="artists"){
+        results.appendChild(makeArtist(a));
+      }
+
+      if(currentCategory==="music"){
+        a.songs.forEach((s,i)=>{
+          results.appendChild(makeSong(a,s,i));
+        });
+      }
+    }
+
+    return;
   }
-);
+
+  for(const a of artistsData){
+
+    const match =
+      a.displayName.toLowerCase().includes(q) ||
+      a.name.toLowerCase().includes(q);
+
+    if(currentCategory==="artists" && match){
+      results.appendChild(makeArtist(a));
+    }
+
+    if(currentCategory==="music"){
+      a.songs.forEach((s,i)=>{
+        if(s.title.toLowerCase().includes(q)){
+          results.appendChild(makeSong(a,s,i));
+        }
+      });
+    }
+  }
+
+},120);
+
+searchInput.addEventListener("input", runSearch);
 
 /* =========================
-   HIGHLIGHTS
+   CARD BUILDERS
 ========================= */
 
-function updateHighlights(){
+function makeArtist(a){
+  const el = document.createElement("div");
+  el.className="card";
 
-  const visibleSongs =
-    document.querySelectorAll(
-      ".song"
-    );
+  el.innerHTML=`
+    <img src="./Artist/${a.name}/${a.image}">
+    <div>${a.displayName}</div>
+  `;
 
-  visibleSongs.forEach(el => {
+  el.onclick=()=>{
+    location.href=
+      `./Artist/?name=${encodeURIComponent(a.name)}`;
+  };
 
-    el.classList.remove(
-      "active",
-      "queue"
-    );
-  });
+  return el;
+}
 
-  const current =
-    visibleSongs[index];
+function makeSong(a,s,i){
+  const el=document.createElement("div");
+  el.className="card";
 
-  if(current){
+  el.innerHTML=`
+    <img src="./Artist/${a.name}/${s.image}">
+    <div>${s.title}</div>
+    <small>${a.displayName}</small>
+  `;
 
-    current.classList.add(
-      "active"
-    );
+  el.onclick=()=>{
+    location.href=
+      `./Artist/?name=${encodeURIComponent(a.name)}&song=${i+1}`;
+  };
+
+  return el;
+}
+
+/* =========================
+   PLAYER CORE
+========================= */
+
+function playSong(l,i,a){
+
+  list=l;
+  index=i;
+  artist=a;
+
+  const s=list[i];
+  if(!s) return;
+
+  audio.src=`./Artist/${a}/${s.file}`;
+  audio.currentTime=0;
+  audio.play().catch(()=>{});
+
+  now.innerText=s.title;
+  cover.src=`./Artist/${a}/${s.image}`;
+  coverBig.src=`./Artist/${a}/${s.image}`;
+
+  songTitle.innerText=s.title;
+  artistName.innerText=a;
+
+  registerPlay(i);
+}
+
+/* =========================
+   NO REPEAT SHUFFLE MEMORY
+========================= */
+
+function registerPlay(i){
+  lastPlayed.push(i);
+  if(lastPlayed.length>NO_REPEAT_BUFFER){
+    lastPlayed.shift();
   }
+}
 
-  visibleSongs.forEach((el,i)=>{
+function getRandomIndex(){
+  let n;
 
-    if(i > index){
+  do{
+    n=Math.floor(Math.random()*list.length);
+  }while(lastPlayed.includes(n) && list.length>NO_REPEAT_BUFFER);
 
-      el.classList.add(
-        "queue"
-      );
-    }
-  });
+  return n;
 }
 
 /* =========================
@@ -513,671 +379,102 @@ function updateHighlights(){
 ========================= */
 
 function togglePlay(){
-
-  audio.paused
-    ? audio.play()
-    : audio.pause();
+  audio.paused ? audio.play() : audio.pause();
 }
 
 function nextSong(){
 
   if(shuffle){
-
-    const available =
-      list.filter((_,i)=>
-
-        !recentShuffleHistory
-          .includes(i)
-      );
-
-    let nextIndex;
-
-    if(available.length > 0){
-
-      const randomSong =
-        available[
-          Math.floor(
-            Math.random()
-            * available.length
-          )
-        ];
-
-      nextIndex =
-        randomSong._id;
-    }
-    else {
-
-      nextIndex =
-        Math.floor(
-          Math.random()
-          * list.length
-        );
-    }
-
-    recentShuffleHistory.push(
-      nextIndex
-    );
-
-    if(
-      recentShuffleHistory.length > 3
-    ){
-
-      recentShuffleHistory.shift();
-    }
-
-    return playSong(
-      list,
-      nextIndex,
-      artist
-    );
+    return playSong(list,getRandomIndex(),artist);
   }
 
-  if(index < list.length - 1){
-
-    playSong(
-      list,
-      index + 1,
-      artist
-    );
-  }
-  else if(loopMode === "queue"){
-
-    playSong(
-      list,
-      0,
-      artist
-    );
+  if(index<list.length-1){
+    playSong(list,index+1,artist);
+  } else if(loopMode==="queue"){
+    playSong(list,0,artist);
   }
 }
 
 function prevSong(){
-
-  if(audio.currentTime > 5){
-
-    audio.currentTime = 0;
-
-    return;
-  }
-
-  if(index > 0){
-
-    playSong(
-      list,
-      index - 1,
-      artist
-    );
-  }
+  if(index>0) playSong(list,index-1,artist);
 }
 
 /* =========================
-   TOGGLES
+   LOOP
 ========================= */
-
-function toggleShuffle(){
-
-  shuffle = !shuffle;
-
-  recentShuffleHistory = [];
-
-  updateButtons();
-}
 
 function toggleLoop(){
-
-  if(loopMode === "none"){
-
-    loopMode = "queue";
-  }
-  else if(loopMode === "queue"){
-
-    loopMode = "song";
-  }
-  else {
-
-    loopMode = "none";
-  }
+  loopMode =
+    loopMode==="none"?"queue":
+    loopMode==="queue"?"song":"none";
 
   updateButtons();
 }
 
 /* =========================
-   VISUALIZER TOGGLE
+   END EVENT
 ========================= */
 
-function toggleVisualizer(){
-
-  visualizerEnabled =
-    !visualizerEnabled;
-
-  visualizer.classList.toggle(
-    "active",
-    visualizerEnabled
-  );
-
-  updateButtons();
-}
-
-/* =========================
-   BUTTON STATES
-========================= */
-
-function updateButtons(){
-
-  shuffleBtn?.classList.toggle(
-    "active",
-    shuffle
-  );
-
-  shuffleBtnFS?.classList.toggle(
-    "active",
-    shuffle
-  );
-
-  const loopActive =
-    loopMode !== "none";
-
-  loopBtn?.classList.toggle(
-    "loop-active",
-    loopActive
-  );
-
-  loopBtnFS?.classList.toggle(
-    "loop-active",
-    loopActive
-  );
-
-  visualBtn?.classList.toggle(
-    "active",
-    visualizerEnabled
-  );
-
-  visualBtnFS?.classList.toggle(
-    "active",
-    visualizerEnabled
-  );
-
-  loopState.innerText =
-
-    loopMode === "none"
-      ? "Loop: Off"
-
-      : loopMode === "song"
-        ? "Loop: Song"
-
-        : "Loop: Queue";
-}
-
-/* =========================
-   SONG END
-========================= */
-
-audio.addEventListener(
-  "ended",
-  () => {
-
-    if(loopMode === "song"){
-
-      audio.currentTime = 0;
-
-      audio.play();
-
-      return;
-    }
-
-    nextSong();
-  }
-);
+audio.addEventListener("ended",()=>{
+  if(loopMode==="song"){
+    audio.currentTime=0;
+    audio.play();
+  } else nextSong();
+});
 
 /* =========================
    PROGRESS
 ========================= */
 
-audio.addEventListener(
-  "timeupdate",
-  () => {
+audio.addEventListener("timeupdate",()=>{
 
-    if(!audio.duration){
-      return;
-    }
+  if(!audio.duration)return;
 
-    const p =
-      (
-        audio.currentTime
-        / audio.duration
-      ) * 100;
+  const p=(audio.currentTime/audio.duration)*100;
 
-    progMini.style.width =
-      p + "%";
+  progMini.style.width=p+"%";
+  progFull.style.width=p+"%";
 
-    progFull.style.width =
-      p + "%";
+  const m=Math.floor(audio.currentTime/60);
+  const s=Math.floor(audio.currentTime%60);
 
-    const m =
-      Math.floor(
-        audio.currentTime / 60
-      );
+  time.innerText=`${m}:${s<10?"0":""}${s}`;
+});
 
-    const s =
-      Math.floor(
-        audio.currentTime % 60
-      );
-
-    time.innerText =
-      `${m}:${s < 10 ? "0" : ""}${s}`;
-  }
-);
-
-barMini.onclick = e => {
-
-  const r =
-    barMini.getBoundingClientRect();
-
-  audio.currentTime =
-
-    (
-      (e.clientX - r.left)
-      / r.width
-    ) * audio.duration;
+/* seek */
+barMini.onclick=e=>{
+  const r=barMini.getBoundingClientRect();
+  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
 };
 
-barFull.onclick = e => {
-
-  const r =
-    barFull.getBoundingClientRect();
-
-  audio.currentTime =
-
-    (
-      (e.clientX - r.left)
-      / r.width
-    ) * audio.duration;
+barFull.onclick=e=>{
+  const r=barFull.getBoundingClientRect();
+  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
 };
 
 /* =========================
-   FULLSCREEN
+   BUTTON STATE
 ========================= */
 
-function toggleFullscreen(){
+function updateButtons(){
+  document.getElementById("visualBtn")
+    ?.classList.toggle("active",visualizerEnabled);
 
-  if(!player){
-    return;
-  }
-
-  if(!document.fullscreenElement){
-
-    player.classList.add(
-      "fullscreen"
-    );
-
-    document.documentElement
-      .requestFullscreen?.();
-  }
-  else {
-
-    document.exitFullscreen?.();
-  }
-}
-
-window.toggleFullscreen =
-  toggleFullscreen;
-
-document.addEventListener(
-  "fullscreenchange",
-  () => {
-
-    if(!document.fullscreenElement){
-
-      player.classList.remove(
-        "fullscreen"
-      );
-    }
-  }
-);
-
-/* =========================
-   MEDIA SESSION
-========================= */
-
-function updateMediaSession(song){
-
-  if(!("mediaSession" in navigator)){
-    return;
-  }
-
-  navigator.mediaSession.metadata =
-    new MediaMetadata({
-
-      title:
-        song.title,
-
-      artist:
-        artist,
-
-      album:
-        artist,
-
-      artwork:[
-        {
-          src:
-            `./${artist}/${song.image}`,
-
-          sizes:
-            "512x512",
-
-          type:
-            "image/png"
-        }
-      ]
-    });
-
-  navigator.mediaSession
-    .setActionHandler(
-      "play",
-      togglePlay
-    );
-
-  navigator.mediaSession
-    .setActionHandler(
-      "pause",
-      togglePlay
-    );
-
-  navigator.mediaSession
-    .setActionHandler(
-      "nexttrack",
-      nextSong
-    );
-
-  navigator.mediaSession
-    .setActionHandler(
-      "previoustrack",
-      prevSong
-    );
+  document.getElementById("visualBtnFS")
+    ?.classList.toggle("active",visualizerEnabled);
 }
 
 /* =========================
-   VISUALIZER DRAW
+   INIT FROM URL
 ========================= */
 
-function drawVisualizer(){
-
-  requestAnimationFrame(
-    drawVisualizer
-  );
-
-  if(!visualizerEnabled){
-
-    vctx.clearRect(
-      0,
-      0,
-      visualizer.width,
-      visualizer.height
-    );
-
-    return;
-  }
-
-  const w =
-    visualizer.width;
-
-  const h =
-    visualizer.height;
-
-  const cx =
-    w / 2;
-
-  const cy =
-    h / 2;
-
-  analyser.getByteFrequencyData(
-    dataArray
-  );
-
-  for(
-    let i = 0;
-    i < bufferLength;
-    i++
-  ){
-
-    smoothArray[i] =
-
-      smoothArray[i] * 0.82 +
-
-      dataArray[i] * 0.18;
-  }
-
-  vctx.fillStyle =
-    "rgba(0,0,0,0.14)";
-
-  vctx.fillRect(
-    0,
-    0,
-    w,
-    h
-  );
-
-  let bass = 0;
-
-  for(let i = 0; i < 25; i++){
-
-    bass += smoothArray[i];
-  }
-
-  bass /= 25;
-
-  const img =
-    coverBig;
-
-  const baseRadius =
-    Math.min(w,h) * 0.16;
-
-  const radius =
-
-    baseRadius +
-
-    bass * 0.08;
-
-  if(img?.complete){
-
-    vctx.save();
-
-    vctx.beginPath();
-
-    vctx.arc(
-      cx,
-      cy,
-      radius,
-      0,
-      Math.PI * 2
-    );
-
-    vctx.clip();
-
-    vctx.drawImage(
-      img,
-      cx - radius,
-      cy - radius,
-      radius * 2,
-      radius * 2
-    );
-
-    vctx.restore();
-  }
-
-  const bars = 260;
-
-  const spin =
-    Date.now() * 0.00015;
-
-  for(
-    let i = 0;
-    i < bars;
-    i++
-  ){
-
-    const angle =
-
-      (
-        i / bars
-      ) * Math.PI * 2 +
-
-      spin;
-
-    const freqIndex =
-      Math.floor(
-
-        (
-          i / bars
-        ) * bufferLength * 0.45
-      );
-
-    const value =
-      smoothArray[freqIndex];
-
-    const length =
-
-      (
-        value / 255
-      ) *
-
-      Math.min(w,h) * 0.22;
-
-    const x1 =
-
-      cx +
-
-      Math.cos(angle) *
-
-      (radius + 18);
-
-    const y1 =
-
-      cy +
-
-      Math.sin(angle) *
-
-      (radius + 18);
-
-    const x2 =
-
-      cx +
-
-      Math.cos(angle) *
-
-      (radius + 18 + length);
-
-    const y2 =
-
-      cy +
-
-      Math.sin(angle) *
-
-      (radius + 18 + length);
-
-    const hue =
-
-      (
-        i * 1.8 +
-
-        Date.now() * 0.02
-      ) % 360;
-
-    vctx.strokeStyle =
-
-      `hsla(${hue},100%,60%,0.95)`;
-
-    vctx.lineWidth = 2;
-
-    vctx.beginPath();
-
-    vctx.moveTo(x1,y1);
-
-    vctx.lineTo(x2,y2);
-
-    vctx.stroke();
-  }
+const params=new URLSearchParams(location.search);
+const artistParam=params.get("name");
+const songParam=parseInt(params.get("song"));
+
+if(artistParam){
+  loadArtist(artistParam,true,songParam);
 }
 
-drawVisualizer();
-
-/* =========================
-   ROUTING
-========================= */
-
-const artistParam =
-  getParam("name");
-
-const songParam =
-  getParam("song");
-
-if(!artistParam){
-
-  songSearch.style.display =
-    "none";
-
-  backBtn.style.display =
-    "none";
-
-  setPageTitle("Artists");
-
-  fetch("artist.json")
-    .then(r => r.json())
-    .then(artists => {
-
-      artists.forEach(name => {
-
-        fetch(`./${name}/config.json`)
-          .then(r => r.json())
-          .then(data => {
-
-            const card =
-              document.createElement(
-                "div"
-              );
-
-            card.className = "card";
-
-            card.innerHTML = `
-              <img src="./${name}/${data.image}">
-              <div>${data.artist}</div>
-            `;
-
-            card.onclick = () =>
-              loadArtist(name);
-
-            grid.appendChild(card);
-          });
-      });
-    });
-
-}
-else {
-
-  const songIndex =
-    songParam
-      ? parseInt(songParam)
-      : null;
-
-  loadArtist(
-    artistParam,
-    true,
-    songIndex
-  );
-
-  setTimeout(() => {
-
-    const url =
-      new URL(location.href);
-
-    url.searchParams.delete(
-      "song"
-    );
-
-    history.replaceState(
-      {},
-      "",
-      url.toString()
-    );
-
-  },0);
-}
+/* expose */
+window.toggleVisualizer=toggleVisualizer;
