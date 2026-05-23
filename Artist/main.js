@@ -1,12 +1,30 @@
+let audio = new Audio();
+
+/* =========================
+   STATE
+========================= */
+
+let list = [];
+let index = 0;
+let artist = "";
+
+let allSongs = [];
+let songElements = [];
+
+let shuffle = false;
+let loopMode = "none";
+
+let recentShuffleHistory = [];
+
 /* =========================
    ELEMENTS
 ========================= */
 
 const grid = document.getElementById("grid");
 const songs = document.getElementById("songs");
-const searchInput = document.getElementById("songSearch");
+const player = document.getElementById("player");
 
-const audio = document.getElementById("audio");
+const songSearch = document.getElementById("songSearch");
 
 const now = document.getElementById("now");
 const cover = document.getElementById("cover");
@@ -23,390 +41,297 @@ const barFull = document.getElementById("barFull");
 
 const time = document.getElementById("time");
 
-const player = document.getElementById("player");
+const shuffleBtn = document.getElementById("shuffleBtn");
+const shuffleBtnFS = document.getElementById("shuffleBtnFS");
+
+const loopBtn = document.getElementById("loopBtn");
+const loopBtnFS = document.getElementById("loopBtnFS");
+
+const loopState = document.getElementById("loopState");
+
+const backBtn = document.getElementById("backBtn");
 
 /* =========================
-   STATE
+   URL HELPERS
 ========================= */
 
-let artistsData = [];
-let allSongs = [];
-
-let list = [];
-let index = 0;
-let artist = "";
-
-let currentCategory = "artists";
-
-let shuffle = false;
-let loopMode = "none";
-
-/* 🔥 no-repeat memory */
-let lastPlayed = [];
-const NO_REPEAT_BUFFER = 3;
-
-/* =========================
-   VISUALIZER STATE
-========================= */
-
-let visualizerEnabled = false;
-
-const canvas = document.getElementById("visualizer");
-const ctx = canvas.getContext("2d");
-
-function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
-
-canvas.style.display = "none";
-
-/* =========================
-   AUDIO ENGINE
-========================= */
-
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const analyser = audioCtx.createAnalyser();
-analyser.fftSize = 32768;
-
-const source = audioCtx.createMediaElementSource(audio);
-source.connect(analyser);
-analyser.connect(audioCtx.destination);
-
-const bufferLength = analyser.frequencyBinCount;
-const dataArray = new Uint8Array(bufferLength);
-const smoothArray = new Float32Array(bufferLength);
-
-/* unlock audio */
-document.addEventListener("click", () => {
-  if(audioCtx.state === "suspended"){
-    audioCtx.resume();
-  }
-});
-
-/* =========================
-   VISUALIZER (YOUR STYLE)
-========================= */
-
-const actualBars = 15000;
-const maxFreq = 1200;
-
-function draw(){
-  requestAnimationFrame(draw);
-
-  if(!visualizerEnabled) return;
-
-  analyser.getByteFrequencyData(dataArray);
-
-  for(let i = 0; i < bufferLength; i++){
-    smoothArray[i] =
-      smoothArray[i] * 0.7 +
-      dataArray[i] * 0.3;
-  }
-
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-
-  const base = Math.min(canvas.width, canvas.height) * 0.12;
-  let radius;
-
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  let bass = 0;
-  for(let i = 0; i < 60; i++) bass += smoothArray[i];
-  bass /= 60;
-
-  radius = base + (bass/255) * base * 0.5;
-
-  const hueShift = Date.now() * 0.02;
-
-  for(let i = 0; i < actualBars; i++){
-
-    const angle = (i / actualBars) * Math.PI * 2;
-    const freq = Math.floor((i / actualBars) * maxFreq);
-
-    const spike =
-      (smoothArray[freq]/255) * base * 1.5 +
-      bass * 0.2;
-
-    const x1 = cx + Math.cos(angle) * radius;
-    const y1 = cy + Math.sin(angle) * radius;
-
-    const x2 = cx + Math.cos(angle) * (radius + spike);
-    const y2 = cy + Math.sin(angle) * (radius + spike);
-
-    ctx.strokeStyle =
-      `hsl(${(i*360/actualBars + hueShift)%360},100%,50%)`;
-
-    ctx.lineWidth = 0.35;
-
-    ctx.beginPath();
-    ctx.moveTo(x1,y1);
-    ctx.lineTo(x2,y2);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = "#000";
-  ctx.beginPath();
-  ctx.arc(cx,cy,radius*0.9,0,Math.PI*2);
-  ctx.fill();
+function getParam(name){
+  return new URLSearchParams(location.search).get(name);
 }
 
-draw();
-
-/* =========================
-   VISUAL TOGGLE
-========================= */
-
-function toggleVisualizer(){
-  visualizerEnabled = !visualizerEnabled;
-  canvas.style.display = visualizerEnabled ? "block" : "none";
-  updateButtons();
+function setURL(obj){
+  const url = new URL(location.href);
+  Object.entries(obj).forEach(([k,v]) => url.searchParams.set(k,v));
+  history.pushState({}, "", url.toString());
 }
 
 /* =========================
-   CATEGORY SWITCH
+   NAV
 ========================= */
 
-document.querySelectorAll(".cat").forEach(btn=>{
-  btn.onclick = () => {
-    document.querySelectorAll(".cat").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    currentCategory = btn.dataset.type;
-    runSearch();
-  };
-});
+function goHome(){
+  location.href = "https://nova-labs-code.github.io/MusicPlayer";
+}
+
+function goBack(){
+  location.href = "?";
+}
 
 /* =========================
-   LOAD DATA
+   TITLE
 ========================= */
 
-async function loadData(){
+function setPageTitle(text){
+  document.getElementById("title").innerText = text;
+  document.title = text + " - MusicPlayer";
+}
 
-  const artistList =
-    await fetch("./Artist/artist.json")
-    .then(r=>r.json());
+/* =========================
+   ARTIST MODE
+========================= */
 
-  for(const name of artistList){
+function enterArtistMode(){
+  grid.style.display = "none";
+  songs.style.display = "grid";
+  songSearch.style.display = "block";
+  backBtn.style.display = "inline-block";
 
-    const config =
-      await fetch(`./Artist/${name}/config.json`)
-      .then(r=>r.json());
+  songs.innerHTML = "";
+  songElements = [];
 
-    artistsData.push({
-      name,
-      displayName: config.artist,
-      image: config.image,
-      songs: config.songs
+  player.style.display = "none";
+
+  window.scrollTo(0,0);
+}
+
+/* =========================
+   LOAD ARTIST
+========================= */
+
+function loadArtist(name, skipURL=false, autoSong=null){
+
+  artist = name;
+
+  fetch(`./${name}/config.json`)
+    .then(r => r.json())
+    .then(data => {
+
+      enterArtistMode();
+      setPageTitle(data.artist);
+
+      if(!skipURL){
+        setURL({ name });
+      }
+
+      allSongs = data.songs.map((s,i)=>({
+        ...s,
+        _id:i
+      }));
+
+      renderSongs(allSongs);
+
+      if(autoSong !== null){
+        const target = allSongs.find(s => s._id === autoSong);
+
+        if(target){
+          setTimeout(() => {
+            playSong(allSongs, target._id, name);
+          }, 0);
+        }
+      }
     });
+}
 
-    const card = document.createElement("div");
-    card.className = "card";
+/* =========================
+   RENDER SONGS
+========================= */
 
-    card.innerHTML = `
-      <img src="./Artist/${name}/${config.image}">
-      <div>${config.artist}</div>
+function renderSongs(arr){
+
+  songs.innerHTML = "";
+  songElements = [];
+
+  arr.forEach(s => {
+
+    const el = document.createElement("div");
+    el.className = "song";
+    el.dataset.id = s._id;
+
+    el.innerHTML = `
+      <img src="./${artist}/${s.image}">
+      <div>${s.title}</div>
     `;
 
-    card.onclick = () => {
-      location.href =
-        `./Artist/?name=${encodeURIComponent(name)}`;
-    };
+    el.onclick = () => playSong(allSongs, s._id, artist);
 
-    grid.appendChild(card);
-  }
+    songs.appendChild(el);
+    songElements.push(el);
+  });
 
-  runSearch();
+  updateHighlights();
 }
 
-loadData();
+/* =========================
+   PLAY SONG
+========================= */
+
+function playSong(l,i,a){
+
+  list = l;
+  index = i;
+  artist = a;
+
+  const s = list.find(x => x._id === i);
+  if(!s) return;
+
+  audio.src = `./${a}/${s.file}`;
+  audio.currentTime = 0;
+  audio.play().catch(()=>{});
+
+  player.style.display = "block";
+
+  now.innerText = s.title;
+  cover.src = `./${a}/${s.image}`;
+  coverBig.src = `./${a}/${s.image}`;
+
+  songTitle.innerText = s.title;
+  artistName.innerText = a;
+
+  updateButtons();
+  updateHighlights();
+  updateMediaSession(s);
+}
 
 /* =========================
    SEARCH
 ========================= */
 
-function debounce(fn, d=120){
-  let t;
-  return (...a)=>{
-    clearTimeout(t);
-    t = setTimeout(()=>fn(...a),d);
-  };
-}
+songSearch?.addEventListener("input", e => {
 
-const runSearch = debounce(()=>{
+  const q = e.target.value.toLowerCase();
 
-  const q = searchInput.value.toLowerCase();
-
-  const results = document.getElementById("results");
-
-  results.innerHTML = "";
-  grid.style.display = "none";
-  results.style.display = "grid";
-
-  if(!q){
-
-    for(const a of artistsData){
-
-      if(currentCategory==="artists"){
-        results.appendChild(makeArtist(a));
-      }
-
-      if(currentCategory==="music"){
-        a.songs.forEach((s,i)=>{
-          results.appendChild(makeSong(a,s,i));
-        });
-      }
-    }
-
-    return;
-  }
-
-  for(const a of artistsData){
-
-    const match =
-      a.displayName.toLowerCase().includes(q) ||
-      a.name.toLowerCase().includes(q);
-
-    if(currentCategory==="artists" && match){
-      results.appendChild(makeArtist(a));
-    }
-
-    if(currentCategory==="music"){
-      a.songs.forEach((s,i)=>{
-        if(s.title.toLowerCase().includes(q)){
-          results.appendChild(makeSong(a,s,i));
-        }
-      });
-    }
-  }
-
-},120);
-
-searchInput.addEventListener("input", runSearch);
+  renderSongs(
+    allSongs.filter(s =>
+      s.title.toLowerCase().includes(q)
+    )
+  );
+});
 
 /* =========================
-   CARD BUILDERS
+   HIGHLIGHTS
 ========================= */
 
-function makeArtist(a){
-  const el = document.createElement("div");
-  el.className="card";
+function updateHighlights(){
 
-  el.innerHTML=`
-    <img src="./Artist/${a.name}/${a.image}">
-    <div>${a.displayName}</div>
-  `;
+  const visibleSongs = document.querySelectorAll(".song");
 
-  el.onclick=()=>{
-    location.href=
-      `./Artist/?name=${encodeURIComponent(a.name)}`;
-  };
+  visibleSongs.forEach(el => {
+    el.classList.remove("active", "queue");
+  });
 
-  return el;
-}
+  visibleSongs.forEach(el => {
 
-function makeSong(a,s,i){
-  const el=document.createElement("div");
-  el.className="card";
+    const id = Number(el.dataset.id);
 
-  el.innerHTML=`
-    <img src="./Artist/${a.name}/${s.image}">
-    <div>${s.title}</div>
-    <small>${a.displayName}</small>
-  `;
+    if(id === index){
+      el.classList.add("active");
+    }
 
-  el.onclick=()=>{
-    location.href=
-      `./Artist/?name=${encodeURIComponent(a.name)}&song=${i+1}`;
-  };
-
-  return el;
+    if(id > index){
+      el.classList.add("queue");
+    }
+  });
 }
 
 /* =========================
-   PLAYER CORE
-========================= */
-
-function playSong(l,i,a){
-
-  list=l;
-  index=i;
-  artist=a;
-
-  const s=list[i];
-  if(!s) return;
-
-  audio.src=`./Artist/${a}/${s.file}`;
-  audio.currentTime=0;
-  audio.play().catch(()=>{});
-
-  now.innerText=s.title;
-  cover.src=`./Artist/${a}/${s.image}`;
-  coverBig.src=`./Artist/${a}/${s.image}`;
-
-  songTitle.innerText=s.title;
-  artistName.innerText=a;
-
-  registerPlay(i);
-}
-
-/* =========================
-   NO REPEAT SHUFFLE MEMORY
-========================= */
-
-function registerPlay(i){
-  lastPlayed.push(i);
-  if(lastPlayed.length>NO_REPEAT_BUFFER){
-    lastPlayed.shift();
-  }
-}
-
-function getRandomIndex(){
-  let n;
-
-  do{
-    n=Math.floor(Math.random()*list.length);
-  }while(lastPlayed.includes(n) && list.length>NO_REPEAT_BUFFER);
-
-  return n;
-}
-
-/* =========================
-   CONTROLS
+   PLAY / PAUSE
 ========================= */
 
 function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
 }
 
+/* =========================
+   SMART SHUFFLE (NO REPEAT 3)
+========================= */
+
 function nextSong(){
 
+  if(!list.length) return;
+
   if(shuffle){
-    return playSong(list,getRandomIndex(),artist);
+
+    let available = list
+      .map((_,i)=>i)
+      .filter(i =>
+        i !== index &&
+        !recentShuffleHistory.includes(i)
+      );
+
+    if(available.length === 0){
+      available = list
+        .map((_,i)=>i)
+        .filter(i => i !== index);
+    }
+
+    const n = available[
+      Math.floor(Math.random() * available.length)
+    ];
+
+    recentShuffleHistory.push(n);
+
+    if(recentShuffleHistory.length > 3){
+      recentShuffleHistory.shift();
+    }
+
+    return playSong(list, n, artist);
   }
 
-  if(index<list.length-1){
-    playSong(list,index+1,artist);
-  } else if(loopMode==="queue"){
-    playSong(list,0,artist);
+  if(index < list.length - 1){
+    playSong(list, index + 1, artist);
+  }
+  else if(loopMode === "queue"){
+    playSong(list, 0, artist);
   }
 }
 
 function prevSong(){
-  if(index>0) playSong(list,index-1,artist);
+
+  if(audio.currentTime > 5){
+    audio.currentTime = 0;
+    return;
+  }
+
+  if(index > 0){
+    playSong(list, index - 1, artist);
+  }
 }
 
 /* =========================
-   LOOP
+   TOGGLES
 ========================= */
 
+function toggleShuffle(){
+  shuffle = !shuffle;
+
+  if(!shuffle){
+    recentShuffleHistory = [];
+  }
+
+  updateButtons();
+}
+
 function toggleLoop(){
-  loopMode =
-    loopMode==="none"?"queue":
-    loopMode==="queue"?"song":"none";
+
+  if(loopMode === "none"){
+    loopMode = "queue";
+  }
+  else if(loopMode === "queue"){
+    loopMode = "song";
+  }
+  else{
+    loopMode = "none";
+  }
 
   updateButtons();
 }
@@ -415,66 +340,173 @@ function toggleLoop(){
    END EVENT
 ========================= */
 
-audio.addEventListener("ended",()=>{
-  if(loopMode==="song"){
-    audio.currentTime=0;
+audio.addEventListener("ended", () => {
+
+  if(loopMode === "song"){
+    audio.currentTime = 0;
     audio.play();
-  } else nextSong();
+    return;
+  }
+
+  nextSong();
 });
 
 /* =========================
    PROGRESS
 ========================= */
 
-audio.addEventListener("timeupdate",()=>{
+audio.addEventListener("timeupdate", () => {
 
-  if(!audio.duration)return;
+  if(!audio.duration) return;
 
-  const p=(audio.currentTime/audio.duration)*100;
+  const p = (audio.currentTime / audio.duration) * 100;
 
-  progMini.style.width=p+"%";
-  progFull.style.width=p+"%";
+  progMini.style.width = p + "%";
+  progFull.style.width = p + "%";
 
-  const m=Math.floor(audio.currentTime/60);
-  const s=Math.floor(audio.currentTime%60);
+  const m = Math.floor(audio.currentTime / 60);
+  const s = Math.floor(audio.currentTime % 60);
 
-  time.innerText=`${m}:${s<10?"0":""}${s}`;
+  time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
-/* seek */
-barMini.onclick=e=>{
-  const r=barMini.getBoundingClientRect();
-  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+barMini.onclick = e => {
+  const r = barMini.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
-barFull.onclick=e=>{
-  const r=barFull.getBoundingClientRect();
-  audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
+barFull.onclick = e => {
+  const r = barFull.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 };
 
 /* =========================
-   BUTTON STATE
+   BUTTON UI
 ========================= */
 
 function updateButtons(){
-  document.getElementById("visualBtn")
-    ?.classList.toggle("active",visualizerEnabled);
 
-  document.getElementById("visualBtnFS")
-    ?.classList.toggle("active",visualizerEnabled);
+  shuffleBtn?.classList.toggle("active", shuffle);
+  shuffleBtnFS?.classList.toggle("active", shuffle);
+
+  const loopActive = loopMode !== "none";
+
+  loopBtn?.classList.toggle("loop-active", loopActive);
+  loopBtnFS?.classList.toggle("loop-active", loopActive);
+
+  loopState.innerText =
+    loopMode === "none"
+      ? "Loop: Off"
+      : loopMode === "song"
+        ? "Loop: Song"
+        : "Loop: Queue";
 }
 
 /* =========================
-   INIT FROM URL
+   FULLSCREEN
 ========================= */
 
-const params=new URLSearchParams(location.search);
-const artistParam=params.get("name");
-const songParam=parseInt(params.get("song"));
+function toggleFullscreen(){
 
-if(artistParam){
-  loadArtist(artistParam,true,songParam);
+  if(!player) return;
+
+  if(!document.fullscreenElement){
+    player.classList.add("fullscreen");
+    document.body.classList.add("fullscreen-active");
+    document.documentElement.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
 }
 
-/* expose */
-window.toggleVisualizer=toggleVisualizer;
+window.toggleFullscreen = toggleFullscreen;
+
+document.addEventListener("fullscreenchange", () => {
+  if(!document.fullscreenElement){
+    player.classList.remove("fullscreen");
+    document.body.classList.remove("fullscreen-active");
+  }
+});
+
+/* =========================
+   MEDIA SESSION
+========================= */
+
+function updateMediaSession(song){
+
+  if(!("mediaSession" in navigator)) return;
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: song.title,
+    artist: artist,
+    album: artist,
+    artwork: [{
+      src: `./${artist}/${song.image}`,
+      sizes: "512x512",
+      type: "image/png"
+    }]
+  });
+
+  navigator.mediaSession.setActionHandler("play", togglePlay);
+  navigator.mediaSession.setActionHandler("pause", togglePlay);
+  navigator.mediaSession.setActionHandler("nexttrack", nextSong);
+  navigator.mediaSession.setActionHandler("previoustrack", prevSong);
+}
+
+/* =========================
+   ROUTING
+========================= */
+
+const artistParam = getParam("name");
+const songParam = getParam("song");
+
+if(!artistParam){
+
+  songSearch.style.display = "none";
+  backBtn.style.display = "none";
+
+  setPageTitle("Artists");
+
+  fetch("artist.json")
+    .then(r => r.json())
+    .then(artists => {
+
+      Promise.all(
+        artists.map(name =>
+          fetch(`./${name}/config.json`)
+            .then(r => r.json())
+            .then(data => ({ name, data }))
+        )
+      ).then(results => {
+
+        results.forEach(({name,data}) => {
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+            <img src="./${name}/${data.image}">
+            <div>${data.artist}</div>
+          `;
+
+          card.onclick = () => loadArtist(name);
+
+          grid.appendChild(card);
+        });
+      });
+    });
+
+} else {
+
+  const songIndex = songParam ? parseInt(songParam) : null;
+
+  loadArtist(artistParam, true, songIndex);
+
+  setTimeout(() => {
+
+    const url = new URL(location.href);
+    url.searchParams.delete("song");
+    history.replaceState({}, "", url.toString());
+
+  }, 0);
+}
