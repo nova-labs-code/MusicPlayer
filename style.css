@@ -1,248 +1,80 @@
 body{
   margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#0f0f0f;
+  font-family:Inter, Arial;
+  background:#0b0b0b;
   color:white;
-
-  overflow-x:hidden;
-  -webkit-font-smoothing:antialiased;
-
-  padding-bottom:24px;
 }
 
-/* =========================
-   TITLE
-========================= */
+/* NAV */
+#homeNav{
+  display:flex;
+  gap:10px;
+  padding:12px;
+  position:sticky;
+  top:0;
+  background:#111;
+}
 
-#title{
-  font-size:clamp(22px, 4.5vw, 34px);
-  font-weight:750;
+.tab{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:#222;
+  color:white;
+  border-radius:12px;
+  cursor:pointer;
+}
 
-  padding:clamp(14px, 3vw, 22px);
+.tab.active{
+  background:white;
+  color:black;
+}
+
+/* TITLE */
+#homeTitle{
   margin:0;
-
-  line-height:1.15;
-  word-break:break-word;
-
-  letter-spacing:0.3px;
+  padding:16px;
 }
 
-/* =========================
-   SEARCH
-========================= */
-
-#searchBox{
-  padding:0 clamp(12px, 3vw, 20px) 12px;
-}
-
-#searchInput{
-  width:100%;
-  padding:clamp(10px, 2.5vw, 14px);
-
+/* SEARCH */
+#homeSearch{
+  width:90%;
+  margin:10px auto;
+  display:block;
+  padding:14px;
   border-radius:14px;
   border:none;
-  outline:none;
-
-  background:#1c1c1c;
+  background:#1a1a1a;
   color:white;
-
-  font-size:clamp(13px, 3vw, 16px);
-
-  box-sizing:border-box;
-
-  transition:0.2s ease;
 }
 
-#searchInput:focus{
-  background:#242424;
-  box-shadow:0 0 0 2px rgba(255,255,255,0.08);
+/* GRID */
+.view{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+  padding:12px;
 }
 
-/* =========================
-   CATEGORIES
-========================= */
-
-#categories{
-  display:flex;
-  gap:8px;
-
-  padding:0 clamp(12px, 3vw, 20px) 12px;
-
-  overflow-x:auto;
-  scrollbar-width:none;
-}
-
-#categories::-webkit-scrollbar{
+.hidden{
   display:none;
 }
 
-.cat{
-  flex-shrink:0;
-
-  background:#1c1c1c;
-  border:none;
-
-  color:white;
-
-  padding:8px 14px;
-  border-radius:999px;
-
-  cursor:pointer;
-
-  font-size:clamp(11px, 2.5vw, 14px);
-
-  transition:0.18s ease;
-}
-
-.cat:hover{
-  background:#2a2a2a;
-}
-
-.cat.active{
-  background:white;
-  color:black;
-  font-weight:700;
-}
-
-/* =========================
-   GRID (FLUID CORE)
-========================= */
-
-.grid{
-  display:grid;
-
-  grid-template-columns:
-    repeat(auto-fill, minmax(140px, 1fr));
-
-  gap:clamp(10px, 2vw, 16px);
-
-  padding:clamp(12px, 3vw, 18px);
-
-  width:100%;
-  box-sizing:border-box;
-}
-
-/* =========================
-   CARD
-========================= */
-
-.card{
-  background:#1c1c1c;
-
-  border-radius:14px;
-
-  padding:clamp(6px, 2vw, 10px);
-
-  text-align:center;
-  cursor:pointer;
-
-  transition:0.2s ease;
-
-  width:100%;
-  box-sizing:border-box;
-
+/* CARDS */
+.card, .song{
+  background:#1a1a1a;
+  border-radius:16px;
   overflow:hidden;
-  min-height:120px;
+  cursor:pointer;
 }
 
-.card:hover{
-  transform:translateY(-2px) scale(1.02);
-  background:#242424;
-
-  box-shadow:0 10px 28px rgba(0,0,0,0.35);
-}
-
-/* =========================
-   IMAGE
-========================= */
-
-.card img{
+.card img, .song img{
   width:100%;
   aspect-ratio:1/1;
-
   object-fit:cover;
-
-  display:block;
-
-  border-radius:10px;
 }
 
-/* =========================
-   TEXT
-========================= */
-
-.card div{
-  margin-top:8px;
-
-  font-size:clamp(12px, 2.5vw, 15px);
-
-  line-height:1.25;
-  word-break:break-word;
-
+.card div, .song div{
+  padding:10px;
   font-weight:600;
-}
-
-.card small{
-  display:block;
-  margin-top:4px;
-
-  font-size:clamp(10px, 2vw, 12px);
-
-  opacity:0.65;
-}
-
-/* =========================
-   TABLET
-========================= */
-
-@media (max-width:900px){
-  .grid{
-    grid-template-columns:repeat(4,1fr);
-  }
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width:700px){
-
-  .grid{
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-    padding:10px;
-  }
-
-  .card{
-    border-radius:12px;
-  }
-
-  #title{
-    font-size:22px;
-    padding:14px;
-  }
-}
-
-/* =========================
-   SMALL MOBILE
-========================= */
-
-@media (max-width:480px){
-
-  .grid{
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-  }
-
-  .card div{
-    font-size:13px;
-  }
-
-  #searchInput{
-    font-size:14px;
-  }
-
-  .cat{
-    padding:7px 12px;
-  }
 }
