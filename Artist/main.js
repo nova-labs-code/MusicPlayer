@@ -1,6 +1,281 @@
 let audio = new Audio();
 
 /* =========================
+   VISUALIZER SYSTEM
+========================= */
+
+const canvas =
+  document.getElementById("visualizer");
+
+const ctx =
+  canvas.getContext("2d");
+
+const vizToggle =
+  document.getElementById("vizToggle");
+
+let visualizerEnabled = false;
+
+function resizeCanvas(){
+
+  canvas.width =
+    window.innerWidth;
+
+  canvas.height =
+    window.innerHeight;
+}
+
+window.addEventListener(
+  "resize",
+  resizeCanvas
+);
+
+resizeCanvas();
+
+/* =========================
+   AUDIO ANALYSER
+========================= */
+
+const audioCtx =
+  new (
+    window.AudioContext ||
+    window.webkitAudioContext
+  )();
+
+const analyser =
+  audioCtx.createAnalyser();
+
+analyser.fftSize = 2048;
+
+const source =
+  audioCtx.createMediaElementSource(audio);
+
+source.connect(analyser);
+
+analyser.connect(audioCtx.destination);
+
+const bufferLength =
+  analyser.frequencyBinCount;
+
+const dataArray =
+  new Uint8Array(bufferLength);
+
+const smoothArray =
+  new Float32Array(bufferLength);
+
+/* =========================
+   VISUALIZER TOGGLE
+========================= */
+
+vizToggle.onclick = async () => {
+
+  if(audioCtx.state === "suspended"){
+    await audioCtx.resume();
+  }
+
+  visualizerEnabled =
+    !visualizerEnabled;
+
+  canvas.classList.toggle(
+    "active",
+    visualizerEnabled
+  );
+
+  vizToggle.classList.toggle(
+    "active",
+    visualizerEnabled
+  );
+};
+
+/* =========================
+   VISUALIZER DRAW
+========================= */
+
+function drawVisualizer(){
+
+  requestAnimationFrame(
+    drawVisualizer
+  );
+
+  if(!visualizerEnabled) return;
+
+  analyser.getByteFrequencyData(
+    dataArray
+  );
+
+  for(let i=0;i<bufferLength;i++){
+
+    smoothArray[i] =
+      smoothArray[i] * 0.82 +
+      dataArray[i] * 0.18;
+  }
+
+  ctx.fillStyle =
+    "rgba(0,0,0,0.12)";
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  const centerX =
+    canvas.width / 2;
+
+  const centerY =
+    canvas.height / 2;
+
+  /* =========================
+     BASS
+  ========================= */
+
+  let bass = 0;
+
+  for(let i=0;i<40;i++){
+    bass += smoothArray[i];
+  }
+
+  bass /= 40;
+
+  const baseRadius =
+    Math.min(
+      canvas.width,
+      canvas.height
+    ) * 0.12;
+
+  const radius =
+    baseRadius +
+    bass * 0.22;
+
+  /* =========================
+     ALBUM ART
+  ========================= */
+
+  if(cover.complete){
+
+    ctx.save();
+
+    ctx.beginPath();
+
+    ctx.arc(
+      centerX,
+      centerY,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.clip();
+
+    ctx.drawImage(
+      cover,
+      centerX - radius,
+      centerY - radius,
+      radius * 2,
+      radius * 2
+    );
+
+    ctx.restore();
+  }
+
+  /* =========================
+     VISUALIZER RING
+  ========================= */
+
+  const bars = 420;
+
+  const hueShift =
+    Date.now() * 0.02;
+
+  for(let i=0;i<bars;i++){
+
+    const angle =
+      (i / bars) *
+      Math.PI * 2;
+
+    const freq =
+      Math.floor(
+        (i / bars) * 220
+      );
+
+    const amp =
+      smoothArray[freq] / 255;
+
+    const spike =
+      amp *
+      Math.min(
+        canvas.width,
+        canvas.height
+      ) *
+      0.22;
+
+    const x1 =
+      centerX +
+      Math.cos(angle) *
+      radius;
+
+    const y1 =
+      centerY +
+      Math.sin(angle) *
+      radius;
+
+    const x2 =
+      centerX +
+      Math.cos(angle) *
+      (radius + spike);
+
+    const y2 =
+      centerY +
+      Math.sin(angle) *
+      (radius + spike);
+
+    const hue =
+      (
+        (i * 360 / bars) +
+        hueShift
+      ) % 360;
+
+    ctx.strokeStyle =
+      `hsl(${hue},100%,50%)`;
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(x1,y1);
+
+    ctx.lineTo(x2,y2);
+
+    ctx.stroke();
+  }
+
+  /* =========================
+     GLOW
+  ========================= */
+
+  ctx.beginPath();
+
+  ctx.arc(
+    centerX,
+    centerY,
+    radius + 8,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.strokeStyle =
+    `rgba(255,255,255,${
+      0.08 + bass / 900
+    })`;
+
+  ctx.lineWidth = 4;
+
+  ctx.stroke();
+}
+
+drawVisualizer();
+
+/* =========================
    STATE
 ========================= */
 
@@ -14,57 +289,96 @@ let songElements = [];
 let shuffle = false;
 let loopMode = "none";
 
-/* NEW */
 let recentShuffleHistory = [];
 
 /* =========================
    ELEMENTS
 ========================= */
 
-const grid = document.getElementById("grid");
-const songs = document.getElementById("songs");
-const player = document.getElementById("player");
+const grid =
+  document.getElementById("grid");
 
-const songSearch = document.getElementById("songSearch");
+const songs =
+  document.getElementById("songs");
 
-const now = document.getElementById("now");
-const cover = document.getElementById("cover");
-const coverBig = document.getElementById("coverBig");
+const player =
+  document.getElementById("player");
 
-const songTitle = document.getElementById("songTitle");
-const artistName = document.getElementById("artistName");
+const songSearch =
+  document.getElementById("songSearch");
 
-const progMini = document.getElementById("progMini");
-const progFull = document.getElementById("progFull");
+const now =
+  document.getElementById("now");
 
-const barMini = document.getElementById("barMini");
-const barFull = document.getElementById("barFull");
+const cover =
+  document.getElementById("cover");
 
-const time = document.getElementById("time");
+const coverBig =
+  document.getElementById("coverBig");
 
-const shuffleBtn = document.getElementById("shuffleBtn");
-const shuffleBtnFS = document.getElementById("shuffleBtnFS");
+const songTitle =
+  document.getElementById("songTitle");
 
-const loopBtn = document.getElementById("loopBtn");
-const loopBtnFS = document.getElementById("loopBtnFS");
+const artistName =
+  document.getElementById("artistName");
 
-const loopState = document.getElementById("loopState");
+const progMini =
+  document.getElementById("progMini");
 
-const backBtn = document.getElementById("backBtn");
+const progFull =
+  document.getElementById("progFull");
+
+const barMini =
+  document.getElementById("barMini");
+
+const barFull =
+  document.getElementById("barFull");
+
+const time =
+  document.getElementById("time");
+
+const shuffleBtn =
+  document.getElementById("shuffleBtn");
+
+const shuffleBtnFS =
+  document.getElementById("shuffleBtnFS");
+
+const loopBtn =
+  document.getElementById("loopBtn");
+
+const loopBtnFS =
+  document.getElementById("loopBtnFS");
+
+const loopState =
+  document.getElementById("loopState");
+
+const backBtn =
+  document.getElementById("backBtn");
 
 /* =========================
    URL FIX
 ========================= */
 
 function cleanURL(){
-  const fixed = location.href.replace(/\+/g, "%20");
+
+  const fixed =
+    location.href.replace(
+      /\+/g,
+      "%20"
+    );
 
   if(fixed !== location.href){
-    history.replaceState({}, "", fixed);
+
+    history.replaceState(
+      {},
+      "",
+      fixed
+    );
   }
 }
 
 setInterval(cleanURL, 1000);
+
 cleanURL();
 
 /* =========================
@@ -72,18 +386,28 @@ cleanURL();
 ========================= */
 
 function getParam(name){
-  return new URLSearchParams(location.search).get(name);
+
+  return new URLSearchParams(
+    location.search
+  ).get(name);
 }
 
 function setURL(obj){
 
-  const url = new URL(location.href);
+  const url =
+    new URL(location.href);
 
-  Object.entries(obj).forEach(([k,v])=>{
-    url.searchParams.set(k,v);
-  });
+  Object.entries(obj)
+    .forEach(([k,v])=>{
 
-  history.pushState({}, "", url.toString());
+      url.searchParams.set(k,v);
+    });
+
+  history.pushState(
+    {},
+    "",
+    url.toString()
+  );
 }
 
 /* =========================
@@ -91,11 +415,13 @@ function setURL(obj){
 ========================= */
 
 function goHome(){
+
   location.href =
     "https://nova-labs-code.github.io/MusicPlayer";
 }
 
 function goBack(){
+
   location.href = "?";
 }
 
@@ -105,7 +431,9 @@ function goBack(){
 
 function setPageTitle(text){
 
-  document.getElementById("title").innerText = text;
+  document
+    .getElementById("title")
+    .innerText = text;
 
   document.title =
     text + " - MusicPlayer";
@@ -121,15 +449,18 @@ function enterArtistMode(){
 
   songs.style.display = "grid";
 
-  songSearch.style.display = "block";
+  songSearch.style.display =
+    "block";
 
-  backBtn.style.display = "inline-block";
+  backBtn.style.display =
+    "inline-block";
 
   songs.innerHTML = "";
 
   songElements = [];
 
-  player.style.display = "none";
+  player.style.display =
+    "none";
 
   window.scrollTo(0,0);
 }
@@ -138,7 +469,11 @@ function enterArtistMode(){
    LOAD ARTIST
 ========================= */
 
-function loadArtist(name, skipURL=false, autoSong=null){
+function loadArtist(
+  name,
+  skipURL=false,
+  autoSong=null
+){
 
   artist = name;
 
@@ -154,26 +489,31 @@ function loadArtist(name, skipURL=false, autoSong=null){
         setURL({ name });
       }
 
-      allSongs = data.songs.map((s,i)=>({
-        ...s,
-        _id:i
-      }));
+      allSongs =
+        data.songs.map((s,i)=>({
+          ...s,
+          _id:i
+        }));
 
       renderSongs(allSongs);
 
       if(autoSong !== null){
 
         const target =
-          allSongs.find(s => s._id === autoSong);
+          allSongs.find(
+            s => s._id === autoSong
+          );
 
         if(target){
 
           setTimeout(()=>{
+
             playSong(
               allSongs,
               target._id,
               name
             );
+
           },0);
         }
       }
@@ -192,7 +532,8 @@ function renderSongs(arr){
 
   arr.forEach(s => {
 
-    const el = document.createElement("div");
+    const el =
+      document.createElement("div");
 
     el.className = "song";
 
@@ -203,8 +544,14 @@ function renderSongs(arr){
       <div>${s.title}</div>
     `;
 
-    el.onclick = () =>
-      playSong(allSongs, s._id, artist);
+    el.onclick = ()=>{
+
+      playSong(
+        allSongs,
+        s._id,
+        artist
+      );
+    };
 
     songs.appendChild(el);
 
@@ -231,23 +578,29 @@ function playSong(l,i,a){
 
   if(!s) return;
 
-  audio.src = `./${a}/${s.file}`;
+  audio.src =
+    `./${a}/${s.file}`;
 
   audio.currentTime = 0;
 
   audio.play().catch(()=>{});
 
-  player.style.display = "block";
+  player.style.display =
+    "block";
 
   now.innerText = s.title;
 
-  cover.src = `./${a}/${s.image}`;
+  cover.src =
+    `./${a}/${s.image}`;
 
-  coverBig.src = `./${a}/${s.image}`;
+  coverBig.src =
+    `./${a}/${s.image}`;
 
-  songTitle.innerText = s.title;
+  songTitle.innerText =
+    s.title;
 
-  artistName.innerText = a;
+  artistName.innerText =
+    a;
 
   updateButtons();
 
@@ -260,19 +613,24 @@ function playSong(l,i,a){
    SEARCH
 ========================= */
 
-songSearch?.addEventListener("input", e => {
+songSearch?.addEventListener(
+  "input",
+  e => {
 
-  const q =
-    e.target.value.toLowerCase();
+    const q =
+      e.target.value.toLowerCase();
 
-  renderSongs(
-    allSongs.filter(s =>
-      s.title
-        .toLowerCase()
-        .includes(q)
-    )
-  );
-});
+    renderSongs(
+
+      allSongs.filter(s =>
+
+        s.title
+          .toLowerCase()
+          .includes(q)
+      )
+    );
+  }
+);
 
 /* =========================
    HIGHLIGHTS
@@ -281,9 +639,12 @@ songSearch?.addEventListener("input", e => {
 function updateHighlights(){
 
   const visibleSongs =
-    document.querySelectorAll(".song");
+    document.querySelectorAll(
+      ".song"
+    );
 
   visibleSongs.forEach(el => {
+
     el.classList.remove(
       "active",
       "queue"
@@ -311,6 +672,10 @@ function updateHighlights(){
 
 function togglePlay(){
 
+  if(audioCtx.state === "suspended"){
+    audioCtx.resume();
+  }
+
   if(audio.paused){
     audio.play();
   }
@@ -333,11 +698,13 @@ function nextSong(){
       list
         .map((_,i)=>i)
         .filter(i =>
+
           i !== index &&
-          !recentShuffleHistory.includes(i)
+
+          !recentShuffleHistory
+            .includes(i)
         );
 
-    // fallback
     if(available.length === 0){
 
       available =
@@ -356,12 +723,17 @@ function nextSong(){
 
     recentShuffleHistory.push(n);
 
-    // keep last 3
-    if(recentShuffleHistory.length > 3){
+    if(
+      recentShuffleHistory.length > 3
+    ){
       recentShuffleHistory.shift();
     }
 
-    playSong(list, n, artist);
+    playSong(
+      list,
+      n,
+      artist
+    );
 
     return;
   }
@@ -434,30 +806,34 @@ function toggleLoop(){
 }
 
 /* =========================
-   END EVENT
+   ENDED
 ========================= */
 
-audio.addEventListener("ended", ()=>{
+audio.addEventListener(
+  "ended",
+  ()=>{
 
-  if(loopMode === "song"){
+    if(loopMode === "song"){
 
-    audio.currentTime = 0;
+      audio.currentTime = 0;
 
-    audio.play();
+      audio.play();
 
-    return;
+      return;
+    }
+
+    nextSong();
   }
-
-  nextSong();
-});
+);
 
 /* =========================
-   PLAY BUTTON STATES
+   PLAY BUTTONS
 ========================= */
 
 function updatePlayButtons(){
 
-  const playing = !audio.paused;
+  const playing =
+    !audio.paused;
 
   document
     .querySelectorAll("button")
@@ -468,8 +844,11 @@ function updatePlayButtons(){
         btn.innerText === "⏸" ||
         btn.innerText === "▶"
       ){
+
         btn.innerText =
-          playing ? "⏸" : "▶";
+          playing
+            ? "⏸"
+            : "▶";
       }
     });
 }
@@ -525,8 +904,9 @@ barMini.onclick = e => {
     barMini.getBoundingClientRect();
 
   audio.currentTime =
-    ((e.clientX - r.left) /
-    r.width) * audio.duration;
+    ((e.clientX - r.left)
+      / r.width) *
+    audio.duration;
 };
 
 barFull.onclick = e => {
@@ -535,8 +915,9 @@ barFull.onclick = e => {
     barFull.getBoundingClientRect();
 
   audio.currentTime =
-    ((e.clientX - r.left) /
-    r.width) * audio.duration;
+    ((e.clientX - r.left)
+      / r.width) *
+    audio.duration;
 };
 
 /* =========================
@@ -569,26 +950,16 @@ function updateButtons(){
   );
 
   loopState.innerText =
+
     loopMode === "none"
+
       ? "Loop: Off"
+
       : loopMode === "song"
+
         ? "Loop: Song"
+
         : "Loop: Queue";
-
-  const hoverText =
-    loopMode === "none"
-      ? "Loop is off"
-      : loopMode === "song"
-        ? "Repeats current song"
-        : "Loops full queue";
-
-  if(loopBtn){
-    loopBtn.title = hoverText;
-  }
-
-  if(loopBtnFS){
-    loopBtnFS.title = hoverText;
-  }
 }
 
 /* =========================
@@ -659,6 +1030,7 @@ function updateMediaSession(song){
       album: artist,
 
       artwork: [{
+
         src:
           `./${artist}/${song.image}`,
 
@@ -757,6 +1129,7 @@ if(!artistParam){
 } else {
 
   const songIndex =
+
     songParam
       ? parseInt(songParam)
       : null;
