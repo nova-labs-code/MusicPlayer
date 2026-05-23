@@ -6,11 +6,31 @@ const tabMusic = document.getElementById("tabMusic");
 
 const search = document.getElementById("homeSearch");
 
-const ARTIST_ROOT = "./Artist/";
+const ARTIST_ROOT = "./";
 
 let allArtists = [];
 let allMusic = [];
 const artistCache = new Map();
+
+/* =========================
+   URL PARAMS
+========================= */
+
+const params = new URLSearchParams(location.search);
+const artistName = params.get("name");
+const songKey = params.get("song");
+
+/* song1 -> 0 index */
+function resolveSong(songKey) {
+  if (!songKey) return null;
+
+  const match = songKey.match(/song(\d+)/i);
+  if (!match) return null;
+
+  return parseInt(match[1], 10) - 1;
+}
+
+const songIndex = resolveSong(songKey);
 
 /* =========================
    TAB SWITCH
@@ -44,17 +64,17 @@ fetch("artist.json")
 
     for (const name of artists) {
 
-      const res = await fetch(`${ARTIST_ROOT}${name}/config.json`);
+      const res = await fetch(`./Artist/${name}/config.json`);
       const data = await res.json();
 
       artistCache.set(name, data);
 
-      /* ---------- ARTIST CARD ---------- */
+      /* ARTIST CARD */
       const card = document.createElement("div");
       card.className = "card";
 
       card.innerHTML = `
-        <img src="${ARTIST_ROOT}${name}/${data.image}">
+        <img src="./Artist/${name}/${data.image}">
         <div>${data.artist}</div>
       `;
 
@@ -64,7 +84,7 @@ fetch("artist.json")
 
       artistsView.appendChild(card);
 
-      /* ---------- MUSIC FLATTENING ---------- */
+      /* FLATTEN MUSIC */
       data.songs.forEach((s, i) => {
         allMusic.push({
           title: s.title,
@@ -78,6 +98,32 @@ fetch("artist.json")
     }
 
     renderMusic(allMusic);
+
+    /* =========================
+       AUTO PLAY FROM URL
+    ========================= */
+
+    if (artistName) {
+      fetch(`./Artist/${artistName}/config.json`)
+        .then(r => r.json())
+        .then(data => {
+
+          const songs = data.songs;
+
+          if (songIndex !== null && songs[songIndex]) {
+
+            const song = songs[songIndex];
+
+            const audio = new Audio(
+              `./Artist/${artistName}/${song.file}`
+            );
+
+            audio.play();
+          }
+
+        });
+    }
+
   });
 
 /* =========================
@@ -94,12 +140,12 @@ function renderMusic(list) {
     el.className = "song";
 
     el.innerHTML = `
-      <img src="${ARTIST_ROOT}${song.artistKey}/${song.image}">
+      <img src="./Artist/${song.artistKey}/${song.image}">
       <div>${song.title}</div>
     `;
 
     el.onclick = () => {
-      location.href = `./Artist?name=${song.artistKey}&song=${song.id}`;
+      location.href = `?name=${song.artistKey}&song=song${song.id + 1}`;
     };
 
     musicView.appendChild(el);
@@ -126,7 +172,7 @@ search.addEventListener("input", e => {
   artistsView.innerHTML = "";
   musicView.innerHTML = "";
 
-  /* ---------- ARTISTS ---------- */
+  /* ARTISTS */
   filteredArtists.forEach(name => {
 
     const data = artistCache.get(name);
@@ -136,7 +182,7 @@ search.addEventListener("input", e => {
     card.className = "card";
 
     card.innerHTML = `
-      <img src="${ARTIST_ROOT}${name}/${data.image}">
+      <img src="./Artist/${name}/${data.image}">
       <div>${data.artist}</div>
     `;
 
@@ -147,6 +193,6 @@ search.addEventListener("input", e => {
     artistsView.appendChild(card);
   });
 
-  /* ---------- MUSIC ---------- */
+  /* MUSIC */
   renderMusic(filteredMusic);
 });
