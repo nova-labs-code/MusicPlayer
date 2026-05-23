@@ -1,107 +1,291 @@
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#0f0f0f;
+  color:white;
+
+  overflow-x:hidden;
+
+  -webkit-font-smoothing:antialiased;
+
+  padding-bottom:20px;
 }
 
-/* TITLE */
-#title {
-  font-size: 18px;
-  padding: 10px 12px;
-  margin: 0;
+/* =========================
+   TITLE
+========================= */
+
+#title{
+  font-size:
+    clamp(20px, 5vw, 32px);
+
+  font-weight:700;
+
+  padding:
+    clamp(12px, 3vw, 18px);
+
+  margin:0;
+
+  line-height:1.2;
+
+  word-break:break-word;
 }
 
-/* SEARCH */
-#searchBox {
-  padding: 0 12px 6px;
+/* =========================
+   SEARCH
+========================= */
+
+#searchBox{
+  padding:
+    0 clamp(10px, 3vw, 18px)
+    10px;
 }
 
-#searchInput {
-  width: 100%;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-  background: #1c1c1c;
-  color: white;
-  font-size: 13px;
-  outline: none;
+#searchInput{
+  width:100%;
+
+  padding:
+    clamp(10px, 2.8vw, 14px);
+
+  border-radius:14px;
+
+  border:none;
+  outline:none;
+
+  background:#1c1c1c;
+  color:white;
+
+  font-size:
+    clamp(13px, 3vw, 16px);
+
+  box-sizing:border-box;
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-/* CATEGORIES */
-#categories {
-  display: flex;
-  gap: 6px;
-  padding: 0 12px 8px;
+#searchInput:focus{
+  background:#242424;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(255,255,255,0.08);
 }
 
-.cat {
-  background: #1c1c1c;
-  border: none;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 11px;
+/* =========================
+   CATEGORIES
+========================= */
+
+#categories{
+  display:flex;
+  gap:8px;
+
+  padding:
+    0 clamp(10px, 3vw, 18px)
+    12px;
+
+  overflow-x:auto;
+
+  scrollbar-width:none;
 }
 
-.cat.active {
-  background: white;
-  color: black;
+#categories::-webkit-scrollbar{
+  display:none;
 }
 
-/* 🔥 FIXED 5-COLUMN GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* ALWAYS 5 */
-  gap: 8px;
-  padding: 10px;
+.cat{
+  flex-shrink:0;
+
+  background:#1c1c1c;
+
+  border:none;
+
+  color:white;
+
+  padding:
+    8px 14px;
+
+  border-radius:999px;
+
+  cursor:pointer;
+
+  font-size:
+    clamp(11px, 2.5vw, 14px);
+
+  transition:
+    0.18s ease;
 }
 
-/* CARD */
-.card {
-  background: #1c1c1c;
-  border-radius: 10px;
-  padding: 6px;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.15s;
-  width: 100%;
-  box-sizing: border-box;
+.cat:hover{
+  background:#2a2a2a;
 }
 
-.card:hover {
-  transform: scale(1.03);
-  background: #242424;
+.cat.active{
+  background:white;
+  color:black;
+
+  font-weight:700;
 }
 
-/* IMAGE */
-.card img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
+/* =========================
+   GRID
+========================= */
+
+.grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(150px,1fr)
+    );
+
+  gap:
+    clamp(8px, 2vw, 14px);
+
+  padding:
+    clamp(10px, 3vw, 18px);
+
+  width:100%;
+
+  box-sizing:border-box;
 }
 
-/* TEXT */
-.card div {
-  margin-top: 5px;
-  font-size: 11px;
+/* =========================
+   CARD
+========================= */
+
+.card{
+  background:#1c1c1c;
+
+  border-radius:14px;
+
+  padding:
+    clamp(6px, 2vw, 10px);
+
+  text-align:center;
+
+  cursor:pointer;
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+
+  width:100%;
+
+  box-sizing:border-box;
+
+  overflow:hidden;
 }
 
-.card small {
-  font-size: 10px;
-  opacity: 0.6;
+.card:hover{
+  transform:
+    translateY(-2px)
+    scale(1.02);
+
+  background:#242424;
+
+  box-shadow:
+    0 8px 22px
+    rgba(0,0,0,0.35);
 }
 
-/* 📱 MOBILE: still 5 columns, just tighter spacing */
-@media (max-width: 700px) {
-  .grid {
-    gap: 6px;
-    padding: 8px;
+/* =========================
+   IMAGE
+========================= */
+
+.card img{
+  width:100%;
+
+  aspect-ratio:1/1;
+
+  object-fit:cover;
+
+  display:block;
+
+  border-radius:10px;
+}
+
+/* =========================
+   TEXT
+========================= */
+
+.card div{
+  margin-top:8px;
+
+  font-size:
+    clamp(12px, 2.7vw, 15px);
+
+  line-height:1.3;
+
+  word-break:break-word;
+
+  font-weight:600;
+}
+
+.card small{
+  display:block;
+
+  margin-top:4px;
+
+  font-size:
+    clamp(10px, 2vw, 12px);
+
+  opacity:0.65;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width:900px){
+
+  .grid{
+    grid-template-columns:
+      repeat(4,1fr);
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width:700px){
+
+  .grid{
+    grid-template-columns:
+      repeat(3,1fr);
+
+    gap:8px;
+
+    padding:10px;
   }
 
-  .card {
-    padding: 5px;
+  .card{
+    border-radius:12px;
+  }
+}
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width:480px){
+
+  .grid{
+    grid-template-columns:
+      repeat(2,1fr);
+
+    gap:10px;
+  }
+
+  #title{
+    font-size:22px;
+  }
+
+  .card div{
+    font-size:13px;
   }
 }
