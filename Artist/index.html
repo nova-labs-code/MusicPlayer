@@ -7,14 +7,24 @@
 
 <meta
   name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  content="
+    width=device-width,
+    initial-scale=1.0,
+    maximum-scale=1.0
+  "
 />
 
 <title>MusicPlayer</title>
 
-<link rel="stylesheet" href="style.css">
+<link
+  rel="stylesheet"
+  href="style.css"
+/>
 
-<meta name="theme-color" content="#111111">
+<meta
+  name="theme-color"
+  content="#111111"
+/>
 
 <link
   rel="preconnect"
@@ -28,7 +38,11 @@
 />
 
 <link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+  href="
+    https://fonts.googleapis.com/css2?
+    family=Inter:wght@400;500;600;700;800&
+    display=swap
+  "
   rel="stylesheet"
 />
 
@@ -37,7 +51,7 @@
 <body>
 
 <!-- =========================
-     NAVIGATION
+     NAV
 ========================= -->
 
 <nav id="nav">
@@ -52,7 +66,7 @@
   <button
     id="backBtn"
     onclick="goBack()"
-    aria-label="Back to Artists"
+    aria-label="Artists"
   >
     🎤 Artists
   </button>
@@ -95,6 +109,16 @@
   id="songs"
   class="songs"
 ></div>
+
+<!-- =========================
+     VISUALIZER
+========================= -->
+
+<canvas id="visualizer"></canvas>
+
+<button id="vizToggle">
+  🌈 Visualizer
+</button>
 
 <!-- =========================
      PLAYER
@@ -146,7 +170,7 @@
 
     <button
       onclick="togglePlay()"
-      aria-label="Play or Pause"
+      aria-label="Play Pause"
     >
       ▶
     </button>
@@ -161,7 +185,7 @@
     <button
       onclick="toggleShuffle()"
       id="shuffleBtn"
-      aria-label="Toggle Shuffle"
+      aria-label="Shuffle"
       title="Shuffle"
     >
       🔀
@@ -170,7 +194,7 @@
     <button
       onclick="toggleLoop()"
       id="loopBtn"
-      aria-label="Toggle Loop"
+      aria-label="Loop"
       title="Loop"
     >
       🔁
@@ -178,7 +202,7 @@
 
     <button
       onclick="toggleFullscreen()"
-      aria-label="Fullscreen Player"
+      aria-label="Fullscreen"
       title="Fullscreen"
     >
       ⛶
@@ -217,7 +241,7 @@
       Loop: Off
     </div>
 
-    <!-- FULL CONTROLS -->
+    <!-- CONTROLS -->
 
     <div class="controls">
 
@@ -230,7 +254,7 @@
 
       <button
         onclick="togglePlay()"
-        aria-label="Play or Pause"
+        aria-label="Play Pause"
       >
         ▶
       </button>
@@ -245,7 +269,7 @@
       <button
         onclick="toggleShuffle()"
         id="shuffleBtnFS"
-        aria-label="Toggle Shuffle"
+        aria-label="Shuffle"
       >
         🔀
       </button>
@@ -253,7 +277,7 @@
       <button
         onclick="toggleLoop()"
         id="loopBtnFS"
-        aria-label="Toggle Loop"
+        aria-label="Loop"
       >
         🔁
       </button>
@@ -284,7 +308,7 @@
 </div>
 
 <!-- =========================
-     SCRIPT
+     MAIN SCRIPT
 ========================= -->
 
 <script src="main.js"></script>
