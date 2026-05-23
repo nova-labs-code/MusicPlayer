@@ -1,27 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>MusicPlayer</title>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Music Hub</title>
+
+<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1 id="title">🎧 MusicPlayer</h1>
+<nav id="homeNav">
 
-<div id="searchBox">
-  <input id="searchInput" placeholder="Search artists or songs...">
-</div>
+  <button id="tabArtists" class="tab active">🎤 Artists</button>
+  <button id="tabMusic" class="tab">🎶 All Music</button>
 
-<div id="categories">
-  <button class="cat active" data-type="artists">Artists</button>
-  <button class="cat" data-type="music">Music</button>
-</div>
+</nav>
 
-<div id="grid" class="grid"></div>
-<div id="results" class="grid"></div>
+<h1 id="homeTitle">Music Hub</h1>
 
-<script src="./main.js"></script>
+<input id="homeSearch" placeholder="Search..." />
+
+<!-- ARTISTS TAB -->
+<div id="artistsView" class="view"></div>
+
+<!-- ALL MUSIC TAB -->
+<div id="musicView" class="view hidden"></div>
+
+<script src="home.js"></script>
+<script src="main.js"></script>
 
 </body>
 </html>
