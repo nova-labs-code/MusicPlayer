@@ -1,82 +1,293 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+/>
+
 <title>MusicPlayer</title>
+
 <link rel="stylesheet" href="style.css">
+
+<meta name="theme-color" content="#111111">
+
+<link
+  rel="preconnect"
+  href="https://fonts.googleapis.com"
+/>
+
+<link
+  rel="preconnect"
+  href="https://fonts.gstatic.com"
+  crossorigin
+/>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+  rel="stylesheet"
+/>
+
 </head>
 
 <body>
 
-<div id="nav">
-  <button onclick="goHome()">🏠 Home</button>
-  <button id="backBtn" onclick="goBack()">🎤 Artists</button>
-</div>
+<!-- =========================
+     NAVIGATION
+========================= -->
 
-<h1 id="title">Artists</h1>
+<nav id="nav">
 
-<div id="grid" class="grid"></div>
+  <button
+    onclick="goHome()"
+    aria-label="Home"
+  >
+    🏠 Home
+  </button>
 
-<input id="songSearch" placeholder="Search songs..." style="display:none;" />
+  <button
+    id="backBtn"
+    onclick="goBack()"
+    aria-label="Back to Artists"
+  >
+    🎤 Artists
+  </button>
 
-<div id="songs" class="songs"></div>
+</nav>
 
-<div class="player" id="player">
+<!-- =========================
+     TITLE
+========================= -->
 
-  <!-- MINI -->
+<h1 id="title">
+  Artists
+</h1>
+
+<!-- =========================
+     SEARCH
+========================= -->
+
+<input
+  id="songSearch"
+  type="text"
+  placeholder="Search songs..."
+  autocomplete="off"
+/>
+
+<!-- =========================
+     ARTIST GRID
+========================= -->
+
+<div
+  id="grid"
+  class="grid"
+></div>
+
+<!-- =========================
+     SONG GRID
+========================= -->
+
+<div
+  id="songs"
+  class="songs"
+></div>
+
+<!-- =========================
+     PLAYER
+========================= -->
+
+<div
+  class="player"
+  id="player"
+>
+
+  <!-- =========================
+       MINI PLAYER
+  ========================= -->
+
   <div class="ui">
 
-    <img id="cover">
+    <img
+      id="cover"
+      alt="Album Cover"
+      draggable="false"
+    >
 
-    <div style="flex:1">
-      <div id="now">Not Playing</div>
+    <div class="song-info">
 
-      <div class="progress-container" id="barMini">
-        <div class="progress" id="progMini"></div>
+      <div id="now">
+        Not Playing
       </div>
+
+      <div
+        class="progress-container"
+        id="barMini"
+      >
+        <div
+          class="progress"
+          id="progMini"
+        ></div>
+      </div>
+
     </div>
 
-    <button onclick="prevSong()">⏮</button>
-    <button onclick="togglePlay()">⏯</button>
-    <button onclick="nextSong()">⏭</button>
+    <!-- CONTROLS -->
 
-    <button onclick="toggleShuffle()" id="shuffleBtn">🔀</button>
-    <button onclick="toggleLoop()" id="loopBtn">🔁</button>
+    <button
+      onclick="prevSong()"
+      aria-label="Previous Song"
+    >
+      ⏮
+    </button>
 
-    <button onclick="toggleFullscreen()">⛶</button>
+    <button
+      onclick="togglePlay()"
+      aria-label="Play or Pause"
+    >
+      ▶
+    </button>
 
-    <div class="time" id="time">0:00</div>
+    <button
+      onclick="nextSong()"
+      aria-label="Next Song"
+    >
+      ⏭
+    </button>
+
+    <button
+      onclick="toggleShuffle()"
+      id="shuffleBtn"
+      aria-label="Toggle Shuffle"
+      title="Shuffle"
+    >
+      🔀
+    </button>
+
+    <button
+      onclick="toggleLoop()"
+      id="loopBtn"
+      aria-label="Toggle Loop"
+      title="Loop"
+    >
+      🔁
+    </button>
+
+    <button
+      onclick="toggleFullscreen()"
+      aria-label="Fullscreen Player"
+      title="Fullscreen"
+    >
+      ⛶
+    </button>
+
+    <div
+      class="time"
+      id="time"
+    >
+      0:00
+    </div>
 
   </div>
 
-  <!-- FULLSCREEN -->
+  <!-- =========================
+       FULLSCREEN PLAYER
+  ========================= -->
+
   <div class="fullscreen-ui">
 
-    <img id="coverBig">
+    <img
+      id="coverBig"
+      alt="Album Cover Large"
+      draggable="false"
+    >
 
-    <div id="songTitle"></div>
-    <div id="artistName"></div>
-
-    <div id="loopState"></div>
-
-    <div class="controls">
-      <button onclick="prevSong()">⏮</button>
-      <button onclick="togglePlay()">⏯</button>
-      <button onclick="nextSong()">⏭</button>
-
-      <button onclick="toggleShuffle()" id="shuffleBtnFS">🔀</button>
-      <button onclick="toggleLoop()" id="loopBtnFS">🔁</button>
-
-      <button onclick="toggleFullscreen()">⛶</button>
+    <div id="songTitle">
+      Not Playing
     </div>
 
-    <div class="full-progress" id="barFull">
-      <div class="progress" id="progFull"></div>
+    <div id="artistName">
+      Artist
+    </div>
+
+    <div id="loopState">
+      Loop: Off
+    </div>
+
+    <!-- FULL CONTROLS -->
+
+    <div class="controls">
+
+      <button
+        onclick="prevSong()"
+        aria-label="Previous Song"
+      >
+        ⏮
+      </button>
+
+      <button
+        onclick="togglePlay()"
+        aria-label="Play or Pause"
+      >
+        ▶
+      </button>
+
+      <button
+        onclick="nextSong()"
+        aria-label="Next Song"
+      >
+        ⏭
+      </button>
+
+      <button
+        onclick="toggleShuffle()"
+        id="shuffleBtnFS"
+        aria-label="Toggle Shuffle"
+      >
+        🔀
+      </button>
+
+      <button
+        onclick="toggleLoop()"
+        id="loopBtnFS"
+        aria-label="Toggle Loop"
+      >
+        🔁
+      </button>
+
+      <button
+        onclick="toggleFullscreen()"
+        aria-label="Exit Fullscreen"
+      >
+        ⛶
+      </button>
+
+    </div>
+
+    <!-- FULLSCREEN PROGRESS -->
+
+    <div
+      class="full-progress"
+      id="barFull"
+    >
+      <div
+        class="progress"
+        id="progFull"
+      ></div>
     </div>
 
   </div>
 
 </div>
 
+<!-- =========================
+     SCRIPT
+========================= -->
+
 <script src="main.js"></script>
+
 </body>
 </html>
