@@ -52,7 +52,7 @@ const loopState = document.getElementById("loopState");
 const backBtn = document.getElementById("backBtn");
 
 /* =========================
-   URL HELPERS
+   URL ROUTER
 ========================= */
 
 function getParam(name){
@@ -66,15 +66,28 @@ function setURL(obj){
 }
 
 /* =========================
+   SONG PARSER (song1 -> 0)
+========================= */
+
+function resolveSong(songKey){
+  if(!songKey) return null;
+
+  const match = songKey.match(/song(\d+)/i);
+  if(!match) return null;
+
+  return parseInt(match[1], 10) - 1;
+}
+
+/* =========================
    NAV
 ========================= */
 
 function goHome(){
-  location.href = "https://nova-labs-code.github.io/MusicPlayer";
+  location.href = "./";
 }
 
 function goBack(){
-  location.href = "?";
+  location.href = "./";
 }
 
 /* =========================
@@ -105,7 +118,7 @@ function enterArtistMode(){
 }
 
 /* =========================
-   LOAD ARTIST
+   LOAD ARTIST (CORE ROUTE)
 ========================= */
 
 function loadArtist(name, skipURL=false, autoSong=null){
@@ -131,6 +144,7 @@ function loadArtist(name, skipURL=false, autoSong=null){
       renderSongs(allSongs);
 
       if(autoSong !== null){
+
         const target = allSongs.find(s => s._id === autoSong);
 
         if(target){
@@ -200,6 +214,11 @@ function playSong(l,i,a){
   updateButtons();
   updateHighlights();
   updateMediaSession(s);
+
+  setURL({
+    name: a,
+    song: `song${i + 1}`
+  });
 }
 
 /* =========================
@@ -244,7 +263,7 @@ function updateHighlights(){
 }
 
 /* =========================
-   PLAY / PAUSE
+   PLAY CONTROLS
 ========================= */
 
 function togglePlay(){
@@ -252,7 +271,7 @@ function togglePlay(){
 }
 
 /* =========================
-   SMART SHUFFLE (NO REPEAT 3)
+   NEXT / PREV
 ========================= */
 
 function nextSong(){
@@ -269,20 +288,13 @@ function nextSong(){
       );
 
     if(available.length === 0){
-      available = list
-        .map((_,i)=>i)
-        .filter(i => i !== index);
+      available = list.map((_,i)=>i).filter(i => i !== index);
     }
 
-    const n = available[
-      Math.floor(Math.random() * available.length)
-    ];
+    const n = available[Math.floor(Math.random() * available.length)];
 
     recentShuffleHistory.push(n);
-
-    if(recentShuffleHistory.length > 3){
-      recentShuffleHistory.shift();
-    }
+    if(recentShuffleHistory.length > 3) recentShuffleHistory.shift();
 
     return playSong(list, n, artist);
   }
@@ -308,30 +320,20 @@ function prevSong(){
 }
 
 /* =========================
-   TOGGLES
+   SHUFFLE / LOOP
 ========================= */
 
 function toggleShuffle(){
   shuffle = !shuffle;
-
-  if(!shuffle){
-    recentShuffleHistory = [];
-  }
-
+  if(!shuffle) recentShuffleHistory = [];
   updateButtons();
 }
 
 function toggleLoop(){
 
-  if(loopMode === "none"){
-    loopMode = "queue";
-  }
-  else if(loopMode === "queue"){
-    loopMode = "song";
-  }
-  else{
-    loopMode = "none";
-  }
+  if(loopMode === "none") loopMode = "queue";
+  else if(loopMode === "queue") loopMode = "song";
+  else loopMode = "none";
 
   updateButtons();
 }
@@ -370,62 +372,42 @@ audio.addEventListener("timeupdate", () => {
   time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
 });
 
-barMini.onclick = e => {
-  const r = barMini.getBoundingClientRect();
-  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
-};
-
-barFull.onclick = e => {
-  const r = barFull.getBoundingClientRect();
-  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
-};
-
 /* =========================
-   BUTTON UI
+   FULLSCREEN (FIXED TOGGLE)
 ========================= */
 
-function updateButtons(){
-
-  shuffleBtn?.classList.toggle("active", shuffle);
-  shuffleBtnFS?.classList.toggle("active", shuffle);
-
-  const loopActive = loopMode !== "none";
-
-  loopBtn?.classList.toggle("loop-active", loopActive);
-  loopBtnFS?.classList.toggle("loop-active", loopActive);
-
-  loopState.innerText =
-    loopMode === "none"
-      ? "Loop: Off"
-      : loopMode === "song"
-        ? "Loop: Song"
-        : "Loop: Queue";
-}
-
-/* =========================
-   FULLSCREEN
-========================= */
+let isFullscreen = false;
 
 function toggleFullscreen(){
 
-  if(!player) return;
+  if(!isFullscreen){
 
-  if(!document.fullscreenElement){
     player.classList.add("fullscreen");
     document.body.classList.add("fullscreen-active");
+
     document.documentElement.requestFullscreen?.();
+
+    isFullscreen = true;
+
   } else {
+
     document.exitFullscreen?.();
+
+    isFullscreen = false;
   }
 }
 
 window.toggleFullscreen = toggleFullscreen;
 
+/* sync with browser (ESC, swipe down, etc) */
 document.addEventListener("fullscreenchange", () => {
-  if(!document.fullscreenElement){
-    player.classList.remove("fullscreen");
-    document.body.classList.remove("fullscreen-active");
-  }
+
+  const active = !!document.fullscreenElement;
+
+  isFullscreen = active;
+
+  player.classList.toggle("fullscreen", active);
+  document.body.classList.toggle("fullscreen-active", active);
 });
 
 /* =========================
@@ -454,7 +436,7 @@ function updateMediaSession(song){
 }
 
 /* =========================
-   ROUTING
+   ROUTING (?name & ?song)
 ========================= */
 
 const artistParam = getParam("name");
@@ -498,7 +480,7 @@ if(!artistParam){
 
 } else {
 
-  const songIndex = songParam ? parseInt(songParam) : null;
+  const songIndex = songParam ? resolveSong(songParam) : null;
 
   loadArtist(artistParam, true, songIndex);
 
