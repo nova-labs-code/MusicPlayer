@@ -6,39 +6,59 @@ let artistsData = [];
 let isLoaded = false;
 let currentCategory = "artists";
 
-/* 🎛️ CATEGORY SWITCH */
+/* =========================
+   CATEGORY SWITCH
+========================= */
+
 document.querySelectorAll(".cat").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".cat").forEach(b => b.classList.remove("active"));
+
+    document.querySelectorAll(".cat")
+      .forEach(b => b.classList.remove("active"));
+
     btn.classList.add("active");
 
     currentCategory = btn.dataset.type;
+
     runSearch();
   });
 });
 
 /* =========================
-   URL SAFE HELPER (FORCE %20)
+   URL SAFE
 ========================= */
 
 function toURL(value){
   return encodeURIComponent(String(value));
 }
 
-/* 📦 LOAD DATA */
+/* =========================
+   LOAD DATA
+========================= */
+
 async function loadData() {
   try {
-    const artistList = await fetch("./Artist/artist.json").then(r => r.json());
+
+    const artistList =
+      await fetch("./Artist/artist.json")
+        .then(r => r.json());
+
+    const frag = document.createDocumentFragment();
 
     for (const name of artistList) {
-      const config = await fetch(`./Artist/${name}/config.json`).then(r => r.json());
 
-      artistsData.push({
+      const config =
+        await fetch(`./Artist/${name}/config.json`)
+          .then(r => r.json());
+
+      const artistObj = {
         name,
         displayName: config.artist,
         image: config.image,
         songs: config.songs || []
-      });
+      };
+
+      artistsData.push(artistObj);
 
       const card = document.createElement("div");
       card.className = "card";
@@ -48,13 +68,15 @@ async function loadData() {
         <div>${config.artist}</div>
       `;
 
-      /* 🎤 ARTIST CLICK (SAFE URL) */
       card.onclick = () => {
-        location.href = `./Artist/?name=${toURL(name)}`;
+        location.href =
+          `./Artist/?name=${toURL(name)}`;
       };
 
-      grid.appendChild(card);
+      frag.appendChild(card);
     }
+
+    grid.appendChild(frag);
 
     isLoaded = true;
 
@@ -66,73 +88,108 @@ async function loadData() {
 
 loadData();
 
-/* ⏱️ debounce */
+/* =========================
+   DEBOUNCE
+========================= */
+
 function debounce(fn, delay = 120) {
   let t;
+
   return (...args) => {
     clearTimeout(t);
     t = setTimeout(() => fn(...args), delay);
   };
 }
 
-/* 🔎 SEARCH ENGINE */
+/* =========================
+   SEARCH ENGINE
+========================= */
+
 const runSearch = debounce(() => {
+
   if (!isLoaded) return;
 
-  const q = searchInput.value.toLowerCase().trim();
+  const q =
+    searchInput.value
+      .toLowerCase()
+      .trim();
 
   results.innerHTML = "";
 
-  const showArtists = currentCategory === "artists";
-  const showMusic = currentCategory === "music";
+  const showArtists =
+    currentCategory === "artists";
+
+  const showMusic =
+    currentCategory === "music";
+
+  /* =========================
+     EMPTY SEARCH = BROWSE
+  ========================= */
+
+  if (!q) {
+
+    grid.style.display = "grid";
+    results.style.display = "none";
+
+    return;
+  }
 
   grid.style.display = "none";
   results.style.display = "grid";
 
-  /* 🟢 BROWSE MODE */
-  if (!q) {
-    for (const artist of artistsData) {
+  const frag = document.createDocumentFragment();
 
-      if (showArtists) {
-        results.appendChild(makeArtistCard(artist));
-      }
-
-      if (showMusic) {
-        artist.songs.forEach((song, i) => {
-          results.appendChild(makeSongCard(artist, song, i));
-        });
-      }
-    }
-    return;
-  }
-
-  /* 🔎 SEARCH MODE */
   for (const artist of artistsData) {
 
     const artistMatch =
-      artist.displayName.toLowerCase().includes(q) ||
-      artist.name.toLowerCase().includes(q);
+      artist.displayName
+        .toLowerCase()
+        .includes(q) ||
+      artist.name
+        .toLowerCase()
+        .includes(q);
 
     if (showArtists && artistMatch) {
-      results.appendChild(makeArtistCard(artist));
+      frag.appendChild(
+        makeArtistCard(artist)
+      );
     }
 
     if (showMusic) {
+
       artist.songs.forEach((song, i) => {
-        if (song.title.toLowerCase().includes(q)) {
-          results.appendChild(makeSongCard(artist, song, i));
+
+        if (
+          song.title
+            .toLowerCase()
+            .includes(q)
+        ) {
+          frag.appendChild(
+            makeSongCard(
+              artist,
+              song,
+              i
+            )
+          );
         }
       });
     }
   }
 
+  results.appendChild(frag);
+
 }, 120);
 
 searchInput.addEventListener("input", runSearch);
 
-/* 🎤 ARTIST CARD */
+/* =========================
+   ARTIST CARD
+========================= */
+
 function makeArtistCard(artist) {
+
   const el = document.createElement("div");
+
   el.className = "card";
 
   el.innerHTML = `
@@ -140,17 +197,22 @@ function makeArtistCard(artist) {
     <div>${artist.displayName}</div>
   `;
 
-  /* 🎤 SAFE URL */
   el.onclick = () => {
-    location.href = `./Artist/?name=${toURL(artist.name)}`;
+    location.href =
+      `./Artist/?name=${toURL(artist.name)}`;
   };
 
   return el;
 }
 
-/* 🎵 SONG CARD */
+/* =========================
+   SONG CARD
+========================= */
+
 function makeSongCard(artist, song, i) {
+
   const el = document.createElement("div");
+
   el.className = "card";
 
   el.innerHTML = `
@@ -159,9 +221,9 @@ function makeSongCard(artist, song, i) {
     <small>${artist.displayName}</small>
   `;
 
-  /* 🎵 SAFE URL */
   el.onclick = () => {
-    location.href = `./Artist/?name=${toURL(artist.name)}&song=${i + 1}`;
+    location.href =
+      `./Artist/?name=${toURL(artist.name)}&song=${i + 1}`;
   };
 
   return el;
