@@ -1,355 +1,403 @@
 /* =========================
-   BASE SYSTEM
+   MOBILE VISIBILITY UPGRADE
 ========================= */
 
-:root{
-  --player-height: clamp(80px, 10vh, 110px);
-}
-
-html{
-  font-size:16px;
-}
+@media (max-width: 700px){
 
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:white;
-
-  padding-top:clamp(45px, 4vw, 70px);
-  padding-bottom:calc(var(--player-height) + 20px);
+  :root{
+    --player-height: 92px;
+  }
 
-  overflow-x:hidden;
-}
-
-/* =========================
-   NAV
-========================= */
-
-#nav{
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-
-  display:flex;
-  gap:clamp(6px, 1vw, 10px);
-  padding:clamp(6px, 1vw, 12px);
-
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(10px);
-  z-index:1000;
-}
-
-#nav button{
-  background:#1c1c1c;
-  border:none;
-  color:white;
-
-  padding:clamp(6px, 1vw, 10px) clamp(10px, 1.2vw, 14px);
-  border-radius:8px;
-  cursor:pointer;
-
-  font-size:clamp(12px, 1vw, 14px);
-}
-
-/* =========================
-   TITLE
-========================= */
-
-#title{
-  font-size:clamp(20px, 2.2vw, 32px);
-  font-weight:700;
-
-  padding:clamp(14px, 2vw, 24px) clamp(16px, 2vw, 24px) 10px;
-  margin:0;
-
-  display:flex;
-  align-items:center;
-  gap:10px;
-
-  letter-spacing:0.5px;
-  text-shadow:0 0 12px rgba(255,255,255,0.15);
-}
-
-#title::after{
-  content:"";
-  display:block;
-  width:100%;
-  height:1px;
-  margin-top:12px;
+  html{
+    font-size:18px;
+  }
 
-  background:linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-}
-
-#title span{
-  font-size:clamp(22px, 2.6vw, 34px);
-}
-
-/* =========================
-   SEARCH BAR
-========================= */
-
-#songSearch{
-  display:block;
-  margin:10px auto 0;
-  width:min(400px, 90vw);
-
-  padding:10px 12px;
-  border-radius:10px;
-
-  border:none;
-  outline:none;
-
-  background:#1c1c1c;
-  color:white;
-
-  font-size:14px;
-
-  transition:0.2s ease;
-}
-
-#songSearch:focus{
-  background:#222;
-  box-shadow:0 0 0 2px rgba(255,255,255,0.15);
-}
-
-/* =========================
-   GRID
-========================= */
-
-.grid,
-.songs{
-  display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
-  gap:clamp(8px, 1vw, 12px);
-
-  padding:clamp(12px, 2vw, 18px);
-  padding-bottom:40px;
-
-  max-width:1200px;
-  margin:0 auto;
-}
-
-/* =========================
-   CARDS / SONGS
-========================= */
-
-.card,
-.song{
-  background:#1c1c1c;
-  border-radius:12px;
-
-  padding:clamp(6px, 1vw, 10px);
-  text-align:center;
-
-  cursor:pointer;
-  transition:0.2s ease;
-  box-sizing:border-box;
-
-  width:100%;
-  position:relative;
-}
-
-.song:hover,
-.card:hover{
-  transform:scale(1.03);
-  z-index:2;
-}
-
-/* =========================
-   ACTIVE STATES
-========================= */
-
-.song.active{
-  outline:2px solid white;
-
-  box-shadow:
-    0 0 clamp(10px, 1.5vw, 18px) rgba(255,255,255,0.75);
-
-  transform:scale(1.04) translateY(-2px);
-  z-index:3;
-}
-
-.song.queue{
-  outline:2px solid #00ff7f;
-
-  box-shadow:
-    0 0 clamp(8px, 1.2vw, 14px) rgba(0,255,127,0.6);
-}
-
-/* =========================
-   IMAGES
-========================= */
-
-img{
-  width:100%;
-  height:auto;
-  display:block;
-  border-radius:8px;
-  object-fit:cover;
-}
-
-/* =========================
-   PLAYER BAR
-========================= */
-
-.player{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-
-  height:var(--player-height);
-  background:#181818;
-
-  display:none;
-  z-index:2000;
-}
-
-/* MINI UI */
-.ui{
-  display:flex;
-  align-items:center;
-  gap:10px;
-
-  padding:clamp(8px, 1vw, 12px);
-}
-
-#cover{
-  width:clamp(36px, 4vw, 44px);
-  height:clamp(36px, 4vw, 44px);
-  border-radius:6px;
-}
-
-/* buttons */
-button{
-  background:none;
-  border:none;
-  color:#666;
-
-  font-size:clamp(14px, 1.6vw, 18px);
-  cursor:pointer;
-}
-
-button.active{
-  color:white;
-  text-shadow:0 0 8px white;
-}
-
-button.loop-active{
-  color:white !important;
-  text-shadow:0 0 10px white;
-}
-
-/* =========================
-   PROGRESS
-========================= */
-
-.progress-container{
-  flex:1;
-  height:4px;
-  background:#333;
-  border-radius:999px;
-  overflow:hidden;
-  cursor:pointer;
-}
-
-.progress{
-  height:100%;
-  width:0%;
-  background:white;
-}
-
-.time{
-  width:70px;
-  font-size:12px;
-  text-align:right;
-}
-
-/* =========================
-   FULLSCREEN MODE
-========================= */
-
-.player.fullscreen{
-  top:0;
-  height:100vh;
-  background:radial-gradient(circle,#1a1a1a,#000);
-}
-
-.player.fullscreen .ui{
-  display:none;
-}
-
-.fullscreen-ui{
-  display:none;
-  height:100%;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:18px;
-  padding:30px;
-}
-
-.player.fullscreen .fullscreen-ui{
-  display:flex;
-}
-
-#coverBig{
-  width:clamp(160px, 25vw, 260px);
-  height:clamp(160px, 25vw, 260px);
-  border-radius:18px;
-}
-
-/* controls */
-.controls{
-  display:flex;
-  gap:15px;
-}
-
-.controls button{
-  font-size:clamp(22px, 3vw, 28px);
-}
-
-/* full progress */
-.full-progress{
-  position:absolute;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-
-  width:min(700px,85vw);
-  height:4px;
-
-  background:#333;
-  border-radius:999px;
-  overflow:hidden;
-}
-
-/* =========================
-   FULLSCREEN BODY FIX
-========================= */
-
-body.fullscreen-active{
-  padding-bottom:0 !important;
-}
-
-/* =========================
-   MOBILE TWEAKS
-========================= */
-
-@media (max-width: 600px){
+  body{
+    padding-top:70px;
+    padding-bottom:calc(var(--player-height) + 24px);
+  }
+
+  /* =========================
+     NAV
+  ========================= */
+
+  #nav{
+    padding:10px;
+    gap:8px;
+
+    backdrop-filter:blur(16px);
+  }
+
+  #nav button{
+    flex:1;
+
+    min-height:42px;
+
+    font-size:15px;
+
+    border-radius:12px;
+
+    background:#222;
+
+    color:white;
+  }
+
+  /* =========================
+     TITLE
+  ========================= */
+
+  #title{
+    font-size:26px;
+
+    padding:
+      18px
+      18px
+      12px;
+
+    line-height:1.2;
+  }
+
+  /* =========================
+     SEARCH
+  ========================= */
+
+  #songSearch{
+    width:92vw;
+
+    font-size:16px;
+
+    padding:14px 16px;
+
+    border-radius:14px;
+
+    margin-top:8px;
+  }
+
+  /* =========================
+     GRID
+  ========================= */
+
   .grid,
   .songs{
-    gap:8px;
+
+    grid-template-columns:
+      repeat(2, minmax(0,1fr));
+
+    gap:14px;
+
+    padding:14px;
   }
+
+  /* =========================
+     CARDS
+  ========================= */
 
   .card,
   .song{
+
+    padding:10px;
+
+    border-radius:16px;
+
+    background:#1d1d1d;
+
+    overflow:hidden;
+  }
+
+  .card img,
+  .song img{
+
+    border-radius:12px;
+
+    aspect-ratio:1 / 1;
+
+    object-fit:cover;
+  }
+
+  .card div,
+  .song div{
+
+    margin-top:10px;
+
+    font-size:15px;
+
+    line-height:1.35;
+
+    word-break:break-word;
+  }
+
+  /* =========================
+     ACTIVE SONG
+  ========================= */
+
+  .song.active{
+
+    outline:3px solid white;
+
+    box-shadow:
+      0 0 12px rgba(255,255,255,0.85),
+      0 0 30px rgba(255,255,255,0.25);
+
+    transform:
+      scale(1.02)
+      translateY(-2px);
+  }
+
+  .song.queue{
+
+    outline:2px solid #00ff7f;
+
+    box-shadow:
+      0 0 16px rgba(0,255,127,0.4);
+  }
+
+  /* =========================
+     PLAYER BAR
+  ========================= */
+
+  .player{
+    height:var(--player-height);
+
+    background:
+      linear-gradient(
+        to top,
+        #111,
+        #1b1b1b
+      );
+
+    border-top:
+      1px solid rgba(255,255,255,0.08);
+  }
+
+  .ui{
+
+    height:100%;
+
+    gap:10px;
+
+    padding:10px 12px;
+  }
+
+  #cover{
+    width:54px;
+    height:54px;
+
     border-radius:10px;
+
+    flex-shrink:0;
+  }
+
+  /* =========================
+     NOW PLAYING TEXT
+  ========================= */
+
+  #now{
+    font-size:15px;
+
+    font-weight:700;
+
+    line-height:1.2;
+
+    margin-bottom:6px;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    max-width:100%;
+  }
+
+  /* =========================
+     PLAYER BUTTONS
+  ========================= */
+
+  .ui button{
+
+    min-width:38px;
+    min-height:38px;
+
+    font-size:20px;
+
+    border-radius:10px;
+
+    background:#232323;
+
+    color:white;
+
+    flex-shrink:0;
+  }
+
+  .ui button:active{
+    transform:scale(0.94);
+  }
+
+  button.active,
+  button.loop-active{
+
+    background:#fff;
+    color:black;
+
+    text-shadow:none;
+  }
+
+  /* =========================
+     PROGRESS BAR
+  ========================= */
+
+  .progress-container{
+
+    height:6px;
+
+    margin-top:6px;
+
+    background:#333;
+  }
+
+  .progress{
+
+    background:white;
+
+    transition:width 0.08s linear;
+  }
+
+  .time{
+    display:none;
+  }
+
+  /* =========================
+     FULLSCREEN PLAYER
+  ========================= */
+
+  .fullscreen-ui{
+    padding:20px;
+    gap:22px;
+  }
+
+  #coverBig{
+
+    width:min(78vw, 320px);
+    height:min(78vw, 320px);
+
+    border-radius:24px;
+
+    box-shadow:
+      0 0 30px rgba(255,255,255,0.15);
+  }
+
+  #songTitle{
+
+    font-size:28px;
+
+    font-weight:800;
+
+    text-align:center;
+
+    line-height:1.2;
+  }
+
+  #artistName{
+
+    font-size:18px;
+
+    opacity:0.7;
+
+    text-align:center;
+  }
+
+  #loopState{
+
+    font-size:15px;
+
+    opacity:0.75;
+  }
+
+  .controls{
+
+    gap:16px;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+  }
+
+  .controls button{
+
+    width:62px;
+    height:62px;
+
+    font-size:28px;
+
+    border-radius:18px;
+
+    background:#222;
+
+    color:white;
+  }
+
+  .controls button.active,
+  .controls button.loop-active{
+
+    background:white;
+    color:black;
+  }
+
+  .full-progress{
+
+    width:90vw;
+
+    height:7px;
+
+    bottom:34px;
+  }
+}
+
+/* =========================
+   EXTRA SMALL DEVICES
+========================= */
+
+@media (max-width: 420px){
+
+  html{
+    font-size:17px;
   }
 
   #title{
-    font-size:20px;
+    font-size:22px;
+  }
+
+  .grid,
+  .songs{
+    gap:10px;
+    padding:10px;
+  }
+
+  .card div,
+  .song div{
+    font-size:14px;
+  }
+
+  .ui{
+    gap:8px;
+  }
+
+  #cover{
+    width:48px;
+    height:48px;
+  }
+
+  .ui button{
+    min-width:34px;
+    min-height:34px;
+    font-size:18px;
+  }
+
+  #songTitle{
+    font-size:24px;
+  }
+
+  .controls button{
+    width:56px;
+    height:56px;
+    font-size:24px;
   }
 }
