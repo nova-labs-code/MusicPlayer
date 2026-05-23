@@ -40,7 +40,7 @@ body{
   background:
     radial-gradient(
       circle at top,
-      rgba(255,255,255,0.06),
+      rgba(255,255,255,0.05),
       transparent 40%
     ),
     var(--bg);
@@ -55,7 +55,7 @@ body{
     clamp(70px, 8vw, 95px);
 
   padding-bottom:
-    calc(var(--player-height) + 30px);
+    calc(var(--player-height) + 24px);
 
   transition:
     background 0.35s ease;
@@ -70,7 +70,7 @@ body{
 }
 
 ::-webkit-scrollbar-track{
-  background:#111;
+  background:#101010;
 }
 
 ::-webkit-scrollbar-thumb{
@@ -98,7 +98,7 @@ body{
   padding:
     clamp(10px, 1vw, 14px);
 
-  z-index:5000;
+  z-index:6000;
 
   backdrop-filter:blur(18px);
 
@@ -528,7 +528,7 @@ button.loop-active{
     radial-gradient(
       circle at center,
       rgba(255,255,255,0.08),
-      rgba(0,0,0,0.95)
+      rgba(0,0,0,0.96)
     );
 }
 
@@ -609,6 +609,10 @@ button.loop-active{
   align-items:center;
   gap:
     clamp(16px, 2vw, 28px);
+
+  flex-wrap:wrap;
+
+  justify-content:center;
 }
 
 .controls button{
@@ -638,7 +642,7 @@ button.loop-active{
   width:100%;
   height:100%;
 
-  z-index:1;
+  z-index:5;
 
   opacity:0;
 
@@ -653,12 +657,24 @@ button.loop-active{
 }
 
 /* =========================
-   FULLSCREEN BODY
+   FULLSCREEN VISUAL MODE
+========================= */
+
+.player.fullscreen #visualizer.active{
+  opacity:1;
+}
+
+.player.fullscreen .fullscreen-ui{
+  position:relative;
+  z-index:10;
+}
+
+/* =========================
+   BODY FULLSCREEN FIX
 ========================= */
 
 body.fullscreen-active{
   overflow:hidden;
-
   padding-bottom:0;
 }
 
@@ -715,10 +731,14 @@ body.fullscreen-active{
   .fullscreen-ui{
     padding:20px;
   }
+
+  .time{
+    display:none;
+  }
 }
 
 /* =========================
-   SMALL PHONE
+   SMALL MOBILE
 ========================= */
 
 @media (max-width:420px){
@@ -727,13 +747,17 @@ body.fullscreen-active{
     max-width:120px;
   }
 
-  .time{
-    display:none;
-  }
-
   .grid,
   .songs{
     grid-template-columns:
       repeat(2,1fr);
+  }
+
+  .controls{
+    gap:14px;
+  }
+
+  .controls button{
+    font-size:24px;
   }
 }
