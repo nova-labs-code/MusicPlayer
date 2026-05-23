@@ -1,45 +1,42 @@
 :root{
-  --player-h: clamp(80px, 10vh, 110px);
+  --player-height: 92px;
 }
 
 /* =========================
-   GLOBAL
+   RESET + BASE
 ========================= */
 
 *{
   box-sizing:border-box;
 }
 
-html, body{
-  margin:0;
-  padding:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#0f0f0f;
-  color:white;
-
-  overflow-x:hidden;
-  -webkit-font-smoothing:antialiased;
-
-  padding-bottom:calc(var(--player-h) + 20px);
+html{
+  font-size:16px;
+  -webkit-text-size-adjust:100%;
 }
 
-/* =========================
-   VISUALIZER LAYER
-========================= */
+body{
 
-#visualizer{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
+  margin:0;
 
-  background:#000;
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
 
-  display:none;
+  background:#0b0b0b;
 
-  z-index:1;
+  color:#fff;
 
-  pointer-events:none;
+  overflow-x:hidden;
+
+  padding-top:72px;
+
+  padding-bottom:
+    calc(var(--player-height) + 24px);
+
+  -webkit-tap-highlight-color:
+    transparent;
 }
 
 /* =========================
@@ -47,33 +44,54 @@ html, body{
 ========================= */
 
 #nav{
+
   position:fixed;
+
   top:0;
   left:0;
   right:0;
 
   display:flex;
-  gap:8px;
 
-  padding:10px;
+  gap:10px;
 
-  background:rgba(0,0,0,0.75);
-  backdrop-filter:blur(10px);
+  padding:12px;
 
-  z-index:50;
+  background:
+    rgba(0,0,0,0.65);
+
+  backdrop-filter:blur(18px);
+
+  z-index:1000;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,0.06);
 }
 
 #nav button{
-  background:#1c1c1c;
+
+  flex:1;
+
+  min-height:44px;
+
   border:none;
+
+  border-radius:14px;
+
+  background:#1c1c1c;
+
   color:white;
 
-  padding:8px 12px;
-  border-radius:10px;
-
-  font-size:13px;
+  font-size:15px;
 
   cursor:pointer;
+
+  transition:0.2s ease;
+}
+
+#nav button:active{
+  transform:scale(0.96);
 }
 
 /* =========================
@@ -81,9 +99,19 @@ html, body{
 ========================= */
 
 #title{
-  font-size:clamp(20px, 4vw, 32px);
-  padding:18px 14px 10px;
+
   margin:0;
+
+  padding:
+    18px
+    16px
+    10px;
+
+  font-size:28px;
+
+  font-weight:800;
+
+  letter-spacing:0.3px;
 }
 
 /* =========================
@@ -91,99 +119,129 @@ html, body{
 ========================= */
 
 #songSearch{
+
+  width:min(92vw,520px);
+
   display:block;
 
-  width:min(500px, 92vw);
-  margin:10px auto;
+  margin:8px auto 0;
 
-  padding:10px 12px;
+  padding:14px 16px;
+
+  border-radius:16px;
 
   border:none;
-  border-radius:12px;
-
-  background:#1c1c1c;
-  color:white;
-
-  font-size:14px;
 
   outline:none;
+
+  background:#1a1a1a;
+
+  color:white;
+
+  font-size:16px;
+
+  transition:0.2s ease;
+}
+
+#songSearch:focus{
+  background:#232323;
+  box-shadow:0 0 0 2px rgba(255,255,255,0.12);
 }
 
 /* =========================
-   CATEGORY GRID (ARTISTS/RESULTS)
+   GRID / SONGS
 ========================= */
 
-.grid{
+.grid,
+.songs{
+
   display:grid;
 
-  grid-template-columns:repeat(4, 1fr);
+  grid-template-columns:
+    repeat(auto-fill,minmax(160px,1fr));
 
-  gap:10px;
+  gap:12px;
 
   padding:14px;
 
-  max-width:1200px;
+  max-width:1400px;
+
   margin:0 auto;
 }
 
 /* =========================
-   CARD
+   CARD / SONG
 ========================= */
 
-.card{
-  background:#1c1c1c;
-  border-radius:12px;
+.card,
+.song{
 
-  padding:8px;
+  background:#171717;
 
-  text-align:center;
+  border-radius:18px;
+
+  overflow:hidden;
 
   cursor:pointer;
 
-  transition:0.15s ease;
+  transition:0.2s ease;
 
-  overflow:hidden;
+  position:relative;
 }
 
-.card:hover{
-  transform:scale(1.03);
-  background:#242424;
+.card:hover,
+.song:hover{
+  transform:translateY(-3px) scale(1.02);
+  background:#202020;
 }
 
-.card img{
+.card:active,
+.song:active{
+  transform:scale(0.97);
+}
+
+.card img,
+.song img{
+
   width:100%;
+
   aspect-ratio:1/1;
+
   object-fit:cover;
 
-  border-radius:10px;
+  display:block;
 }
 
-.card div{
-  margin-top:8px;
+.card div,
+.song div{
+
+  padding:12px;
+
   font-size:14px;
-  font-weight:600;
-}
 
-.card small{
-  font-size:11px;
-  opacity:0.65;
+  font-weight:600;
+
+  word-break:break-word;
 }
 
 /* =========================
-   SONG LIST GRID
+   ACTIVE STATES
 ========================= */
 
-.songs{
-  display:grid;
+.song.active{
 
-  grid-template-columns:repeat(4, 1fr);
+  outline:2px solid #fff;
 
-  gap:10px;
+  box-shadow:
+    0 0 14px rgba(255,255,255,0.6);
+}
 
-  padding:14px;
+.song.queue{
 
-  max-width:1200px;
-  margin:0 auto;
+  outline:2px solid #00ff7f;
+
+  box-shadow:
+    0 0 14px rgba(0,255,127,0.35);
 }
 
 /* =========================
@@ -191,90 +249,160 @@ html, body{
 ========================= */
 
 .player{
+
   position:fixed;
+
   bottom:0;
   left:0;
   right:0;
 
-  height:var(--player-h);
+  height:var(--player-height);
 
-  background:#181818;
+  background:#141414;
 
-  z-index:100;
+  border-top:
+    1px solid rgba(255,255,255,0.08);
 
-  overflow:hidden;
+  display:none;
+
+  z-index:2000;
 }
 
 /* =========================
-   MINI UI
+   MINI PLAYER
 ========================= */
 
 .ui{
+
   display:flex;
+
   align-items:center;
+
   gap:10px;
 
-  padding:10px;
+  padding:10px 12px;
+}
+
+.song-info{
+  flex:1;
+  min-width:0;
 }
 
 #cover{
-  width:42px;
-  height:42px;
-  border-radius:8px;
+
+  width:52px;
+  height:52px;
+
+  border-radius:14px;
+
+  object-fit:cover;
 }
 
-button{
-  background:none;
-  border:none;
-  color:#aaa;
+#now{
 
-  font-size:18px;
+  font-size:14px;
+
+  font-weight:700;
+
+  white-space:nowrap;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  margin-bottom:6px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button{
+
+  border:none;
+
+  background:#222;
+
+  color:white;
+
+  min-width:40px;
+  min-height:40px;
+
+  border-radius:12px;
 
   cursor:pointer;
 
-  touch-action:manipulation;
+  font-size:18px;
+
+  transition:0.18s ease;
 }
 
-button:hover{
-  color:white;
+button:active{
+  transform:scale(0.92);
 }
 
-#time{
-  font-size:12px;
-  width:60px;
-  text-align:right;
+button.active,
+button.loop-active{
+  background:#fff;
+  color:#000;
 }
 
 /* =========================
    PROGRESS
 ========================= */
 
-.progress-container{
-  flex:1;
-  height:4px;
+.progress-container,
+.full-progress{
 
-  background:#333;
+  width:100%;
+
+  height:6px;
+
+  background:#2b2b2b;
+
   border-radius:999px;
 
   overflow:hidden;
+
+  cursor:pointer;
 }
 
 .progress{
+
   height:100%;
+
   width:0%;
 
-  background:white;
+  background:#fff;
+}
+
+.time{
+
+  width:60px;
+
+  font-size:12px;
+
+  text-align:right;
+
+  opacity:0.75;
 }
 
 /* =========================
-   FULLSCREEN MODE
+   FULLSCREEN
 ========================= */
 
 .player.fullscreen{
+
   top:0;
+
   height:100vh;
 
-  background:#000;
+  background:
+    radial-gradient(
+      circle at center,
+      #161616,
+      #000
+    );
 }
 
 .player.fullscreen .ui{
@@ -282,17 +410,20 @@ button:hover{
 }
 
 .fullscreen-ui{
-  display:none;
 
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+  display:none;
 
   height:100%;
 
+  flex-direction:column;
+
+  align-items:center;
+
+  justify-content:center;
+
   gap:18px;
 
-  padding:20px;
+  padding:30px;
 }
 
 .player.fullscreen .fullscreen-ui{
@@ -300,49 +431,114 @@ button:hover{
 }
 
 #coverBig{
-  width:clamp(160px, 30vw, 260px);
-  border-radius:18px;
+
+  width:min(78vw,320px);
+
+  height:min(78vw,320px);
+
+  border-radius:24px;
+
+  object-fit:cover;
 }
 
-/* controls */
+#songTitle{
+
+  font-size:28px;
+
+  font-weight:800;
+
+  text-align:center;
+}
+
+#artistName{
+
+  opacity:0.7;
+
+  text-align:center;
+}
+
 .controls{
+
   display:flex;
+
   gap:14px;
+
   flex-wrap:wrap;
+
   justify-content:center;
 }
 
-/* full progress */
+.controls button{
+
+  width:58px;
+  height:58px;
+
+  font-size:24px;
+}
+
 .full-progress{
+
   position:absolute;
-  bottom:18px;
+
+  bottom:28px;
+
   left:50%;
+
   transform:translateX(-50%);
 
-  width:min(700px, 85vw);
-  height:4px;
-
-  background:#333;
-  border-radius:999px;
-
-  overflow:hidden;
+  width:min(90vw,800px);
 }
 
 /* =========================
    MOBILE
 ========================= */
 
-@media (max-width: 900px){
+@media (max-width:700px){
+
   .grid,
   .songs{
-    grid-template-columns:repeat(3, 1fr);
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    padding:10px;
+  }
+
+  #title{
+    font-size:24px;
+  }
+
+  button{
+    min-width:36px;
+    min-height:36px;
+    font-size:16px;
+  }
+
+  #cover{
+    width:46px;
+    height:46px;
+  }
+
+  .controls button{
+    width:52px;
+    height:52px;
+  }
+
+  #songTitle{
+    font-size:24px;
+  }
+
+  .time{
+    display:none;
   }
 }
 
-@media (max-width: 600px){
+/* =========================
+   SMALL PHONES
+========================= */
+
+@media (max-width:420px){
+
   .grid,
   .songs{
-    grid-template-columns:repeat(2, 1fr);
     gap:8px;
   }
 
@@ -350,19 +546,17 @@ button:hover{
     font-size:22px;
   }
 
-  button{
-    font-size:16px;
+  #cover{
+    width:42px;
+    height:42px;
   }
 
-  #time{
-    display:none;
+  .controls button{
+    width:48px;
+    height:48px;
   }
-}
 
-/* =========================
-   SAFETY
-========================= */
-
-body{
-  overflow-x:hidden;
+  #songTitle{
+    font-size:22px;
+  }
 }
