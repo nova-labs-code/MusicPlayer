@@ -2,6 +2,14 @@
   --player-h: clamp(80px, 10vh, 110px);
 }
 
+/* =========================
+   GLOBAL
+========================= */
+
+*{
+  box-sizing:border-box;
+}
+
 html, body{
   margin:0;
   padding:0;
@@ -24,9 +32,13 @@ html, body{
   inset:0;
   width:100%;
   height:100%;
+
   background:#000;
+
   display:none;
+
   z-index:1;
+
   pointer-events:none;
 }
 
@@ -45,7 +57,7 @@ html, body{
 
   padding:10px;
 
-  background:rgba(0,0,0,0.7);
+  background:rgba(0,0,0,0.75);
   backdrop-filter:blur(10px);
 
   z-index:50;
@@ -60,6 +72,8 @@ html, body{
   border-radius:10px;
 
   font-size:13px;
+
+  cursor:pointer;
 }
 
 /* =========================
@@ -96,45 +110,80 @@ html, body{
 }
 
 /* =========================
-   SONG GRID
+   CATEGORY GRID (ARTISTS/RESULTS)
+========================= */
+
+.grid{
+  display:grid;
+
+  grid-template-columns:repeat(4, 1fr);
+
+  gap:10px;
+
+  padding:14px;
+
+  max-width:1200px;
+  margin:0 auto;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+  background:#1c1c1c;
+  border-radius:12px;
+
+  padding:8px;
+
+  text-align:center;
+
+  cursor:pointer;
+
+  transition:0.15s ease;
+
+  overflow:hidden;
+}
+
+.card:hover{
+  transform:scale(1.03);
+  background:#242424;
+}
+
+.card img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+
+  border-radius:10px;
+}
+
+.card div{
+  margin-top:8px;
+  font-size:14px;
+  font-weight:600;
+}
+
+.card small{
+  font-size:11px;
+  opacity:0.65;
+}
+
+/* =========================
+   SONG LIST GRID
 ========================= */
 
 .songs{
   display:grid;
 
   grid-template-columns:repeat(4, 1fr);
+
   gap:10px;
 
   padding:14px;
+
   max-width:1200px;
   margin:0 auto;
-}
-
-/* =========================
-   SONG CARD
-========================= */
-
-.song{
-  background:#1c1c1c;
-  border-radius:12px;
-
-  padding:8px;
-  text-align:center;
-
-  cursor:pointer;
-  transition:0.15s ease;
-}
-
-.song:hover{
-  transform:scale(1.03);
-  background:#242424;
-}
-
-.song img{
-  width:100%;
-  border-radius:10px;
-  aspect-ratio:1/1;
-  object-fit:cover;
 }
 
 /* =========================
@@ -153,7 +202,6 @@ html, body{
 
   z-index:100;
 
-  display:block;
   overflow:hidden;
 }
 
@@ -181,6 +229,7 @@ button{
   color:#aaa;
 
   font-size:18px;
+
   cursor:pointer;
 
   touch-action:manipulation;
@@ -203,14 +252,17 @@ button:hover{
 .progress-container{
   flex:1;
   height:4px;
+
   background:#333;
   border-radius:999px;
+
   overflow:hidden;
 }
 
 .progress{
   height:100%;
   width:0%;
+
   background:white;
 }
 
@@ -231,11 +283,13 @@ button:hover{
 
 .fullscreen-ui{
   display:none;
+
   flex-direction:column;
   align-items:center;
   justify-content:center;
 
   height:100%;
+
   gap:18px;
 
   padding:20px;
@@ -270,20 +324,23 @@ button:hover{
 
   background:#333;
   border-radius:999px;
+
   overflow:hidden;
 }
 
 /* =========================
-   MOBILE FIXES
+   MOBILE
 ========================= */
 
 @media (max-width: 900px){
+  .grid,
   .songs{
     grid-template-columns:repeat(3, 1fr);
   }
 }
 
 @media (max-width: 600px){
+  .grid,
   .songs{
     grid-template-columns:repeat(2, 1fr);
     gap:8px;
@@ -296,12 +353,16 @@ button:hover{
   button{
     font-size:16px;
   }
+
+  #time{
+    display:none;
+  }
 }
 
 /* =========================
-   EXTRA SAFETY
+   SAFETY
 ========================= */
 
-*{
-  box-sizing:border-box;
+body{
+  overflow-x:hidden;
 }
