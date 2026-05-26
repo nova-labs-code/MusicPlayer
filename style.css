@@ -204,6 +204,8 @@ button:active{
   display:flex;
 
   flex-direction:column;
+
+  height:100%;
 }
 
 .card:hover{
@@ -233,29 +235,50 @@ button:active{
 }
 
 /* =========================
-   CARD TEXT
+   TEXT AREA
 ========================= */
 
 .card div{
+
+  display:flex;
+
+  flex-direction:column;
+
+  flex:1;
 
   padding:
     12px
     14px
     14px;
 
+  min-height:78px;
+
+  width:100%;
+}
+
+/* =========================
+   SONG TITLE
+========================= */
+
+.card .title{
+
   font-size:14px;
 
   font-weight:600;
+
+  line-height:1.35;
 
   word-break:break-word;
 
   overflow-wrap:anywhere;
 
-  line-height:1.35;
+  display:-webkit-box;
 
-  text-align:left;
+  -webkit-line-clamp:2;
 
-  width:100%;
+  -webkit-box-orient:vertical;
+
+  overflow:hidden;
 }
 
 /* =========================
@@ -264,9 +287,9 @@ button:active{
 
 .card small{
 
-  display:block;
+  margin-top:auto;
 
-  margin-top:5px;
+  padding-top:8px;
 
   opacity:0.65;
 
@@ -274,13 +297,13 @@ button:active{
 
   font-weight:500;
 
-  line-height:1.35;
+  line-height:1.3;
 
-  overflow-wrap:anywhere;
+  overflow:hidden;
 
-  white-space:normal;
+  text-overflow:ellipsis;
 
-  padding-right:2px;
+  white-space:nowrap;
 }
 
 /* =========================
@@ -312,7 +335,7 @@ button:active{
     padding:9px 12px;
   }
 
-  .card div{
+  .card .title{
     font-size:13px;
   }
 }
@@ -341,6 +364,10 @@ button:active{
       12px
       14px;
 
+    min-height:72px;
+  }
+
+  .card .title{
     font-size:12px;
   }
 
