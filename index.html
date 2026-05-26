@@ -1,91 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>MusicPlayer</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
 
-<!-- ================= NAV ================= -->
-<div id="nav">
-  <button onclick="goHome()">🏠 Home</button>
-  <button id="backBtn" onclick="goBack()">🎤 Artists</button>
+<h1 id="title">🎧 MusicPlayer</h1>
+
+<div id="searchBox">
+  <input id="searchInput" placeholder="Search artists or songs...">
 </div>
 
-<!-- ================= TITLE ================= -->
-<h1 id="title">Artists</h1>
+<div id="categories">
+  <button class="cat active" data-type="artists">Artists</button>
+  <button class="cat" data-type="music">Music</button>
+</div>
 
-<!-- ================= SEARCH ================= -->
-<input id="songSearch" placeholder="Search songs..." style="display:none;" />
-
-<!-- ================= ARTIST GRID ================= -->
 <div id="grid" class="grid"></div>
+<div id="results" class="grid"></div>
 
-<!-- ================= SONG GRID ================= -->
-<div id="songs" class="songs"></div>
-
-<!-- ================= PLAYER ================= -->
-<div class="player" id="player">
-
-  <!-- MINI PLAYER -->
-  <div class="ui">
-
-    <img id="cover">
-
-    <div style="flex:1">
-      <div id="now">Not Playing</div>
-
-      <div class="progress-container" id="barMini">
-        <div class="progress" id="progMini"></div>
-      </div>
-    </div>
-
-    <button onclick="prevSong()">⏮</button>
-    <button onclick="togglePlay()">⏯</button>
-    <button onclick="nextSong()">⏭</button>
-
-    <button id="shuffleBtn">🔀</button>
-    <button id="loopBtn">🔁</button>
-
-    <button onclick="toggleFullscreen()">⛶</button>
-
-    <div class="time" id="time">0:00</div>
-
-  </div>
-
-  <!-- FULLSCREEN PLAYER -->
-  <div class="fullscreen-ui">
-
-    <img id="coverBig">
-
-    <div id="songTitle"></div>
-    <div id="artistName"></div>
-
-    <div id="loopState"></div>
-
-    <div class="controls">
-      <button onclick="prevSong()">⏮</button>
-      <button onclick="togglePlay()">⏯</button>
-      <button onclick="nextSong()">⏭</button>
-
-      <button id="shuffleBtnFS">🔀</button>
-      <button id="loopBtnFS">🔁</button>
-
-      <button onclick="toggleFullscreen()">⛶</button>
-    </div>
-
-    <div class="full-progress" id="barFull">
-      <div class="progress" id="progFull"></div>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- ================= SCRIPT ================= -->
-<script src="main.js"></script>
+<script src="./main.js"></script>
 
 </body>
 </html>
