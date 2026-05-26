@@ -1,225 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-
-<meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="
-    width=device-width,
-    initial-scale=1.0,
-    maximum-scale=1.0
-  "
-/>
-
 <title>MusicPlayer</title>
-
-<link
-  rel="stylesheet"
-  href="style.css"
-/>
-
-<meta
-  name="theme-color"
-  content="#111111"
-/>
-
-<link
-  rel="preconnect"
-  href="https://fonts.googleapis.com"
-/>
-
-<link
-  rel="preconnect"
-  href="https://fonts.gstatic.com"
-  crossorigin
-/>
-
-<link
-  href="
-    https://fonts.googleapis.com/css2?
-    family=Inter:wght@400;500;600;700;800&
-    display=swap
-  "
-  rel="stylesheet"
-/>
-
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- =========================
-     NAV
-========================= -->
+<div id="nav">
+  <button onclick="goHome()">🏠 Home</button>
+  <button id="backBtn" onclick="goBack()">🎤 Artists</button>
+</div>
 
-<nav id="nav">
-
-  <button
-    onclick="goHome()"
-  >
-    🏠 Home
-  </button>
-
-  <button
-    id="backBtn"
-    onclick="goBack()"
-  >
-    🎤 Artists
-  </button>
-
-</nav>
-
-<!-- =========================
-     TITLE
-========================= -->
-
-<h1 id="title">
-  Artists
-</h1>
-
-<!-- =========================
-     SEARCH
-========================= -->
-
-<input
-  id="songSearch"
-  type="text"
-  placeholder="Search songs..."
-  autocomplete="off"
-/>
-
-<!-- =========================
-     GRID
-========================= -->
+<h1 id="title">Artists</h1>
 
 <div id="grid" class="grid"></div>
 
-<div id="songs" class="songs"></div>
+<input id="songSearch" placeholder="Search songs..." style="display:none;" />
 
-<!-- =========================
-     PLAYER
-========================= -->
+<div id="songs" class="songs"></div>
 
 <div class="player" id="player">
 
-  <!-- MINI PLAYER -->
-
+  <!-- MINI -->
   <div class="ui">
 
-    <img
-      id="cover"
-      alt="Cover"
-      draggable="false"
-    >
+    <img id="cover">
 
-    <div class="song-info">
+    <div style="flex:1">
+      <div id="now">Not Playing</div>
 
-      <div id="now">
-        Not Playing
+      <div class="progress-container" id="barMini">
+        <div class="progress" id="progMini"></div>
       </div>
-
-      <div
-        class="progress-container"
-        id="barMini"
-      >
-        <div
-          class="progress"
-          id="progMini"
-        ></div>
-      </div>
-
     </div>
 
     <button onclick="prevSong()">⏮</button>
-
-    <button onclick="togglePlay()">▶</button>
-
+    <button onclick="togglePlay()">⏯</button>
     <button onclick="nextSong()">⏭</button>
 
-    <button
-      onclick="toggleShuffle()"
-      id="shuffleBtn"
-    >
-      🔀
-    </button>
+    <button onclick="toggleShuffle()" id="shuffleBtn">🔀</button>
+    <button onclick="toggleLoop()" id="loopBtn">🔁</button>
 
-    <button
-      onclick="toggleLoop()"
-      id="loopBtn"
-    >
-      🔁
-    </button>
+    <button onclick="toggleFullscreen()">⛶</button>
 
-    <button onclick="toggleFullscreen()">
-      ⛶
-    </button>
-
-    <div class="time" id="time">
-      0:00
-    </div>
+    <div class="time" id="time">0:00</div>
 
   </div>
 
-  <!-- FULLSCREEN PLAYER -->
-
+  <!-- FULLSCREEN -->
   <div class="fullscreen-ui">
 
-    <img
-      id="coverBig"
-      alt="Cover Large"
-      draggable="false"
-    >
+    <img id="coverBig">
 
-    <div id="songTitle">
-      Not Playing
-    </div>
+    <div id="songTitle"></div>
+    <div id="artistName"></div>
 
-    <div id="artistName">
-      Artist
-    </div>
-
-    <div id="loopState">
-      Loop: Off
-    </div>
+    <div id="loopState"></div>
 
     <div class="controls">
-
       <button onclick="prevSong()">⏮</button>
-
-      <button onclick="togglePlay()">▶</button>
-
+      <button onclick="togglePlay()">⏯</button>
       <button onclick="nextSong()">⏭</button>
 
-      <button
-        onclick="toggleShuffle()"
-        id="shuffleBtnFS"
-      >
-        🔀
-      </button>
+      <button onclick="toggleShuffle()" id="shuffleBtnFS">🔀</button>
+      <button onclick="toggleLoop()" id="loopBtnFS">🔁</button>
 
-      <button
-        onclick="toggleLoop()"
-        id="loopBtnFS"
-      >
-        🔁
-      </button>
-
-      <button onclick="toggleFullscreen()">
-        ⛶
-      </button>
-
+      <button onclick="toggleFullscreen()">⛶</button>
     </div>
 
-    <div
-      class="full-progress"
-      id="barFull"
-    >
-      <div
-        class="progress"
-        id="progFull"
-      ></div>
+    <div class="full-progress" id="barFull">
+      <div class="progress" id="progFull"></div>
     </div>
 
   </div>
@@ -227,6 +78,5 @@
 </div>
 
 <script src="main.js"></script>
-
 </body>
 </html>
