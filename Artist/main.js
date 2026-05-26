@@ -50,7 +50,7 @@ const loopState = document.getElementById("loopState");
 const backBtn = document.getElementById("backBtn");
 
 /* =========================
-   URL FIX
+   URL FIX (+ → %20 LIVE)
 ========================= */
 
 function cleanURL(){
@@ -59,11 +59,12 @@ function cleanURL(){
     history.replaceState({}, "", fixed);
   }
 }
+
 setInterval(cleanURL, 1000);
 cleanURL();
 
 /* =========================
-   HELPERS
+   SONG NUMBER EXTRACTOR
 ========================= */
 
 function getSongNumber(song){
@@ -71,6 +72,10 @@ function getSongNumber(song){
   const match = song.file.match(/\d+/);
   return match ? parseInt(match[0]) : null;
 }
+
+/* =========================
+   URL HELPERS
+========================= */
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name);
@@ -82,6 +87,14 @@ function setURL(obj){
   history.pushState({}, "", url.toString());
 }
 
+/* =========================
+   NAV
+========================= */
+
+function goHome(){
+  location.href = "https://nova-labs-code.github.io/MusicPlayer";
+}
+
 function goBack(){
   location.href = "?";
 }
@@ -91,21 +104,22 @@ function goBack(){
 ========================= */
 
 function setPageTitle(text){
-  const t = document.getElementById("title");
-  if(t) t.innerText = text;
+  document.getElementById("title").innerText = text;
   document.title = text + " - MusicPlayer";
 }
 
 /* =========================
-   SHUFFLE
+   SHUFFLE ARRAY
 ========================= */
 
 function shuffleArray(arr){
   const a = [...arr];
+
   for(let i = a.length - 1; i > 0; i--){
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
+
   return a;
 }
 
@@ -154,7 +168,9 @@ function loadArtist(name, skipURL=false, autoSong=null){
       renderSongs(allSongs);
 
       if(autoSong !== null){
-        const target = allSongs.find(s => getSongNumber(s) === autoSong);
+        const target = allSongs.find(s =>
+          getSongNumber(s) === autoSong
+        );
 
         if(target){
           setTimeout(() => {
@@ -202,7 +218,7 @@ function playSong(l,i,a){
   index = i;
   artist = a;
 
-  const s = list.find(x => x._id === i) || list[i];
+  const s = list.find(x=>x._id===i)||list[i];
   if(!s) return;
 
   const songNumber = getSongNumber(s);
@@ -253,15 +269,19 @@ function updateHighlights(){
   });
 
   const current = visibleSongs[index];
-  if(current) current.classList.add("active");
+  if(current){
+    current.classList.add("active");
+  }
 
   visibleSongs.forEach((el, i) => {
-    if(i > index) el.classList.add("queue");
+    if(i > index){
+      el.classList.add("queue");
+    }
   });
 }
 
 /* =========================
-   CONTROLS
+   CONTROLS (FIXED)
 ========================= */
 
 function togglePlay(){
@@ -298,7 +318,7 @@ function prevSong(){
 }
 
 /* =========================
-   TOGGLES
+   TOGGLES (FIXED)
 ========================= */
 
 function toggleShuffle(){
@@ -308,9 +328,15 @@ function toggleShuffle(){
 
 function toggleLoop(){
 
-  if(loopMode === "none") loopMode = "queue";
-  else if(loopMode === "queue") loopMode = "song";
-  else loopMode = "none";
+  if(loopMode === "none"){
+    loopMode = "queue";
+  }
+  else if(loopMode === "queue"){
+    loopMode = "song";
+  }
+  else {
+    loopMode = "none";
+  }
 
   updateButtons();
 }
@@ -360,7 +386,7 @@ barFull.onclick = e => {
 };
 
 /* =========================
-   BUTTONS
+   UI BUTTONS
 ========================= */
 
 function updateButtons(){
@@ -378,6 +404,10 @@ function updateButtons(){
     loopMode === "song" ? "Loop: Song" :
     "Loop: Queue";
 
+  /* =========================
+     LOOP HOVER TEXT
+  ========================= */
+
   const hoverText =
     loopMode === "none"
       ? "Loop is off"
@@ -385,31 +415,40 @@ function updateButtons(){
         ? "Repeats current song"
         : "Loops full queue";
 
-  if(loopBtn){
+  if (loopBtn) {
     loopBtn.title = hoverText;
     loopBtn.dataset.hover = hoverText;
   }
 
-  if(loopBtnFS){
+  if (loopBtnFS) {
     loopBtnFS.title = hoverText;
     loopBtnFS.dataset.hover = hoverText;
   }
 }
 
 /* =========================
-   LIVE HOVER FIX
+   FULLSCREEN
 ========================= */
 
-function enableLiveHover(el){
-  if(!el) return;
+function toggleFullscreen(){
 
-  el.addEventListener("mouseenter", () => {
-    el.setAttribute("title", el.dataset.hover || el.title);
-  });
+  if(!player) return;
+
+  if(!document.fullscreenElement){
+    player.classList.add("fullscreen");
+    document.documentElement.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
 }
 
-enableLiveHover(loopBtn);
-enableLiveHover(loopBtnFS);
+window.toggleFullscreen = toggleFullscreen;
+
+document.addEventListener("fullscreenchange", () => {
+  if(!document.fullscreenElement){
+    player.classList.remove("fullscreen");
+  }
+});
 
 /* =========================
    MEDIA SESSION
@@ -421,7 +460,7 @@ function updateMediaSession(song){
 
   navigator.mediaSession.metadata = new MediaMetadata({
     title: song.title,
-    artist,
+    artist: artist,
     album: artist,
     artwork: [{
       src: `./${artist}/${song.image}`,
