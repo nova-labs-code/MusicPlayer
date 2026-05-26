@@ -1,107 +1,80 @@
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
+body{
+  margin:0;
+  font-family:Inter, Arial;
+  background:#0b0b0b;
+  color:white;
+}
+
+/* NAV */
+#homeNav{
+  display:flex;
+  gap:10px;
+  padding:12px;
+  position:sticky;
+  top:0;
+  background:#111;
+}
+
+.tab{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:#222;
+  color:white;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.tab.active{
+  background:white;
+  color:black;
 }
 
 /* TITLE */
-#title {
-  font-size: 18px;
-  padding: 10px 12px;
-  margin: 0;
+#homeTitle{
+  margin:0;
+  padding:16px;
 }
 
 /* SEARCH */
-#searchBox {
-  padding: 0 12px 6px;
+#homeSearch{
+  width:90%;
+  margin:10px auto;
+  display:block;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  background:#1a1a1a;
+  color:white;
 }
 
-#searchInput {
-  width: 100%;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-  background: #1c1c1c;
-  color: white;
-  font-size: 13px;
-  outline: none;
+/* GRID */
+.view{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+  padding:12px;
 }
 
-/* CATEGORIES */
-#categories {
-  display: flex;
-  gap: 6px;
-  padding: 0 12px 8px;
+.hidden{
+  display:none;
 }
 
-.cat {
-  background: #1c1c1c;
-  border: none;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 11px;
+/* CARDS */
+.card, .song{
+  background:#1a1a1a;
+  border-radius:16px;
+  overflow:hidden;
+  cursor:pointer;
 }
 
-.cat.active {
-  background: white;
-  color: black;
+.card img, .song img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
 }
 
-/* 🔥 FIXED 5-COLUMN GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* ALWAYS 5 */
-  gap: 8px;
-  padding: 10px;
-}
-
-/* CARD */
-.card {
-  background: #1c1c1c;
-  border-radius: 10px;
-  padding: 6px;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.15s;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.card:hover {
-  transform: scale(1.03);
-  background: #242424;
-}
-
-/* IMAGE */
-.card img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
-}
-
-/* TEXT */
-.card div {
-  margin-top: 5px;
-  font-size: 11px;
-}
-
-.card small {
-  font-size: 10px;
-  opacity: 0.6;
-}
-
-/* 📱 MOBILE: still 5 columns, just tighter spacing */
-@media (max-width: 700px) {
-  .grid {
-    gap: 6px;
-    padding: 8px;
-  }
-
-  .card {
-    padding: 5px;
-  }
+.card div, .song div{
+  padding:10px;
+  font-weight:600;
 }
