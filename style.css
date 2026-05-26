@@ -1,48 +1,89 @@
+/* =========================
+   BASE SYSTEM (MOBILE FLUID)
+========================= */
+
+:root {
+  --player-height: clamp(80px, 10vh, 110px);
+}
+
+html {
+  font-size: 16px;
+}
+
 body {
   margin: 0;
   font-family: Arial;
   background: #0f0f0f;
   color: white;
+
+  /* space for fixed player if needed */
+  padding-bottom: calc(var(--player-height) + 20px);
+
+  overflow-x: hidden;
 }
 
-/* TITLE */
+/* =========================
+   TITLE
+========================= */
+
 #title {
-  font-size: 18px;
-  padding: 10px 12px;
+  font-size: clamp(18px, 2vw, 24px);
+  padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 18px);
   margin: 0;
+  font-weight: 700;
 }
 
-/* SEARCH */
+/* =========================
+   SEARCH
+========================= */
+
 #searchBox {
-  padding: 0 12px 6px;
+  padding: 0 clamp(12px, 2vw, 16px) clamp(6px, 1vw, 10px);
 }
 
 #searchInput {
   width: 100%;
-  padding: 8px;
+  padding: clamp(8px, 1.2vw, 10px);
   border-radius: 10px;
   border: none;
   background: #1c1c1c;
   color: white;
   font-size: 13px;
   outline: none;
+  transition: 0.2s ease;
 }
 
-/* CATEGORIES */
+#searchInput:focus {
+  background: #222;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+}
+
+/* =========================
+   CATEGORIES
+========================= */
+
 #categories {
   display: flex;
-  gap: 6px;
-  padding: 0 12px 8px;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1vw, 10px);
+  padding: 0 clamp(12px, 2vw, 16px) clamp(8px, 1vw, 12px);
 }
 
 .cat {
   background: #1c1c1c;
   border: none;
   color: white;
-  padding: 5px 10px;
+
+  padding: clamp(5px, 1vw, 8px) clamp(10px, 1.2vw, 14px);
   border-radius: 999px;
   cursor: pointer;
-  font-size: 11px;
+
+  font-size: clamp(10px, 1.2vw, 12px);
+  transition: 0.2s ease;
+}
+
+.cat:hover {
+  transform: scale(1.05);
 }
 
 .cat.active {
@@ -50,29 +91,45 @@ body {
   color: black;
 }
 
-/* 🔥 FIXED 5-COLUMN GRID */
+/* =========================
+   GRID (5 COLUMN, FLUID)
+========================= */
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* ALWAYS 5 */
-  gap: 8px;
-  padding: 10px;
+
+  /* keeps 5 columns but allows scaling */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: clamp(6px, 1vw, 10px);
+
+  padding: clamp(8px, 2vw, 14px);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* CARD */
+/* =========================
+   CARD
+========================= */
+
 .card {
   background: #1c1c1c;
-  border-radius: 10px;
-  padding: 6px;
+  border-radius: clamp(8px, 1vw, 12px);
+
+  padding: clamp(5px, 1vw, 8px);
   text-align: center;
+
   cursor: pointer;
-  transition: 0.15s;
-  width: 100%;
+  transition: 0.2s ease;
   box-sizing: border-box;
+
+  width: 100%;
 }
 
 .card:hover {
-  transform: scale(1.03);
+  transform: scale(1.04);
   background: #242424;
+  z-index: 2;
 }
 
 /* IMAGE */
@@ -81,20 +138,24 @@ body {
   height: auto;
   display: block;
   border-radius: 8px;
+  object-fit: cover;
 }
 
 /* TEXT */
 .card div {
-  margin-top: 5px;
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: clamp(10px, 1.1vw, 12px);
 }
 
 .card small {
-  font-size: 10px;
+  font-size: clamp(9px, 1vw, 11px);
   opacity: 0.6;
 }
 
-/* 📱 MOBILE: still 5 columns, just tighter spacing */
+/* =========================
+   MOBILE TUNING
+========================= */
+
 @media (max-width: 700px) {
   .grid {
     gap: 6px;
@@ -103,5 +164,16 @@ body {
 
   .card {
     padding: 5px;
+  }
+}
+
+@media (max-width: 420px) {
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .card div {
+    font-size: 9px;
   }
 }
