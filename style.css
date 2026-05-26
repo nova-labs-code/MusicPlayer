@@ -1,5 +1,5 @@
 /* =========================
-   BASE SYSTEM (FLUID)
+   BASE SYSTEM
 ========================= */
 
 :root {
@@ -68,7 +68,7 @@ body {
 }
 
 /* =========================
-   BUTTON SYSTEM (CLEAN UI)
+   BUTTON SYSTEM
 ========================= */
 
 button {
@@ -138,14 +138,15 @@ button {
 }
 
 /* =========================
-   GRID (FLUID SYSTEM 🔥)
+   🔥 FLUID GRID (DEVICE ADAPTIVE)
 ========================= */
 
 .grid {
   display: grid;
 
-  /* fluid multi-column system (adapts like your player CSS style) */
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* CORE MAGIC:
+     automatically fits cards based on available width */
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 
   gap: clamp(8px, 1vw, 12px);
 
@@ -195,24 +196,28 @@ button {
 }
 
 /* =========================
-   MOBILE TWEAKS
+   RESPONSIVE TUNING (FINE CONTROL)
 ========================= */
 
-@media (max-width: 700px) {
+/* tablet */
+@media (max-width: 900px) {
   .grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .card {
-    padding: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   }
 }
 
+/* small tablet / large phone */
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+  }
+}
+
+/* tiny phones */
 @media (max-width: 420px) {
   .grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
     gap: 6px;
   }
 }
