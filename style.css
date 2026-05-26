@@ -293,6 +293,8 @@ button:active{
 
   padding-left:8px;
 
+  transform:translateY(-4px);
+
   opacity:0.65;
 
   font-size:12px;
