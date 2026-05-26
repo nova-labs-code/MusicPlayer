@@ -1,223 +1,318 @@
+:root{
+  --player-height:92px;
+}
+
 /* =========================
-   BASE SYSTEM
+   RESET + BASE
 ========================= */
 
-:root {
-  --player-height: clamp(80px, 10vh, 110px);
+*{
+  box-sizing:border-box;
 }
 
-html {
-  font-size: 16px;
+html{
+  font-size:16px;
+  -webkit-text-size-adjust:100%;
 }
 
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f0f0f;
-  color: white;
+body{
 
-  padding-bottom: calc(var(--player-height) + 20px);
-  overflow-x: hidden;
+  margin:0;
+
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
+
+  background:#0b0b0b;
+
+  color:#fff;
+
+  overflow-x:hidden;
+
+  padding-bottom:
+    calc(var(--player-height) + 24px);
+
+  -webkit-tap-highlight-color:
+    transparent;
 }
 
 /* =========================
    TITLE
 ========================= */
 
-#title {
-  font-size: clamp(18px, 2.2vw, 28px);
-  padding: clamp(10px, 2vw, 16px) clamp(12px, 2vw, 20px);
-  margin: 0;
-  font-weight: 700;
+#title{
+
+  margin:0;
+
+  padding:
+    18px
+    16px
+    10px;
+
+  font-size:28px;
+
+  font-weight:800;
+
+  letter-spacing:0.3px;
 }
 
 /* =========================
    SEARCH
 ========================= */
 
-#searchBox {
-  padding: 0 clamp(12px, 2vw, 18px) clamp(6px, 1vw, 12px);
+#searchBox{
+  padding:0 14px;
 }
 
-#searchInput {
-  width: 100%;
-  padding: clamp(8px, 1.2vw, 10px);
-  border-radius: 10px;
-  border: none;
-  background: #1c1c1c;
-  color: white;
-  font-size: 13px;
-  outline: none;
-  transition: 0.2s ease;
+#searchInput{
+
+  width:min(92vw,520px);
+
+  display:block;
+
+  margin:8px auto 0;
+
+  padding:14px 16px;
+
+  border-radius:16px;
+
+  border:none;
+
+  outline:none;
+
+  background:#1a1a1a;
+
+  color:white;
+
+  font-size:16px;
+
+  transition:0.2s ease;
 }
 
-#searchInput:focus {
-  background: #222;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+#searchInput:focus{
+  background:#232323;
+  box-shadow:0 0 0 2px rgba(255,255,255,0.12);
 }
 
 /* =========================
    CATEGORIES
 ========================= */
 
-#categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(6px, 1vw, 10px);
-  padding: 0 clamp(12px, 2vw, 18px) clamp(8px, 1vw, 14px);
+#categories{
+
+  display:flex;
+
+  gap:10px;
+
+  flex-wrap:wrap;
+
+  padding:14px;
 }
 
 /* =========================
-   BUTTON SYSTEM
+   BUTTONS
 ========================= */
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  outline: none;
+button{
 
-  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+  border:none;
+
+  background:#222;
+
+  color:white;
+
+  min-height:40px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+
+  font-size:14px;
+
+  transition:0.18s ease;
 }
 
-/* NAV BUTTONS */
-#nav button {
-  background: linear-gradient(180deg, #222, #171717);
-  color: white;
-
-  padding: clamp(7px, 1vw, 10px) clamp(12px, 1.4vw, 16px);
-  font-size: clamp(12px, 1vw, 14px);
-
-  border-radius: 12px;
-
-  box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+button:active{
+  transform:scale(0.92);
 }
 
-#nav button:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+/* CATEGORY BUTTONS */
+
+.cat{
+
+  padding:
+    10px
+    14px;
+
+  background:#1d1d1d;
+
+  color:#d9d9d9;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.06);
 }
 
-#nav button:active {
-  transform: translateY(0px) scale(0.98);
+.cat:hover{
+  background:#252525;
 }
 
-/* CATEGORY CHIPS */
-.cat {
-  background: #1c1c1c;
-  color: #d0d0d0;
-
-  border: 1px solid rgba(255, 255, 255, 0.06);
-
-  padding: clamp(6px, 1vw, 9px) clamp(12px, 1.2vw, 16px);
-  border-radius: 999px;
-
-  font-size: clamp(10px, 1.2vw, 12px);
-
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-.cat:hover {
-  transform: translateY(-2px);
-  background: #242424;
-}
-
-.cat:active {
-  transform: scale(0.96);
-}
-
-.cat.active {
-  background: white;
-  color: black;
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
-  border: none;
+.cat.active{
+  background:#fff;
+  color:#000;
 }
 
 /* =========================
-   🔥 FLUID GRID (DEVICE ADAPTIVE)
+   GRID
 ========================= */
 
-.grid {
-  display: grid;
+.grid{
 
-  /* CORE MAGIC:
-     automatically fits cards based on available width */
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display:grid;
 
-  gap: clamp(8px, 1vw, 12px);
+  grid-template-columns:
+    repeat(auto-fill,minmax(160px,1fr));
 
-  padding: clamp(10px, 2vw, 18px);
-  max-width: 1200px;
-  margin: 0 auto;
+  gap:12px;
+
+  padding:14px;
+
+  max-width:1400px;
+
+  margin:0 auto;
 }
 
 /* =========================
    CARD
 ========================= */
 
-.card {
-  background: #1c1c1c;
-  border-radius: clamp(8px, 1vw, 12px);
+.card{
 
-  padding: clamp(5px, 1vw, 10px);
-  text-align: center;
+  background:#171717;
 
-  cursor: pointer;
-  transition: 0.2s ease;
-  box-sizing: border-box;
-  width: 100%;
+  border-radius:18px;
+
+  overflow:hidden;
+
+  cursor:pointer;
+
+  transition:0.2s ease;
+
+  position:relative;
 }
 
-.card:hover {
-  transform: scale(1.04);
-  background: #242424;
-  z-index: 2;
+.card:hover{
+  transform:translateY(-3px) scale(1.02);
+  background:#202020;
 }
 
-.card img {
-  width: 100%;
-  display: block;
-  border-radius: 8px;
-  object-fit: cover;
+.card:active{
+  transform:scale(0.97);
 }
 
-.card div {
-  margin-top: 6px;
-  font-size: clamp(10px, 1.1vw, 12px);
+/* IMAGE */
+
+.card img{
+
+  width:100%;
+
+  aspect-ratio:1/1;
+
+  object-fit:cover;
+
+  display:block;
 }
 
-.card small {
-  font-size: clamp(9px, 1vw, 11px);
-  opacity: 0.6;
+/* TEXT */
+
+.card div{
+
+  padding:12px;
+
+  font-size:14px;
+
+  font-weight:600;
+
+  word-break:break-word;
+}
+
+.card small{
+
+  display:block;
+
+  margin-top:4px;
+
+  opacity:0.65;
+
+  font-size:12px;
+
+  font-weight:500;
 }
 
 /* =========================
-   RESPONSIVE TUNING (FINE CONTROL)
+   MOBILE
 ========================= */
 
-/* tablet */
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+@media (max-width:700px){
+
+  .grid{
+
+    grid-template-columns:
+      repeat(2,1fr);
+
+    gap:10px;
+
+    padding:10px;
+  }
+
+  #title{
+    font-size:24px;
+  }
+
+  button{
+    min-height:36px;
+    font-size:13px;
+  }
+
+  .cat{
+    padding:9px 12px;
+  }
+
+  .card div{
+    font-size:13px;
   }
 }
 
-/* small tablet / large phone */
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 8px;
-  }
-}
+/* =========================
+   SMALL PHONES
+========================= */
 
-/* tiny phones */
-@media (max-width: 420px) {
-  .grid {
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-    gap: 6px;
+@media (max-width:420px){
+
+  .grid{
+    gap:8px;
+  }
+
+  #title{
+    font-size:22px;
+  }
+
+  .card{
+    border-radius:16px;
+  }
+
+  .card div{
+    padding:10px;
+    font-size:12px;
+  }
+
+  .card small{
+    font-size:11px;
+  }
+
+  #categories{
+    gap:8px;
+    padding:10px;
   }
 }
