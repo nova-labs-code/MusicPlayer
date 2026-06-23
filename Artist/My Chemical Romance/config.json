@@ -43,12 +43,27 @@
     },
       {
       "file": "song8.mp3",
-      "title": "Blood - Hidden Track",
+      "title": "Blood",
       "image": "pfp.png"
     },
       {
       "file": "song9.mp3",
       "title": "Heaven Help Us",
+      "image": "pfp.png"
+    },
+    {
+      "file": "song10.mp3",
+      "title": "Helena - Live",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song11.mp3",
+      "title": "Helena",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song12.mp3",
+      "title": "Drowning Lessons",
       "image": "pfp.png"
     }
   ]
