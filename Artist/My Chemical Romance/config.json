@@ -33,7 +33,22 @@
     },
       {
       "file": "song6.mp3",
+      "title": "Headfirst for Halos - Live",
+      "image": "pfp.png"
+    },
+    {
+      "file": "song7.mp3",
       "title": "Headfirst for Halos",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song8.mp3",
+      "title": "Blood - Hidden Track",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song9.mp3",
+      "title": "Heaven Help Us",
       "image": "pfp.png"
     }
   ]
