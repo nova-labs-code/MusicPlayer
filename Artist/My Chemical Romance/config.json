@@ -6,6 +6,20 @@
     "accent": "#FA7D7D"
   },
   "songs": [
-
+  {
+      "file": "song1.mp3",
+      "title": "Astro Zombies",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song2.mp3",
+      "title": "Goodnite, Dr. Death",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song3.mp3",
+      "title": "Gun.",
+      "image": "pfp.png"
+    }
   ]
 }
