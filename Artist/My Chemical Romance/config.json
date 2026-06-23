@@ -20,6 +20,21 @@
       "file": "song3.mp3",
       "title": "Gun.",
       "image": "pfp.png"
+    },
+    {
+      "file": "song4.mp3",
+      "title": "Common People",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song5.mp3",
+      "title": "Hang 'Em High",
+      "image": "pfp.png"
+    },
+      {
+      "file": "song6.mp3",
+      "title": "Headfirst for Halos",
+      "image": "pfp.png"
     }
   ]
 }
