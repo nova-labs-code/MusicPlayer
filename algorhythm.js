@@ -17,7 +17,7 @@
     let canvas = null;
     let ctx = null;
 
-    // Listen for fullscreen changes to inject or remove the canvas dynamically
+    // Listen for fullscreen changes
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
 
@@ -26,13 +26,14 @@
         const fullscreenUI = document.querySelector('.fullscreen-ui');
 
         if (isFullscreen && fullscreenUI) {
-            // Inject Canvas if it doesn't already exist in fullscreen view
-            if (!document.getElementById("algoCanvas")) {
+            // Safely locate or create the canvas element with full-screen width styling
+            canvas = document.getElementById("algoCanvas");
+            if (!canvas) {
                 canvas = document.createElement("canvas");
                 canvas.id = "algoCanvas";
-                canvas.style.cssText = "width: min(85vw, 400px); height: 90px; border-radius: 12px; background: rgba(0, 0, 0, 0.3); margin: 10px 0;";
+                // Adjusted styles to take up full width under the text/image
+                canvas.style.cssText = "width: 90vw; max-width: 750px; height: 120px; border-radius: 16px; background: rgba(0, 0, 0, 0.4); margin: 12px 0; display: block;";
                 
-                // Insert canvas right below the artist name / metadata
                 const artistNameEl = document.getElementById("artistName");
                 if (artistNameEl && artistNameEl.parentNode) {
                     artistNameEl.parentNode.insertBefore(canvas, artistNameEl.nextSibling);
@@ -44,7 +45,6 @@
             ctx = canvas.getContext("2d");
             startVisualizer();
         } else {
-            // Remove Canvas and stop rendering loop when leaving fullscreen
             stopVisualizer();
             if (canvas && canvas.parentNode) {
                 canvas.parentNode.removeChild(canvas);
@@ -54,18 +54,18 @@
     }
 
     function startVisualizer() {
-        if (!window.audio && !document.querySelector("audio")) return;
         const audioElement = window.audio || document.querySelector("audio");
+        if (!audioElement) return;
 
         if (!audioCtx) {
             try {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 audioCtx = new AudioContextClass();
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 64;
+                analyser.fftSize = 128; // Increased for a denser, wider bar display
                 analyser.smoothingTimeConstant = ALGO_CONFIG.smoothing;
 
-                if (audioElement && !sourceConnected) {
+                if (!sourceConnected) {
                     const source = audioCtx.createMediaElementSource(audioElement);
                     source.connect(analyser);
                     analyser.connect(audioCtx.destination);
@@ -95,7 +95,7 @@
     }
 
     function render() {
-        if (!canvas || !analyser) return;
+        if (!canvas || !ctx || !analyser) return;
 
         animationId = requestAnimationFrame(render);
 
@@ -110,7 +110,7 @@
         analyser.getByteFrequencyData(dataArray);
 
         const bufferLength = analyser.frequencyBinCount;
-        const barWidth = (width / bufferLength) * 2.5;
+        const barWidth = (width / bufferLength) * 1.8;
         let x = 0;
 
         for (let i = 0; i < bufferLength; i++) {
@@ -122,7 +122,7 @@
             gradient.addColorStop(1, ALGO_CONFIG.palette[2]);
 
             ctx.fillStyle = gradient;
-            ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+            ctx.fillRect(x, height - barHeight, barWidth - 1.5, barHeight);
 
             x += barWidth + 1;
         }
