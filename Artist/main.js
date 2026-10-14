@@ -15,6 +15,83 @@ let shuffle = false;
 let loopMode = "none";
 
 /* =========================
+   ALGORHYTHM VISUALIZER STATE
+========================= */
+
+let audioCtx = null;
+let analyser = null;
+let dataArray = null;
+let sourceConnected = false;
+
+function initVisualizer() {
+  if (!audioCtx) {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.75; // Fixed smoothing config
+
+      const source = audioCtx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      sourceConnected = true;
+    } catch (e) {
+      console.error("Web Audio API error:", e);
+    }
+  }
+
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  if (!dataArray && analyser) {
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+  }
+
+  renderBars();
+}
+
+function renderBars() {
+  requestAnimationFrame(renderBars);
+
+  const canvas = document.getElementById("algoCanvas");
+  if (!canvas || !analyser) return;
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = canvas.clientWidth * window.devicePixelRatio;
+  canvas.height = canvas.clientHeight * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+
+  ctx.clearRect(0, 0, width, height);
+
+  analyser.getByteFrequencyData(dataArray);
+
+  const bufferLength = analyser.frequencyBinCount;
+  const barWidth = (width / bufferLength) * 2.5;
+  let x = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    // Fixed sensitivity config: 1.1
+    let barHeight = (dataArray[i] / 255) * height * 1.1;
+
+    // Sunset Palette Gradient
+    let gradient = ctx.createLinearGradient(0, height, 0, 0);
+    gradient.addColorStop(0, '#8b5cf6');
+    gradient.addColorStop(0.5, '#ec4899');
+    gradient.addColorStop(1, '#f97316');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+
+    x += barWidth + 1;
+  }
+}
+
+/* =========================
    SMART SHUFFLE
 ========================= */
 
@@ -22,7 +99,6 @@ let shuffleHistory = [];
 
 function getSmartShuffleIndex(){
 
-  // avoid repeating too many recent songs
   const memorySize = Math.min(
     Math.floor(list.length / 2),
     10
@@ -40,8 +116,6 @@ function getSmartShuffleIndex(){
     }
   }
 
-  // if everything got filtered,
-  // slowly forget oldest songs
   if(available.length === 0){
 
     shuffleHistory.shift();
@@ -49,16 +123,13 @@ function getSmartShuffleIndex(){
     return getSmartShuffleIndex();
   }
 
-  // random remaining song
   const next =
     available[
       Math.floor(Math.random() * available.length)
     ];
 
-  // remember recent plays
   shuffleHistory.push(next);
 
-  // keep memory limited
   while(shuffleHistory.length > memorySize){
     shuffleHistory.shift();
   }
@@ -314,7 +385,9 @@ function playSong(l,i,a){
 
   audio.currentTime = 0;
 
-  audio.play().catch(()=>{});
+  audio.play().then(() => {
+    initVisualizer();
+  }).catch(()=>{});
 
   player.style.display = "block";
 
@@ -384,9 +457,11 @@ function updateHighlights(){
 
 function togglePlay(){
 
-  audio.paused
-    ? audio.play()
-    : audio.pause();
+  if (audio.paused) {
+    audio.play().then(() => initVisualizer());
+  } else {
+    audio.pause();
+  }
 }
 
 function nextSong(){
