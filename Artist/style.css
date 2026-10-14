@@ -432,26 +432,18 @@ button.loop-active{
 
 #coverBig{
 
-  width:min(65vw,260px);
+  width:min(78vw,320px);
 
-  height:min(65vw,260px);
+  height:min(78vw,320px);
 
   border-radius:24px;
 
   object-fit:cover;
 }
 
-/* AlgoRhythm Canvas Styles */
-.algo-canvas {
-  width: min(85vw, 400px);
-  height: 90px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.3);
-}
-
 #songTitle{
 
-  font-size:24px;
+  font-size:28px;
 
   font-weight:800;
 
@@ -478,10 +470,10 @@ button.loop-active{
 
 .controls button{
 
-  width:50px;
-  height:50px;
+  width:58px;
+  height:58px;
 
-  font-size:20px;
+  font-size:24px;
 }
 
 .full-progress{
@@ -526,12 +518,12 @@ button.loop-active{
   }
 
   .controls button{
-    width:46px;
-    height:46px;
+    width:52px;
+    height:52px;
   }
 
   #songTitle{
-    font-size:22px;
+    font-size:24px;
   }
 
   .time{
@@ -560,11 +552,11 @@ button.loop-active{
   }
 
   .controls button{
-    width:42px;
-    height:42px;
+    width:48px;
+    height:48px;
   }
 
   #songTitle{
-    font-size:20px;
+    font-size:22px;
   }
 }
